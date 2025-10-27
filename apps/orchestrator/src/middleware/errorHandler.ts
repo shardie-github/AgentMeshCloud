@@ -5,7 +5,6 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '@/utils/logger';
-import { ValidationError } from '@agentmesh/shared';
 import { config } from '@/config';
 
 export interface AppError extends Error {
@@ -103,7 +102,6 @@ export function errorHandler(
     statusCode = 400;
     code = 'VALIDATION_ERROR';
     message = error.message;
-    details = error.details;
   } else if (error.name === 'ValidationError') {
     statusCode = 400;
     code = 'VALIDATION_ERROR';

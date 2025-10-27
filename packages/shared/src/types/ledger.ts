@@ -3,6 +3,8 @@
  * Implements transparent FinOps audits and sustainability monitoring
  */
 
+import type { AnomalyType, AnomalySeverity } from './common';
+
 export interface CognitiveLedger {
   id: string;
   tenantId: string;

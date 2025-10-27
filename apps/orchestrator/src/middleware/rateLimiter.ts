@@ -13,7 +13,6 @@ import { RateLimitError } from './errorHandler';
 const redis = new Redis(config.redis.url, {
   password: config.redis.password,
   db: config.redis.db,
-  retryDelayOnFailover: config.redis.retryDelayOnFailover,
   maxRetriesPerRequest: config.redis.maxRetriesPerRequest,
 });
 
