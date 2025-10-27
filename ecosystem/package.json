@@ -16,7 +16,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@agentmesh/shared": "workspace:*",
+    "@agentmesh/shared": "file:../../packages/shared",
     "@supabase/supabase-js": "^2.38.0",
     "express": "^4.18.2",
     "cors": "^2.8.5",
@@ -41,10 +41,10 @@
     "dotenv": "^16.3.1",
     "pgvector": "^0.1.8",
     "openai": "^4.20.0",
-    "anthropic": "^0.7.0",
+    "@anthropic-ai/sdk": "^0.20.0",
     "@google/generative-ai": "^0.2.0",
-    "cohere-ai": "^8.0.0",
-    "huggingface": "^0.6.0"
+    "cohere-ai": "^7.0.0",
+    "@huggingface/inference": "^2.6.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

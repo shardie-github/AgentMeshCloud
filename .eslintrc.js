@@ -1,11 +1,8 @@
 module.exports = {
   root: true,
   extends: [
-    '@vercel/style-guide/eslint/node',
-    '@vercel/style-guide/eslint/typescript',
-    '@vercel/style-guide/eslint/react',
+    'eslint:recommended',
   ],
-  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2022,
     sourceType: 'module',
@@ -14,12 +11,22 @@ module.exports = {
     },
   },
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    'react/react-in-jsx-scope': 'off',
-    'react/prop-types': 'off',
+    'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    'no-console': 'warn',
+    'no-debugger': 'error',
+    'no-undef': 'off', // TypeScript handles this
+    'no-unreachable': 'error',
+    'no-duplicate-case': 'error',
+    'no-empty': 'warn',
+    'no-extra-semi': 'error',
+    'no-func-assign': 'error',
+    'no-invalid-regexp': 'error',
+    'no-irregular-whitespace': 'error',
+    'no-obj-calls': 'error',
+    'no-sparse-arrays': 'error',
+    'no-unexpected-multiline': 'error',
+    'use-isnan': 'error',
+    'valid-typeof': 'error',
   },
   env: {
     browser: true,

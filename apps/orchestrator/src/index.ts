@@ -68,7 +68,7 @@ class OrchestratorApp {
 
     // CORS configuration
     this.app.use(cors({
-      origin: config.cors.allowedOrigins,
+      origin: config.server.cors.allowedOrigins,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

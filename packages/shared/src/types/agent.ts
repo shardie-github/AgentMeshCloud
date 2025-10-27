@@ -3,6 +3,8 @@
  * Defines the structure and capabilities of AI agents in the system
  */
 
+import type { ValidationRule } from './common';
+
 export interface Agent {
   id: string;
   name: string;

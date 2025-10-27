@@ -3,6 +3,8 @@
  * Implements AI-driven cost analysis and predictive resource balancing
  */
 
+import type { AlertSeverity, AlertStatus } from './common';
+
 export interface FinOpsConfig {
   id: string;
   tenantId: string;
