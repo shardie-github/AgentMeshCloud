@@ -57,14 +57,14 @@ if (config.logging.file.enabled) {
     new winston.transports.File({
       filename: config.logging.file.path,
       level: config.logging.level,
-      maxsize: config.logging.file.maxSize,
-      maxFiles: config.logging.file.maxFiles,
+      maxsize: parseInt(config.logging.file.maxSize.replace('m', '')) * 1024 * 1024, // Convert MB to bytes
+      maxFiles: parseInt(config.logging.file.maxFiles),
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
         winston.format.json()
       ),
-    })
+    }) as any
   );
 }
 
@@ -95,7 +95,7 @@ logger.exceptions.handle(
       winston.format.colorize(),
       winston.format.simple()
     ),
-  })
+  }) as any
 );
 
 // Log unhandled promise rejections
@@ -105,7 +105,7 @@ logger.rejections.handle(
       winston.format.colorize(),
       winston.format.simple()
     ),
-  })
+  }) as any
 );
 
 // Export logger instance

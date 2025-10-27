@@ -3,6 +3,45 @@
  * Implements data sovereignty and regulatory autonomy
  */
 
+import type {
+  EncryptionConfig,
+  AccessConfig,
+  MonitoringConfig,
+  BackupConfig,
+  RetentionConfig,
+  AuditConfig,
+  PriorityLevel,
+  ActionType,
+  ReportFrequency,
+  ReportFormat,
+  RecommendationType,
+  EffortLevel,
+  RecommendationAction,
+  MonitoringMetric,
+  MonitoringAlert,
+  MonitoringDashboard,
+  MonitoringReport,
+  ReportTemplate,
+  SharingConfig,
+  StorageConfig,
+  ProcessingConfig,
+  DisposalConfig,
+  AuthenticationConfig,
+  AuthorizationConfig,
+  LoggingConfig,
+  DataType,
+  NormalizationConfig,
+  AggregationConfig,
+  AlertCondition,
+  AlertSeverity,
+  DashboardWidget,
+  DashboardLayout,
+  ReportChart,
+  ReportTable,
+  TrendData,
+  SourceType
+} from './common';
+
 export interface SovereignDataZone {
   id: string;
   tenantId: string;

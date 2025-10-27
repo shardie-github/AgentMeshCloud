@@ -3,6 +3,8 @@
  * Implements system simulation and stress testing capabilities
  */
 
+import type { EndpointAuth, RateLimit, RetryPolicy, HealthCheckConfig } from './common';
+
 export interface DigitalTwin {
   id: string;
   name: string;

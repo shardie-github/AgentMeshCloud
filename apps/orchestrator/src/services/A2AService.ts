@@ -5,7 +5,48 @@
 
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
-import { A2AMessage, A2ABroker, A2AChannel, A2AClient } from '@agentmesh/shared';
+
+// Local type definitions
+interface A2AMessage {
+  id: string;
+  type: string;
+  from: string;
+  to: string;
+  payload: any;
+  timestamp: Date;
+  priority: string;
+  correlationId?: string;
+  headers?: any;
+}
+
+interface A2ABroker {
+  id: string;
+  type: string;
+  config: any;
+  status: string;
+  connections: number;
+  messagesPerSecond: number;
+  name?: string;
+}
+
+interface A2AChannel {
+  id: string;
+  broker_id: string;
+  name: string;
+  type: string;
+  config: any;
+  message_count: number;
+  last_message_at?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+interface A2AClient {
+  id: string;
+  name: string;
+  status: string;
+  lastSeen: Date;
+}
 
 export class A2AService {
   private brokers: Map<string, A2ABroker> = new Map();

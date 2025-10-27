@@ -3,6 +3,8 @@
  * Implements the MCP standard for agent communication and tool access
  */
 
+import type { RetryPolicy, CapabilityInput, CapabilityOutput, CapabilityConstraint, ValidationRule } from './common';
+
 export interface MCPMessage {
   id: string;
   type: MCPMessageType;

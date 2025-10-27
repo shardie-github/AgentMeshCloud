@@ -3,6 +3,8 @@
  * Implements lattice-based and hash-based cryptographic schemes
  */
 
+import type { AlertSeverity, NotificationChannel, RiskLevel } from './common';
+
 export interface QuantumSecurityConfig {
   id: string;
   tenantId: string;
