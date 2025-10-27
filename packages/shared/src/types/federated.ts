@@ -3,6 +3,8 @@
  * Implements third-party agent integration with tenant-scoped tokens
  */
 
+import type { ValidationRule } from './common';
+
 export interface FederatedAgent {
   id: string;
   name: string;

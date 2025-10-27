@@ -3,6 +3,8 @@
  * Implements secure inter-agent messaging and collaboration protocols
  */
 
+import type { RetryPolicy, AgentStatus, ClientStatus } from './common';
+
 export interface A2AMessage {
   id: string;
   type: A2AMessageType;

@@ -5,7 +5,43 @@
 
 import { logger } from '@/utils/logger';
 import { config } from '@/config';
-import { MCPAdapter, MCPClient, MCPRequest, MCPResponse } from '@agentmesh/shared';
+
+// Local type definitions
+interface MCPAdapter {
+  id: string;
+  name: string;
+  type: string;
+  config: any;
+  capabilities: any[];
+  status: string;
+}
+
+interface MCPClient {
+  id: string;
+  name: string;
+  status: string;
+  lastSeen: Date;
+}
+
+interface MCPRequest {
+  id: string;
+  type: string;
+  method: string;
+  params: any;
+  timestamp: Date;
+  source: string;
+  target: string;
+}
+
+interface MCPResponse {
+  id: string;
+  type: string;
+  requestId: string;
+  result: any;
+  timestamp: Date;
+  source: string;
+  target: string;
+}
 
 export class MCPService {
   private adapters: Map<string, MCPAdapter> = new Map();
@@ -43,7 +79,7 @@ export class MCPService {
           credentials: { apiKey: config.llm.openai.apiKey },
           settings: {},
           timeout: 30000,
-          retryPolicy: { maxAttempts: 3, backoffStrategy: 'exponential', baseDelay: 1000 }
+          retryPolicy: { maxAttempts: 3, backoff: 'exponential', delay: 1000, maxDelay: 10000 }
         },
         capabilities: [],
         status: 'disconnected'
@@ -60,7 +96,7 @@ export class MCPService {
           credentials: { apiKey: config.llm.anthropic.apiKey },
           settings: {},
           timeout: 30000,
-          retryPolicy: { maxAttempts: 3, backoffStrategy: 'exponential', baseDelay: 1000 }
+          retryPolicy: { maxAttempts: 3, backoff: 'exponential', delay: 1000, maxDelay: 10000 }
         },
         capabilities: [],
         status: 'disconnected'
@@ -72,16 +108,16 @@ export class MCPService {
       id: 'supabase',
       name: 'Supabase',
       type: 'database',
-      config: {
-        endpoint: config.supabase.url,
-        credentials: { 
-          anonKey: config.supabase.anonKey,
-          serviceKey: config.supabase.serviceKey 
+        config: {
+          endpoint: config.supabase.url,
+          credentials: { 
+            anonKey: config.supabase.anonKey,
+            serviceKey: config.supabase.serviceKey 
+          },
+          settings: {},
+          timeout: 30000,
+          retryPolicy: { maxAttempts: 3, backoff: 'exponential', delay: 1000, maxDelay: 10000 }
         },
-        settings: {},
-        timeout: 30000,
-        retryPolicy: { maxAttempts: 3, backoffStrategy: 'exponential', baseDelay: 1000 }
-      },
       capabilities: [],
       status: 'disconnected'
     });
