@@ -4,19 +4,18 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { config } from './config';
 import logger from './utils/logger';
-import aiopsRoutes from './routes/aiops';
-import { errorHandler } from './middleware/errorHandler';
 import { rateLimiter } from './middleware/rateLimiter';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import feedbackRoutes from './routes/feedback';
 
 const app = express();
-const PORT = config.server.port || 3003;
 
 // Security middleware
 app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: config.server.allowedOrigins,
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
   credentials: true
 }));
 
@@ -25,7 +24,9 @@ app.use(rateLimiter);
 
 // Logging
 app.use(morgan('combined', {
-  stream: { write: (message: string) => logger.info(message.trim()) }
+  stream: {
+    write: (message: string) => logger.info(message.trim())
+  }
 }));
 
 // Body parsing
@@ -35,50 +36,40 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Health check
 app.get('/health', (req, res) => {
   res.json({
+    success: true,
     status: 'healthy',
-    service: 'aiops',
     timestamp: new Date().toISOString(),
+    service: 'feedback-collector',
     version: '1.0.0'
   });
 });
 
 // API routes
-app.use('/api/v1/aiops', aiopsRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Not Found',
-    message: `Route ${req.originalUrl} not found`
-  });
-});
-
-// Global error handler
+// Error handling
+app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Start server
-const server = app.listen(PORT, () => {
-  logger.info(`AIOps service running on port ${PORT}`);
-  logger.info(`Health check available at http://localhost:${PORT}/health`);
-  logger.info(`API documentation available at http://localhost:${PORT}/api/v1/aiops`);
+const PORT = config.port;
+app.listen(PORT, () => {
+  logger.info(`Feedback Collector Service started on port ${PORT}`, {
+    port: PORT,
+    nodeEnv: config.nodeEnv,
+    version: '1.0.0'
+  });
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
+  process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-    process.exit(0);
-  });
+  process.exit(0);
 });
 
 export default app;

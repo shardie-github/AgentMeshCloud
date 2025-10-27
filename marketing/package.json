@@ -1,0 +1,37 @@
+{
+  "name": "@agentmesh/marketing",
+  "version": "1.0.0",
+  "description": "AI-driven marketing pipeline and conversion optimization",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src/**/*.ts",
+    "test": "jest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "express": "^4.18.2",
+    "openai": "^4.20.1",
+    "joi": "^17.11.0",
+    "winston": "^3.11.0",
+    "bull": "^4.12.2",
+    "redis": "^4.6.10",
+    "axios": "^1.6.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/cors": "^2.8.17",
+    "@types/morgan": "^1.9.9",
+    "@types/uuid": "^9.0.7",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.0"
+  }
+}
