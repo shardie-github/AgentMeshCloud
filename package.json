@@ -5,7 +5,11 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "ecosystem",
+    "digital-twin",
+    "aiops",
+    "partners"
   ],
   "scripts": {
     "dev": "turbo run dev",
