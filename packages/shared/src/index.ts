@@ -8,6 +8,11 @@ export * from './types/agent';
 export * from './types/workflow';
 export * from './types/mcp';
 export * from './types/a2a';
+export * from './types/agentops';
+export * from './types/finops';
+export * from './types/quantum';
+export * from './types/ledger';
+export * from './types/sovereign';
 
 // Schemas
 export * from './schemas/validation';
