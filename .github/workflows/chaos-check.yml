@@ -1,0 +1,110 @@
+name: Chaos Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      test_name:
+        description: 'Specific test to run (optional)'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '18.18.0'
+  PRISMA_CLIENT_ENGINE_TYPE: wasm
+  SUPABASE_PROJECT_REF: ghqyxhbyyirveptgwoqm
+
+jobs:
+  chaos-check:
+    name: Chaos Check
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'chaos-check') || github.event_name == 'workflow_dispatch'
+    environment: preview
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Run Chaos Tests
+        run: |
+          if [ -n "${{ github.event.inputs.test_name }}" ]; then
+            pnpm run chaos:test${{ github.event.inputs.test_name }}
+          else
+            pnpm run chaos:mini
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload Chaos Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: chaos-report-${{ github.run_number }}
+          path: chaos-mini-report.json
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let reportContent = '## 🧪 Chaos Test Results\n\n';
+            
+            if (fs.existsSync('chaos-mini-report.json')) {
+              const report = JSON.parse(fs.readFileSync('chaos-mini-report.json', 'utf8'));
+              reportContent += `**Summary:**\n`;
+              reportContent += `- Total Tests: ${report.summary.totalTests}\n`;
+              reportContent += `- Passed: ${report.summary.passed} ✅\n`;
+              reportContent += `- Failed: ${report.summary.failed} ❌\n`;
+              reportContent += `- Skipped: ${report.summary.skipped} ⏭️\n`;
+              reportContent += `- Overall Health: ${report.overallHealth}%\n\n`;
+              
+              if (report.summary.failed > 0) {
+                reportContent += `**Failed Tests:**\n`;
+                report.results
+                  .filter(r => r.status === 'failed')
+                  .forEach(result => {
+                    reportContent += `- ${result.test}: ${result.error || 'Unknown error'}\n`;
+                  });
+              }
+              
+              if (report.results.some(r => r.recommendations && r.recommendations.length > 0)) {
+                reportContent += `\n**Recommendations:**\n`;
+                const allRecommendations = report.results
+                  .flatMap(r => r.recommendations || [])
+                  .filter((rec, index, arr) => arr.indexOf(rec) === index); // Remove duplicates
+                
+                allRecommendations.forEach(rec => {
+                  reportContent += `- ${rec}\n`;
+                });
+              }
+            } else {
+              reportContent += 'Chaos tests completed. See artifacts for detailed report.';
+            }
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: reportContent
+            });

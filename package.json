@@ -36,7 +36,13 @@
     "security:audit": "pnpm audit --audit-level moderate",
     "smoke:test": "node scripts/playwright-smoke.js",
     "load:test": "k6 run scripts/k6-load-test.js",
-    "performance:test": "pnpm run smoke:test && pnpm run load:test"
+    "performance:test": "pnpm run smoke:test && pnpm run load:test",
+    "migrate:emc": "tsx scripts/migrate-emc.ts",
+    "migrate:emc:dry": "tsx scripts/migrate-emc.ts --dry-run",
+    "dr:check": "tsx scripts/clone-and-restore-check.ts",
+    "slo:check": "tsx scripts/slo-checker.ts",
+    "chaos:mini": "tsx scripts/chaos-mini.ts",
+    "chaos:test": "tsx scripts/chaos-mini.ts --test="
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

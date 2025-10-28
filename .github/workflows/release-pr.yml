@@ -1,0 +1,371 @@
+name: Release PR Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+env:
+  NODE_VERSION: '18.18.0'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  PRISMA_CLIENT_ENGINE_TYPE: wasm
+  SUPABASE_PROJECT_REF: ghqyxhbyyirveptgwoqm
+
+jobs:
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      version: ${{ steps.version.outputs.version }}
+      schema-hash: ${{ steps.schema.outputs.hash }}
+      build-sha: ${{ steps.build.outputs.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check conventional commits
+        id: check
+        run: |
+          # Check if PR has conventional commit messages
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --oneline origin/main..HEAD)
+            if echo "$COMMITS" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .+"; then
+              echo "should-release=true" >> $GITHUB_OUTPUT
+            else
+              echo "should-release=false" >> $GITHUB_OUTPUT
+              echo "No conventional commits found"
+            fi
+          else
+            echo "should-release=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate version
+        id: version
+        run: |
+          if [ "${{ steps.check.outputs.should-release }}" = "true" ]; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              VERSION_TYPE="${{ github.event.inputs.version_type }}"
+            else
+              # Auto-detect version type from conventional commits
+              COMMITS=$(git log --oneline origin/main..HEAD)
+              if echo "$COMMITS" | grep -qE "^feat(\(.+\))?:"; then
+                VERSION_TYPE="minor"
+              elif echo "$COMMITS" | grep -qE "^(fix|perf)(\(.+\))?:"; then
+                VERSION_TYPE="patch"
+              else
+                VERSION_TYPE="patch"
+              fi
+            fi
+            
+            # Get current version and bump
+            CURRENT_VERSION=$(node -p "require('./package.json').version")
+            NEW_VERSION=$(npm version $VERSION_TYPE --no-git-tag-version | sed 's/v//')
+            echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "Generated version: $NEW_VERSION"
+          else
+            echo "version=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate schema hash
+        id: schema
+        run: |
+          if [ "${{ steps.check.outputs.should-release }}" = "true" ]; then
+            # Generate hash of Prisma schema and migrations
+            SCHEMA_HASH=$(find prisma/ -name "*.prisma" -o -name "*.sql" | sort | xargs cat | sha256sum | cut -d' ' -f1)
+            echo "hash=$SCHEMA_HASH" >> $GITHUB_OUTPUT
+            echo "Schema hash: $SCHEMA_HASH"
+          else
+            echo "hash=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate build SHA
+        id: build
+        run: |
+          if [ "${{ steps.check.outputs.should-release }}" = "true" ]; then
+            BUILD_SHA=$(git rev-parse --short HEAD)
+            echo "sha=$BUILD_SHA" >> $GITHUB_OUTPUT
+            echo "Build SHA: $BUILD_SHA"
+          else
+            echo "sha=" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: validate-release
+    if: needs.validate-release.outputs.should-release == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Run lint and type check
+        run: |
+          pnpm run lint
+          pnpm run type-check
+          pnpm run format:check
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Run security audit
+        run: pnpm run security:audit
+
+      - name: Scan for secrets
+        run: pnpm run secrets:scan
+
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Run smoke tests
+        run: pnpm run smoke:test
+        env:
+          APP_URL: http://localhost:3000
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-build-${{ needs.validate-release.outputs.build-sha }}
+          path: |
+            apps/*/dist
+            packages/*/dist
+            apps/*/.next
+
+  migration-check:
+    name: Migration Check
+    runs-on: ubuntu-latest
+    needs: validate-release
+    if: needs.validate-release.outputs.should-release == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Check migration status
+        run: pnpm run db:status
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Validate migrations
+        run: |
+          # Check for pending migrations
+          MIGRATION_STATUS=$(pnpm run db:status --silent)
+          if echo "$MIGRATION_STATUS" | grep -q "Following migration have not yet been applied"; then
+            echo "Pending migrations detected"
+            echo "run-backfill=true" >> $GITHUB_ENV
+          else
+            echo "No pending migrations"
+            echo "run-backfill=false" >> $GITHUB_ENV
+          fi
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [validate-release, build-and-test, migration-check]
+    if: |
+      needs.validate-release.outputs.should-release == 'true' && 
+      needs.build-and-test.result == 'success' &&
+      needs.migration-check.result == 'success'
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Generate bundle report
+        run: pnpm run bundle:analyze
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Generate changelog from conventional commits
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            COMMITS=$(git log --oneline origin/main..HEAD)
+            CHANGELOG="## Changes in v${{ needs.validate-release.outputs.version }}\n\n"
+            CHANGELOG+="### Features\n"
+            echo "$COMMITS" | grep -E "^feat(\(.+\))?:" | sed 's/^/- /' | while read line; do
+              CHANGELOG+="$line\n"
+            done
+            CHANGELOG+="\n### Fixes\n"
+            echo "$COMMITS" | grep -E "^fix(\(.+\))?:" | sed 's/^/- /' | while read line; do
+              CHANGELOG+="$line\n"
+            done
+            CHANGELOG+="\n### Other Changes\n"
+            echo "$COMMITS" | grep -E "^(docs|style|refactor|perf|test|chore|ci|build)(\(.+\))?:" | sed 's/^/- /' | while read line; do
+              CHANGELOG+="$line\n"
+            done
+          else
+            CHANGELOG="## Changes in v${{ needs.validate-release.outputs.version }}\n\nManual release triggered."
+          fi
+          
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Git Tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a "v${{ needs.validate-release.outputs.version }}" -m "Release v${{ needs.validate-release.outputs.version }}"
+          git push origin "v${{ needs.validate-release.outputs.version }}"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.validate-release.outputs.version }}
+          release_name: Release v${{ needs.validate-release.outputs.version }}
+          body: |
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Release Artifacts
+            - **Build SHA**: `${{ needs.validate-release.outputs.build-sha }}`
+            - **Schema Hash**: `${{ needs.validate-release.outputs.schema-hash }}`
+            - **Bundle Report**: See attached bundle-report.json
+            - **Migration Status**: ${{ needs.migration-check.outputs.run-backfill == 'true' && 'Pending migrations detected' || 'No pending migrations' }}
+            
+            ## Environment Matrix
+            - **Node.js**: ${{ env.NODE_VERSION }}
+            - **Prisma Engine**: ${{ env.PRISMA_CLIENT_ENGINE_TYPE }}
+            - **Supabase Ref**: ${{ env.SUPABASE_PROJECT_REF }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Bundle Report
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bundle-report.json
+          asset_name: bundle-report.json
+          asset_content_type: application/json
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 Release Ready')
+            );
+            
+            const commentBody = `## 🚀 Release Ready
+            
+            **Version**: v${{ needs.validate-release.outputs.version }}
+            **Build SHA**: \`${{ needs.validate-release.outputs.build-sha }}\`
+            **Schema Hash**: \`${{ needs.validate-release.outputs.schema-hash }}\`
+            **Migration Status**: ${{ needs.migration-check.outputs.run-backfill == 'true' && '⚠️ Pending migrations detected - backfill required' || '✅ No pending migrations' }}
+            
+            ### Next Steps
+            1. ✅ All checks passed
+            2. ✅ Release artifacts created
+            3. ${{ needs.migration-check.outputs.run-backfill == 'true' && '⚠️ Run backfill script before production deployment' || '✅ Ready for production deployment' }}
+            4. 🚀 Merge PR to trigger production deployment
+            
+            [View Release](https://github.com/${{ github.repository }}/releases/tag/v${{ needs.validate-release.outputs.version }})`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+            }
