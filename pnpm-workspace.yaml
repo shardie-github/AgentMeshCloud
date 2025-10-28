@@ -1,0 +1,10 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  - 'ecosystem'
+  - 'digital-twin'
+  - 'aiops'
+  - 'partners'
+  - 'feedback'
+  - 'growth'
+  - 'marketing'

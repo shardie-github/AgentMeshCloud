@@ -94,3 +94,7 @@ export * from './utils/helpers';
 
 // Export constants
 export * from './constants';
+
+// Export database clients
+export * from './lib/prisma';
+export * from './lib/supabase';
