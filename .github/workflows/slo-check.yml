@@ -1,0 +1,105 @@
+name: SLO Check
+
+on:
+  schedule:
+    # Run nightly at 1 AM UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18.18.0'
+  PRISMA_CLIENT_ENGINE_TYPE: wasm
+  SUPABASE_PROJECT_REF: ghqyxhbyyirveptgwoqm
+
+jobs:
+  slo-check:
+    name: SLO Check
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Run SLO Check
+        run: pnpm run slo:check
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Upload SLO Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: slo-report-${{ github.event.inputs.environment || 'production' }}-${{ github.run_number }}
+          path: slo-check-report.json
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let reportContent = '## 📊 SLO Check Results\n\n';
+            
+            if (fs.existsSync('slo-check-report.json')) {
+              const report = JSON.parse(fs.readFileSync('slo-check-report.json', 'utf8'));
+              reportContent += `**Summary:**\n`;
+              reportContent += `- Total SLIs: ${report.summary.totalSLIs}\n`;
+              reportContent += `- Passing: ${report.summary.passing} ✅\n`;
+              reportContent += `- Warning: ${report.summary.warning} ⚠️\n`;
+              reportContent += `- Failing: ${report.summary.failing} ❌\n\n`;
+              
+              if (report.summary.failing > 0) {
+                reportContent += `**Failed SLIs:**\n`;
+                report.results
+                  .filter(r => r.status === 'fail')
+                  .forEach(result => {
+                    reportContent += `- ${result.slo}: ${result.measuredValue} (target: ${result.targetValue})\n`;
+                  });
+              }
+            } else {
+              reportContent += 'SLO check completed. See artifacts for detailed report.';
+            }
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: reportContent
+            });
+
+      - name: Notify on SLO Violation
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // In a real implementation, this would send alerts
+            // to Slack, PagerDuty, or other alerting systems
+            console.log('SLO violation detected - alerts would be sent here');
