@@ -11,6 +11,7 @@ env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   PRISMA_CLIENT_ENGINE_TYPE: wasm
+  SUPABASE_PROJECT_REF: ghqyxhbyyirveptgwoqm
 
 jobs:
   lint-and-typecheck:
@@ -43,6 +44,89 @@ jobs:
       - name: Format check
         run: pnpm run format:check
 
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Security audit
+        run: pnpm run security:audit
+
+  secrets-scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for git scan
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Scan for secrets
+        run: pnpm run secrets:scan
+
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Analyze bundle sizes
+        run: pnpm run bundle:analyze
+
+      - name: Upload bundle report
+        uses: actions/upload-artifact@v3
+        with:
+          name: bundle-report
+          path: bundle-report.json
+
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -71,6 +155,140 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  database-performance:
+    name: Database Performance
+    runs-on: ubuntu-latest
+    needs: [prisma-validate]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Test database performance
+        run: pnpm run db:performance
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Upload performance report
+        uses: actions/upload-artifact@v3
+        with:
+          name: db-performance-report
+          path: db-performance-report.json
+
+  rls-smoke-test:
+    name: RLS Smoke Test
+    runs-on: ubuntu-latest
+    needs: [prisma-validate]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
+      - name: Run RLS smoke tests
+        run: pnpm run rls:smoke
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Upload RLS report
+        uses: actions/upload-artifact@v3
+        with:
+          name: rls-smoke-report
+          path: rls-smoke-report.json
+
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: contains(github.event.pull_request.labels.*.name, 'perf-check') || github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright
+        run: npx playwright install chromium
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Start application
+        run: |
+          pnpm run build --filter=@agentmesh/front
+          cd apps/front
+          pnpm start &
+          sleep 10
+
+      - name: Run smoke tests
+        run: pnpm run smoke:test
+        env:
+          APP_URL: http://localhost:3000
+
+      - name: Run load tests
+        run: pnpm run load:test
+        env:
+          APP_URL: http://localhost:3000
+
+      - name: Upload performance reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-reports
+          path: |
+            playwright-smoke-report.json
+            load-test-report.json
 
   prisma-validate:
     name: Prisma Validation
@@ -104,7 +322,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, test, prisma-validate]
+    needs: [lint-and-typecheck, test, prisma-validate, security-audit, secrets-scan, bundle-analysis]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -190,6 +408,20 @@ jobs:
         env:
           APP_URL: ${{ steps.deploy.outputs.preview-url }}
 
+      - name: Run cost guard (Preview)
+        run: pnpm run cost:guard
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SUPABASE_PROJECT_REF: ${{ env.SUPABASE_PROJECT_REF }}
+
+      - name: Upload cost report (Preview)
+        uses: actions/upload-artifact@v3
+        with:
+          name: cost-guard-report-preview
+          path: cost-guard-report.json
+
   deploy-production:
     name: Deploy Production
     runs-on: ubuntu-latest
@@ -241,6 +473,20 @@ jobs:
         run: node scripts/healthcheck.js
         env:
           APP_URL: ${{ steps.deploy.outputs.preview-url }}
+
+      - name: Run cost guard (Production)
+        run: pnpm run cost:guard
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SUPABASE_PROJECT_REF: ${{ env.SUPABASE_PROJECT_REF }}
+
+      - name: Upload cost report (Production)
+        uses: actions/upload-artifact@v3
+        with:
+          name: cost-guard-report-production
+          path: cost-guard-report.json
 
   deploy-supabase:
     name: Deploy Supabase
