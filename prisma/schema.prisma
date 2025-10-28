@@ -1,0 +1,490 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "wasm"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Custom types (PostgreSQL enums)
+enum AgentStatus {
+  online
+  offline
+  processing
+  error
+  maintenance
+}
+
+enum CapabilityType {
+  llm
+  tool
+  data
+  workflow
+  notification
+  analytics
+}
+
+enum WorkflowStatus {
+  draft
+  active
+  paused
+  archived
+  error
+}
+
+enum ExecutionStatus {
+  pending
+  running
+  completed
+  failed
+  cancelled
+  timeout
+}
+
+enum MessagePriority {
+  low
+  normal
+  high
+  critical
+}
+
+enum MessageType {
+  request
+  response
+  notification
+  broadcast
+  heartbeat
+  discovery
+  negotiation
+  error
+}
+
+enum FeedbackType {
+  bug
+  feature_request
+  ux_issue
+  performance
+  general
+  praise
+}
+
+enum FeedbackPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum FeedbackStatus {
+  new
+  triaged
+  in_progress
+  resolved
+  closed
+  duplicate
+}
+
+enum GrowthSignalType {
+  engagement
+  retention
+  revenue
+  referral
+  feature_adoption
+  support_ticket
+}
+
+enum IncidentSeverity {
+  low
+  medium
+  high
+  critical
+  emergency
+}
+
+enum IncidentStatus {
+  open
+  investigating
+  identified
+  monitoring
+  resolved
+  closed
+}
+
+enum OptimizationType {
+  performance
+  cost
+  reliability
+  security
+  user_experience
+}
+
+// Main tables
+model Agent {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String      @db.VarChar(100)
+  description String?
+  version     String      @db.VarChar(20)
+  status      AgentStatus @default(offline)
+  capabilities Json       @default("[]")
+  metadata    Json        @default("{}")
+  tenantId    String      @map("tenant_id") @db.Uuid
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastSeenAt  DateTime?   @map("last_seen_at") @db.Timestamptz(6)
+
+  // Relations
+  capabilities_rel AgentCapability[]
+  sessions         Session[]
+  semanticMemory   SemanticMemory[]
+
+  @@unique([tenantId, name])
+  @@map("agents")
+}
+
+model AgentCapability {
+  id          String         @id @default(uuid()) @db.Uuid
+  agentId     String         @map("agent_id") @db.Uuid
+  name        String         @db.VarChar(100)
+  description String?
+  type        CapabilityType
+  inputs      Json           @default("[]")
+  outputs     Json           @default("[]")
+  constraints Json?          @default("[]")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, name])
+  @@map("agent_capabilities")
+}
+
+model Workflow {
+  id              String         @id @default(uuid()) @db.Uuid
+  name            String         @db.VarChar(100)
+  description     String?
+  version         String         @db.VarChar(20)
+  status          WorkflowStatus @default(draft)
+  definition      Json           @default("{}")
+  metadata        Json           @default("{}")
+  tenantId        String         @map("tenant_id") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastExecutedAt  DateTime?      @map("last_executed_at") @db.Timestamptz(6)
+
+  // Relations
+  executions WorkflowExecution[]
+
+  @@unique([tenantId, name])
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          String          @id @default(uuid()) @db.Uuid
+  workflowId  String          @map("workflow_id") @db.Uuid
+  status      ExecutionStatus @default(pending)
+  startedAt   DateTime        @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt DateTime?       @map("completed_at") @db.Timestamptz(6)
+  duration    Int?            // in milliseconds
+  inputs      Json            @default("{}")
+  outputs     Json?
+  logs        Json            @default("[]")
+  metrics     Json            @default("{}")
+  tenantId    String          @map("tenant_id") @db.Uuid
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_executions")
+}
+
+model McpAdapter {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(100)
+  type        String   @db.VarChar(50)
+  config      Json     @default("{}")
+  capabilities Json    @default("[]")
+  status      String   @default("disconnected") @db.VarChar(20)
+  tenantId    String   @map("tenant_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([tenantId, name])
+  @@map("mcp_adapters")
+}
+
+model A2aBroker {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String   @db.VarChar(100)
+  type              String   @db.VarChar(50)
+  config            Json     @default("{}")
+  status            String   @default("disconnected") @db.VarChar(20)
+  connections       Int      @default(0)
+  messagesPerSecond Int      @default(0) @map("messages_per_second")
+  tenantId          String   @map("tenant_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  channels A2aChannel[]
+
+  @@unique([tenantId, name])
+  @@map("a2a_brokers")
+}
+
+model A2aChannel {
+  id             String    @id @default(uuid()) @db.Uuid
+  name           String    @db.VarChar(100)
+  type           String    @db.VarChar(50)
+  config         Json      @default("{}")
+  subscribers    Json      @default("[]")
+  messageCount   Int       @default(0) @map("message_count")
+  lastMessageAt  DateTime? @map("last_message_at") @db.Timestamptz(6)
+  brokerId       String    @map("broker_id") @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  broker A2aBroker @relation(fields: [brokerId], references: [id], onDelete: Cascade)
+
+  @@unique([brokerId, name])
+  @@map("a2a_channels")
+}
+
+model AuditLog {
+  id         String    @id @default(uuid()) @db.Uuid
+  entityType String    @map("entity_type") @db.VarChar(50)
+  entityId   String    @map("entity_id") @db.Uuid
+  action     String    @db.VarChar(50)
+  changes    Json?
+  userId     String?   @map("user_id") @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  ipAddress  String?   @map("ip_address") @db.Inet
+  userAgent  String?   @map("user_agent") @db.Text
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("audit_logs")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  agentId   String   @map("agent_id") @db.Uuid
+  status    String   @default("active") @db.VarChar(20)
+  startedAt DateTime @default(now()) @map("started_at") @db.Timestamptz(6)
+  endedAt   DateTime? @map("ended_at") @db.Timestamptz(6)
+  metadata  Json     @default("{}")
+  tenantId  String   @map("tenant_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model SemanticMemory {
+  id        String    @id @default(uuid()) @db.Uuid
+  agentId   String    @map("agent_id") @db.Uuid
+  content   String    @db.Text
+  embedding Unsupported("vector(1536)")? // PostgreSQL vector type
+  metadata  Json      @default("{}")
+  tenantId  String    @map("tenant_id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("semantic_memory")
+}
+
+// Continuous Improvement & Growth Engine Tables
+model ProductFeedback {
+  id                String           @id @default(uuid()) @db.Uuid
+  tenantId          String           @map("tenant_id") @db.Uuid
+  userId            String?          @map("user_id") @db.Uuid
+  sessionId         String?          @map("session_id") @db.VarChar(100)
+  feedbackType      FeedbackType     @map("feedback_type")
+  priority          FeedbackPriority @default(medium)
+  status            FeedbackStatus   @default(new)
+  title             String           @db.VarChar(200)
+  description       String           @db.Text
+  context           Json             @default("{}")
+  metadata          Json             @default("{}")
+  embedding         Unsupported("vector(1536)")? // PostgreSQL vector type
+  themes            String[]
+  sentimentScore    Float?           @map("sentiment_score")
+  urgencyScore      Float?           @map("urgency_score")
+  assignedTo        String?          @map("assigned_to") @db.Uuid
+  resolutionNotes   String?          @map("resolution_notes") @db.Text
+  resolvedAt        DateTime?        @map("resolved_at") @db.Timestamptz(6)
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("product_feedback")
+}
+
+model GrowthSignal {
+  id               String           @id @default(uuid()) @db.Uuid
+  tenantId         String           @map("tenant_id") @db.Uuid
+  signalType       GrowthSignalType @map("signal_type")
+  metricName       String           @map("metric_name") @db.VarChar(100)
+  metricValue      Float            @map("metric_value")
+  baselineValue    Float?           @map("baseline_value")
+  changePercentage Float?           @map("change_percentage")
+  timePeriod       String           @map("time_period") @db.VarChar(20)
+  cohortId         String?          @map("cohort_id") @db.VarChar(50)
+  userSegment      String?          @map("user_segment") @db.VarChar(100)
+  metadata         Json             @default("{}")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("growth_signals")
+}
+
+model ReferralCredit {
+  id              String    @id @default(uuid()) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  referrerUserId  String    @map("referrer_user_id") @db.Uuid
+  referredUserId  String?   @map("referred_user_id") @db.Uuid
+  referralCode    String    @unique @map("referral_code") @db.VarChar(20)
+  creditAmount    Decimal   @map("credit_amount") @db.Decimal(10, 2) @default(0.00)
+  creditType      String    @map("credit_type") @default("usage") @db.VarChar(20)
+  status          String    @default("pending") @db.VarChar(20)
+  stripeCustomerId String?  @map("stripe_customer_id") @db.VarChar(100)
+  metadata        Json      @default("{}")
+  expiresAt       DateTime? @map("expires_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("referral_credits")
+}
+
+model AiopsIncident {
+  id              String         @id @default(uuid()) @db.Uuid
+  tenantId        String         @map("tenant_id") @db.Uuid
+  incidentId      String         @unique @map("incident_id") @db.VarChar(50)
+  title           String         @db.VarChar(200)
+  description     String         @db.Text
+  severity        IncidentSeverity
+  status          IncidentStatus @default(open)
+  affectedServices String[]      @map("affected_services")
+  rootCause       String?        @map("root_cause") @db.Text
+  resolutionSteps String[]       @map("resolution_steps")
+  autoResolved    Boolean        @default(false) @map("auto_resolved")
+  aiInsights      Json           @default("{}") @map("ai_insights")
+  metrics         Json           @default("{}")
+  resolvedAt      DateTime?      @map("resolved_at") @db.Timestamptz(6)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("aiops_incidents")
+}
+
+model AutoOptimizationJob {
+  id                    String           @id @default(uuid()) @db.Uuid
+  tenantId              String           @map("tenant_id") @db.Uuid
+  jobName               String           @map("job_name") @db.VarChar(100)
+  optimizationType      OptimizationType @map("optimization_type")
+  status                String           @default("pending") @db.VarChar(20)
+  baselineMetrics       Json             @default("{}") @map("baseline_metrics")
+  optimizedMetrics      Json?            @map("optimized_metrics")
+  improvementPercentage Float?           @map("improvement_percentage")
+  changesApplied        Json             @default("[]") @map("changes_applied")
+  rollbackPlan          Json?            @map("rollback_plan")
+  executionLog          String?          @map("execution_log") @db.Text
+  startedAt             DateTime?        @map("started_at") @db.Timestamptz(6)
+  completedAt           DateTime?        @map("completed_at") @db.Timestamptz(6)
+  createdAt             DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("auto_optimization_jobs")
+}
+
+model ReleaseReviewReport {
+  id                    String    @id @default(uuid()) @db.Uuid
+  tenantId              String    @map("tenant_id") @db.Uuid
+  releaseVersion        String    @map("release_version") @db.VarChar(20)
+  reportType            String    @map("report_type") @default("weekly") @db.VarChar(20)
+  qaMetrics             Json      @default("{}") @map("qa_metrics")
+  finopsMetrics         Json      @default("{}") @map("finops_metrics")
+  userFeedbackSummary   Json      @default("{}") @map("user_feedback_summary")
+  performanceMetrics    Json      @default("{}") @map("performance_metrics")
+  recommendations       Json      @default("[]")
+  aiInsights            Json      @default("{}") @map("ai_insights")
+  generatedAt           DateTime  @default(now()) @map("generated_at") @db.Timestamptz(6)
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("release_review_reports")
+}
+
+model CognitiveImpactScorecard {
+  id                            String    @id @default(uuid()) @db.Uuid
+  tenantId                      String    @map("tenant_id") @db.Uuid
+  scorecardPeriod               String    @map("scorecard_period") @db.VarChar(20)
+  periodStart                   DateTime  @map("period_start") @db.Date
+  periodEnd                     DateTime  @map("period_end") @db.Date
+  customerSatisfactionScore     Float?    @map("customer_satisfaction_score")
+  customerSatisfactionDelta     Float?    @map("customer_satisfaction_delta")
+  aiModelAccuracy               Float?    @map("ai_model_accuracy")
+  aiModelAccuracyDelta          Float?    @map("ai_model_accuracy_delta")
+  featureAdoptionRate           Float?    @map("feature_adoption_rate")
+  featureAdoptionDelta          Float?    @map("feature_adoption_delta")
+  infrastructureEfficiency      Float?    @map("infrastructure_efficiency")
+  infrastructureEfficiencyDelta Float?    @map("infrastructure_efficiency_delta")
+  costReductionPercentage       Float?    @map("cost_reduction_percentage")
+  carbonReductionPercentage     Float?    @map("carbon_reduction_percentage")
+  retentionRate                 Float?    @map("retention_rate")
+  retentionDelta                Float?    @map("retention_delta")
+  overallCognitiveScore         Float?    @map("overall_cognitive_score")
+  insights                      Json      @default("{}")
+  recommendations               Json      @default("[]")
+  createdAt                     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("cognitive_impact_scorecards")
+}
+
+model MarketingPipeline {
+  id                        String    @id @default(uuid()) @db.Uuid
+  tenantId                  String    @map("tenant_id") @db.Uuid
+  campaignId                String    @map("campaign_id") @db.VarChar(50)
+  campaignName              String    @map("campaign_name") @db.VarChar(200)
+  campaignType              String    @map("campaign_type") @db.VarChar(50)
+  targetSegment             String?   @map("target_segment") @db.VarChar(100)
+  conversionPrediction      Float?    @map("conversion_prediction")
+  actualConversion          Float?    @map("actual_conversion")
+  aiOptimizationSuggestions Json      @default("[]") @map("ai_optimization_suggestions")
+  budgetAllocated           Decimal?  @map("budget_allocated") @db.Decimal(10, 2)
+  budgetSpent               Decimal?  @map("budget_spent") @db.Decimal(10, 2)
+  roi                       Float?
+  status                    String    @default("draft") @db.VarChar(20)
+  startedAt                 DateTime? @map("started_at") @db.Timestamptz(6)
+  endedAt                   DateTime? @map("ended_at") @db.Timestamptz(6)
+  createdAt                 DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                 DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("marketing_pipeline")
+}
+
+model OnboardingSession {
+  id                      String    @id @default(uuid()) @db.Uuid
+  tenantId                String    @map("tenant_id") @db.Uuid
+  userId                  String    @map("user_id") @db.Uuid
+  sessionId               String    @map("session_id") @db.VarChar(100)
+  currentStep             String    @map("current_step") @db.VarChar(50)
+  completedSteps          String[]  @map("completed_steps")
+  aiAssistanceLog         Json      @default("[]") @map("ai_assistance_log")
+  userSatisfactionScore   Int?      @map("user_satisfaction_score")
+  completionTime          Int?      @map("completion_time") // in minutes
+  abandonedAt             DateTime? @map("abandoned_at") @db.Timestamptz(6)
+  completedAt             DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("onboarding_sessions")
+}

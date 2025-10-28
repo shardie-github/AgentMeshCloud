@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/front/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/front/$1"
+    }
+  ],
+  "env": {
+    "PRISMA_CLIENT_ENGINE_TYPE": "wasm"
+  },
+  "functions": {
+    "apps/front/src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  }
+}

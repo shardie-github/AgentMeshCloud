@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": "cd ../.. && pnpm run build --filter=@agentmesh/front",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "env": {
+    "PRISMA_CLIENT_ENGINE_TYPE": "wasm"
+  },
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  }
+}
