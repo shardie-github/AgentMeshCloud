@@ -26,7 +26,17 @@
     "db:deploy": "prisma migrate deploy",
     "db:status": "prisma migrate status",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "bundle:analyze": "node scripts/bundle-report.mjs",
+    "secrets:scan": "node scripts/secrets-scan.mjs",
+    "db:performance": "node scripts/db-slowquery-check.mjs",
+    "rls:smoke": "tsx scripts/rls-smoke.ts",
+    "cost:guard": "node scripts/cost-guard.mjs",
+    "health:check": "node scripts/healthcheck.js",
+    "security:audit": "pnpm audit --audit-level moderate",
+    "smoke:test": "node scripts/playwright-smoke.js",
+    "load:test": "k6 run scripts/k6-load-test.js",
+    "performance:test": "pnpm run smoke:test && pnpm run load:test"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -38,10 +48,12 @@
     "prisma": "^5.7.0",
     "tsx": "^4.6.0",
     "turbo": "^1.11.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "playwright": "^1.40.0",
+    "k6": "^0.0.0"
   },
   "engines": {
-    "node": ">=18.18.0 <23.0.0",
+    "node": ">=18.18.0 <20.0.0",
     "npm": ">=8.0.0"
   },
   "packageManager": "pnpm@8.15.0"

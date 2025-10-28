@@ -49,31 +49,52 @@ pnpm run build
 
 ### 3. Health Checks
 ```bash
-# Run smoke tests
-node scripts/healthcheck.js
+# Run comprehensive health checks
+pnpm run health:check
 
-# Run RLS policy tests
-node scripts/supabase-policy-smoke/index.js
+# Run RLS smoke tests
+pnpm run rls:smoke
+
+# Run database performance tests
+pnpm run db:performance
+
+# Run bundle analysis
+pnpm run bundle:analyze
+
+# Run secrets scan
+pnpm run secrets:scan
 ```
 
 ## CI/CD Pipeline
 
 ### Pull Request Flow
 1. **Lint & Type Check** - Code quality validation
-2. **Test** - Unit and integration tests
-3. **Prisma Validation** - Schema validation and migration status
-4. **Build** - Compile all packages
-5. **Deploy Preview** - Deploy to Vercel preview environment
-6. **Smoke Tests** - Validate preview deployment
+2. **Security Audit** - Dependency vulnerability scan
+3. **Secrets Scan** - Detect leaked secrets in code
+4. **Bundle Analysis** - Check bundle size budgets
+5. **Test** - Unit and integration tests
+6. **Database Performance** - Query performance validation
+7. **RLS Smoke Test** - Row Level Security validation
+8. **Prisma Validation** - Schema validation and migration status
+9. **Build** - Compile all packages
+10. **Deploy Preview** - Deploy to Vercel preview environment
+11. **Health Checks** - Validate preview deployment
+12. **Cost Guard** - Monitor usage and costs
 
 ### Main Branch Flow
 1. **Lint & Type Check** - Code quality validation
-2. **Test** - Unit and integration tests
-3. **Prisma Validation** - Schema validation and migration status
-4. **Build** - Compile all packages
-5. **Deploy Production** - Deploy to Vercel production
-6. **Deploy Supabase** - Deploy migrations and edge functions
-7. **Smoke Tests** - Validate production deployment
+2. **Security Audit** - Dependency vulnerability scan
+3. **Secrets Scan** - Detect leaked secrets in code
+4. **Bundle Analysis** - Check bundle size budgets
+5. **Test** - Unit and integration tests
+6. **Database Performance** - Query performance validation
+7. **RLS Smoke Test** - Row Level Security validation
+8. **Prisma Validation** - Schema validation and migration status
+9. **Build** - Compile all packages
+10. **Deploy Production** - Deploy to Vercel production
+11. **Deploy Supabase** - Deploy migrations and edge functions
+12. **Health Checks** - Validate production deployment
+13. **Cost Guard** - Monitor usage and costs
 
 ## Environment Setup
 
@@ -159,6 +180,70 @@ Required secrets in repository settings:
 - Policy violations
 - Unusual access patterns
 - Environment variable leaks
+
+## Performance & Security Checks
+
+### Bundle Size Budgets
+
+| Type | Warning | Failure | Bypass |
+|------|---------|---------|--------|
+| Client Bundle | 250 KB | 400 KB | Add `perf-check` label to PR |
+| Serverless Bundle | 1.2 MB | 1.5 MB | Add `perf-check` label to PR |
+| Edge Bundle | 1.2 MB | 1.5 MB | Add `perf-check` label to PR |
+
+### Database Performance Budgets
+
+| Metric | Warning | Failure | Bypass |
+|--------|---------|---------|--------|
+| Query P95 | 300 ms | 500 ms | Add `perf-check` label to PR |
+| Query P99 | 500 ms | 1000 ms | Add `perf-check` label to PR |
+
+### Security Checks
+
+| Check | Failure Condition | Bypass |
+|-------|------------------|--------|
+| Secrets Scan | Any SERVICE_ROLE detected | Add `security-review` label to PR |
+| Security Audit | High/Critical vulnerabilities | Add `security-review` label to PR |
+| RLS Smoke Test | Any policy violations | Add `security-review` label to PR |
+
+### Bypassing Budgets
+
+To bypass performance or security budgets:
+
+1. **Add appropriate label to PR:**
+   - `perf-check` - Bypass performance budgets
+   - `security-review` - Bypass security checks
+
+2. **Provide justification in PR description:**
+   - Explain why the budget should be exceeded
+   - Provide timeline for optimization
+   - Include monitoring plan
+
+3. **Get approval from:**
+   - Team lead for performance budgets
+   - Security team for security bypasses
+
+### Emergency Bypass
+
+For critical issues requiring immediate deployment:
+
+1. **Create hotfix branch:**
+   ```bash
+   git checkout -b hotfix/critical-fix
+   ```
+
+2. **Add emergency bypass comment:**
+   ```
+   EMERGENCY_BYPASS: [reason]
+   - Performance: [justification]
+   - Security: [justification]
+   - Timeline: [when will be fixed]
+   ```
+
+3. **Deploy with approval:**
+   - Requires team lead approval
+   - Monitor closely after deployment
+   - Fix issues within 24 hours
 
 ## Troubleshooting
 
