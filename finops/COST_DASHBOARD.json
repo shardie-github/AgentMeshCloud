@@ -1,0 +1,138 @@
+{
+  "dashboard": {
+    "title": "ORCA FinOps - Cost Monitoring",
+    "tags": ["finops", "cost", "budget"],
+    "timezone": "UTC",
+    "schemaVersion": 36,
+    "panels": [
+      {
+        "id": 1,
+        "title": "Monthly Budget vs Actual",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "sum(aws_cost_monthly_usd{environment='production'})",
+            "legendFormat": "Actual Spend"
+          }
+        ],
+        "options": {
+          "max": 10000,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "green" },
+              { "value": 8000, "color": "yellow" },
+              { "value": 9500, "color": "red" }
+            ]
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Cost by Category",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (category) (aws_cost_monthly_usd{environment='production'})",
+            "legendFormat": "{{category}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Cost Trend (30 days)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate(aws_cost_total_usd[1d]))",
+            "legendFormat": "Daily Cost"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Cost per Tenant",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "sum by (tenant_id) (aws_cost_monthly_usd{environment='production'}) / sum by (tenant_id) (tenant_active_users)",
+            "legendFormat": "{{tenant_id}}"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Top 10 Cost Drivers",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "topk(10, sum by (service) (aws_cost_monthly_usd{environment='production'}))",
+            "legendFormat": "{{service}}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Budget Remaining",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "10000 - sum(aws_cost_monthly_usd{environment='production'})",
+            "legendFormat": "Remaining Budget"
+          }
+        ],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Cost Anomalies",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "aws_cost_daily_usd > (avg_over_time(aws_cost_daily_usd[30d]) * 1.5)",
+            "legendFormat": "Anomaly Detected"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Optimization Opportunities",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "aws_optimization_savings_usd",
+            "legendFormat": "{{recommendation}}"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Cost Forecast (90 days)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "predict_linear(aws_cost_daily_usd[30d], 90*86400)",
+            "legendFormat": "Forecast"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Telemetry Sampling Savings",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(telemetry_cost_before_sampling_usd) - sum(telemetry_cost_after_sampling_usd)",
+            "legendFormat": "Monthly Savings"
+          }
+        ],
+        "options": {
+          "unit": "currencyUSD"
+        }
+      }
+    ]
+  }
+}

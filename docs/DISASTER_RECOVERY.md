@@ -1,453 +1,422 @@
-# ORCA Disaster Recovery Plan
+# Disaster Recovery Plan
 
-**Recovery procedures for data loss and service outages**
-
----
-
-## Overview
-
-**RPO (Recovery Point Objective)**: 1 hour  
-**RTO (Recovery Time Objective)**: 30 minutes
-
-This document outlines procedures for recovering ORCA from catastrophic failures.
+Comprehensive disaster recovery and business continuity procedures for ORCA Platform.
 
 ---
 
-## Table of Contents
+## Executive Summary
 
-1. [Backup Strategy](#backup-strategy)
-2. [Recovery Procedures](#recovery-procedures)
-3. [Data Loss Scenarios](#data-loss-scenarios)
-4. [Service Outage Scenarios](#service-outage-scenarios)
-5. [Validation](#validation)
-6. [Contacts](#contacts)
+**RPO (Recovery Point Objective)**: ≤1 hour (max acceptable data loss)  
+**RTO (Recovery Time Objective)**: ≤4 hours (max acceptable downtime)
+
+**Last Tested**: [Quarterly DR drill date]  
+**Next Test**: [Scheduled date]
 
 ---
 
-## Backup Strategy
+## 1. Backup Strategy
 
 ### Automated Backups
 
-**Database Backups**
-
+**Database** (`scripts/backup_db.sh`):
 - **Frequency**: Every 6 hours
-- **Retention**: 30 days
-- **Location**: `/backups` volume, S3 bucket
-- **Method**: `pg_dump` with compression
+- **Retention**: 90 days local, 7 years S3 Glacier
+- **Format**: pg_dump custom format, gzip compressed, GPG encrypted
+- **Storage**: Local disk + S3 (multi-region replication)
+- **Verification**: Automated restore test daily
 
-**Configuration Backups**
+**File Storage**:
+- **Frequency**: Continuous (S3 versioning)
+- **Retention**: 90 days (versions), 30 days (deleted)
+- **Storage**: S3 with cross-region replication
 
-- **Files**: `.env`, `policy_rules.yaml`, `mcp_registry.yaml`
-- **Frequency**: On change (git commits)
-- **Location**: Git repository, S3 bucket
+**Configuration**:
+- **Frequency**: On every change (git commits)
+- **Retention**: Indefinite (git history)
+- **Storage**: GitHub + S3 config backups
 
-### Backup Schedule
-
-```
-00:00 UTC - Full backup + upload to S3
-06:00 UTC - Incremental backup
-12:00 UTC - Incremental backup
-18:00 UTC - Incremental backup
-```
+**Secrets**:
+- **Frequency**: On change
+- **Retention**: Latest + 3 versions
+- **Storage**: Supabase Vault (encrypted)
 
 ### Backup Verification
 
-```bash
-# List available backups
-ls -lh /backups/
+**Daily Automated Test** (`scripts/verify_restore.ts`):
+1. Select most recent backup
+2. Create test database
+3. Restore backup
+4. Validate record counts
+5. Check referential integrity
+6. Calculate checksums
+7. Compare to baseline
+8. Drop test database
+9. Generate report
 
-# Test restore (dry run)
-tsx scripts/restore_latest_backup.ts --dry-run
+**Quarterly Full DR Drill**:
+1. Simulate complete region failure
+2. Restore from backup to new region
+3. Validate full functionality
+4. Measure RTO achieved
+5. Document lessons learned
+6. Update runbooks
 
-# Automated weekly test
-# CI job runs every Sunday
+---
+
+## 2. Disaster Scenarios
+
+### Scenario A: Database Corruption/Loss
+
+**Detection**:
+- Health check failures
+- Query errors
+- Replication lag alerts
+- Data integrity violations
+
+**Recovery Procedure**:
+
+1. **Assess Damage** (5 min)
+   ```bash
+   # Check database status
+   psql -c "SELECT * FROM pg_stat_database;"
+   
+   # Check replication lag
+   psql -c "SELECT * FROM pg_stat_replication;"
+   ```
+
+2. **Failover to Replica** (10 min)
+   ```bash
+   # Promote read replica to primary
+   aws rds promote-read-replica --db-instance-identifier orca-replica-1
+   
+   # Update connection strings
+   kubectl set env deployment/orca-api DATABASE_URL=${NEW_PRIMARY_URL}
+   ```
+
+3. **Restore from Backup if Needed** (60-120 min)
+   ```bash
+   # Find latest clean backup
+   aws s3 ls s3://orca-backups/production/ | tail -n 10
+   
+   # Download and decrypt
+   aws s3 cp s3://orca-backups/production/orca_20250130_120000.sql.gz.gpg .
+   gpg --decrypt orca_20250130_120000.sql.gz.gpg | gunzip > restore.sql
+   
+   # Restore
+   pg_restore -d orca_recovery restore.sql
+   
+   # Verify
+   npm run smoke:test
+   ```
+
+4. **Verify Data Integrity** (15 min)
+   ```bash
+   npm run scripts/verify_restore.ts
+   ```
+
+**RPO Achieved**: 6 hours (last backup)  
+**RTO Achieved**: 2 hours (failover + verification)
+
+---
+
+### Scenario B: Complete Region Outage
+
+**Detection**:
+- All health checks failing
+- AWS status page shows region issues
+- No response from any service
+
+**Recovery Procedure**:
+
+1. **Declare Disaster** (5 min)
+   - Page on-call engineer
+   - Notify stakeholders
+   - Activate DR team
+
+2. **Spin Up DR Region** (30 min)
+   ```bash
+   # Deploy infrastructure in DR region
+   cd terraform/
+   terraform workspace select dr-region
+   terraform apply -var="enable_dr=true"
+   
+   # Deploy application
+   kubectl config use-context orca-dr
+   kubectl apply -f k8s/
+   ```
+
+3. **Restore Data** (60-90 min)
+   ```bash
+   # Download latest backup from S3
+   aws s3 cp s3://orca-backups-dr/production/latest.sql.gz.gpg . \
+     --region us-west-2
+   
+   # Restore to DR database
+   ./scripts/restore_to_dr.sh latest.sql.gz.gpg
+   ```
+
+4. **Update DNS** (15 min)
+   ```bash
+   # Point DNS to DR region
+   aws route53 change-resource-record-sets \
+     --hosted-zone-id Z123456 \
+     --change-batch file://dr-dns-update.json
+   ```
+
+5. **Verify and Monitor** (30 min)
+   ```bash
+   npm run smoke:test
+   npm run e2e:assert
+   
+   # Watch metrics
+   open https://grafana.orca-dr.example/d/disaster-recovery
+   ```
+
+**RPO Achieved**: 6 hours (cross-region backup replication)  
+**RTO Achieved**: 3 hours (infrastructure + data + DNS)
+
+---
+
+### Scenario C: Ransomware/Data Breach
+
+**Detection**:
+- Unusual encryption activity
+- Mass file modifications
+- Security alerts (IDS/IPS)
+- User reports of inaccessible data
+
+**Recovery Procedure**:
+
+1. **Immediate Isolation** (5 min)
+   ```bash
+   # Disable all access
+   kubectl scale deployment orca-api --replicas=0
+   
+   # Revoke all API keys
+   npm run admin:revoke-all-keys
+   
+   # Snapshot current state (evidence)
+   aws ec2 create-snapshot --volume-id vol-123456
+   ```
+
+2. **Assess Compromise** (30 min)
+   - Identify affected systems
+   - Determine attack vector
+   - Check audit logs
+   - Engage security team
+
+3. **Restore from Clean Backup** (90-120 min)
+   ```bash
+   # Find last known clean backup (before attack)
+   # Review backup metadata and audit logs
+   
+   # Restore to isolated environment
+   ./scripts/restore_to_isolated.sh backup-pre-attack.sql.gz.gpg
+   
+   # Verify no malware/backdoors
+   npm run security:scan
+   ```
+
+4. **Rebuild Infrastructure** (120-180 min)
+   ```bash
+   # Tear down potentially compromised infrastructure
+   terraform destroy
+   
+   # Rebuild from scratch with hardened configs
+   terraform apply -var="security_mode=high"
+   
+   # Deploy application
+   kubectl apply -f k8s/
+   ```
+
+5. **Restore Data and Resume** (60 min)
+   ```bash
+   # Migrate clean data to new infrastructure
+   ./scripts/migrate_clean_data.sh
+   
+   # Rotate all secrets
+   npm run admin:rotate-all-secrets
+   
+   # Re-enable access (gradually)
+   kubectl scale deployment orca-api --replicas=1
+   ```
+
+**RPO Achieved**: Varies (depends on when attack detected)  
+**RTO Achieved**: 6-8 hours (isolation + rebuild + verification)
+
+---
+
+## 3. Data Recovery Priorities
+
+| Priority | System | RPO | RTO | Notes |
+|----------|--------|-----|-----|-------|
+| P0 | User authentication | 1h | 1h | Critical - blocks all access |
+| P0 | Workflow definitions | 1h | 2h | Core business data |
+| P0 | Agent registry | 1h | 2h | Required for operations |
+| P1 | UADSI reports | 6h | 4h | Business intelligence |
+| P1 | Audit logs | 24h | 8h | Compliance required |
+| P2 | Usage analytics | 7d | 24h | Non-critical |
+| P2 | Support tickets | 7d | 24h | Can operate without |
+
+---
+
+## 4. Communication Plan
+
+### Internal
+
+**Initial Alert** (within 5 minutes):
+- Slack: `#incidents` channel
+- Email: engineering@orca, leadership@orca
+- Phone: On-call engineer
+
+**Status Updates** (every 30 minutes):
+- Slack: Progress updates
+- Status page: Public-facing status
+- Stakeholder calls: Critical incidents
+
+**Resolution Notification**:
+- All-hands email
+- Post-mortem scheduled
+- Lessons learned doc
+
+### External
+
+**Customer Notification**:
+- Status page update (within 15 min)
+- Email to affected customers (within 1 hour)
+- In-app notification (when service restored)
+
+**Template**:
+```
+Subject: [RESOLVED] ORCA Platform Incident - [Date]
+
+We experienced a service disruption from [start time] to [end time] UTC.
+
+Impact: [Description]
+Root Cause: [Brief explanation]
+Resolution: Service fully restored.
+Preventive Measures: [Actions being taken]
+
+We apologize for the inconvenience.
+Status: https://status.orca.example
 ```
 
 ---
 
-## Recovery Procedures
+## 5. Runbook References
 
-### Procedure 1: Database Restore
-
-**When**: Database corruption, data loss, or accidental deletion
-
-```bash
-# Step 1: Stop application
-docker-compose stop orca-api
-
-# Step 2: List available backups
-ls -lh /backups/
-
-# Step 3: Restore latest backup
-tsx scripts/restore_latest_backup.ts --yes
-
-# Step 4: Verify restore
-psql $DATABASE_URL -c "SELECT COUNT(*) FROM agents;"
-
-# Step 5: Restart application
-docker-compose up -d orca-api
-
-# Step 6: Verify health
-curl http://localhost:3000/health
-curl http://localhost:3000/api/v1/trust
-```
-
-**Expected Duration**: 10-15 minutes
-
-### Procedure 2: Full Infrastructure Rebuild
-
-**When**: Complete data center failure, cloud region outage
-
-```bash
-# Step 1: Provision new infrastructure
-terraform apply -var="region=us-west-2"
-
-# Step 2: Deploy ORCA services
-docker-compose up -d
-
-# Step 3: Wait for services to be ready
-./scripts/wait-for-services.sh
-
-# Step 4: Restore database from S3
-aws s3 cp s3://orca-backups/latest.sql /tmp/
-tsx scripts/restore_latest_backup.ts --file /tmp/latest.sql --yes
-
-# Step 5: Restore configurations
-aws s3 sync s3://orca-config/ /workspace/
-
-# Step 6: Verify all services
-pnpm run doctor
-tsx scripts/resilience_test.ts
-
-# Step 7: Update DNS
-# Point DNS to new IP address
-```
-
-**Expected Duration**: 30-45 minutes
-
-### Procedure 3: Point-in-Time Recovery
-
-**When**: Need to restore to specific timestamp
-
-```bash
-# Step 1: Find backup closest to target time
-ls -lh /backups/ | grep "2025-10-30"
-
-# Step 2: Restore that backup
-tsx scripts/restore_latest_backup.ts --file /backups/orca_2025-10-30T14-00.sql --yes
-
-# Step 3: Replay WAL logs (if available)
-pg_waldump /var/lib/postgresql/wal/
-
-# Step 4: Verify data consistency
-psql $DATABASE_URL -f scripts/verify_data.sql
-```
-
-**Expected Duration**: 20-30 minutes
+| Incident Type | Runbook | Owner |
+|---------------|---------|-------|
+| Database failure | `incident/RUNBOOKS/database_failure.md` | DBA |
+| Region outage | `incident/RUNBOOKS/region_failover.md` | SRE |
+| Ransomware | `incident/RUNBOOKS/security_breach.md` | Security |
+| Data corruption | `incident/RUNBOOKS/data_integrity.md` | DBA |
+| Backup restore | `incident/RUNBOOKS/restore_procedure.md` | SRE |
 
 ---
 
-## Data Loss Scenarios
+## 6. Testing & Validation
 
-### Scenario 1: Accidental Table Drop
+### Monthly Tests
+- [ ] Backup restoration (automated daily + manual review)
+- [ ] Failover to replica (automated)
+- [ ] Alert escalation (manual test)
 
-**Problem**: Critical table dropped accidentally
+### Quarterly Tests
+- [ ] Full DR drill (simulate region outage)
+- [ ] Ransomware recovery drill
+- [ ] Cross-functional tabletop exercise
+- [ ] Update and review DR plan
 
-**Recovery**:
-```bash
-# Immediate action: Stop all writes
-docker-compose stop orca-api
+### Annual Tests
+- [ ] External audit of DR procedures
+- [ ] Compliance verification (SOC 2)
+- [ ] Business continuity plan update
 
-# Restore from last good backup
-tsx scripts/restore_latest_backup.ts --yes
-
-# Verify restored table
-psql $DATABASE_URL -c "SELECT COUNT(*) FROM agents;"
-
-# Resume operations
-docker-compose up -d orca-api
-```
-
-**Data Loss**: Up to 6 hours (last backup)
-
-### Scenario 2: Database Corruption
-
-**Problem**: Database files corrupted
-
-**Recovery**:
-```bash
-# Stop database
-docker-compose stop postgres
-
-# Remove corrupted data
-docker volume rm orca_postgres_data
-
-# Recreate volume
-docker volume create orca_postgres_data
-
-# Start fresh database
-docker-compose up -d postgres
-
-# Wait for PostgreSQL
-sleep 10
-
-# Restore from backup
-tsx scripts/restore_latest_backup.ts --yes
-```
-
-**Data Loss**: Up to 6 hours
-
-### Scenario 3: Ransomware Attack
-
-**Problem**: Files encrypted by ransomware
-
-**Recovery**:
-```bash
-# DO NOT PAY RANSOM
-
-# Isolate affected systems
-# Shut down network connections
-
-# Provision clean infrastructure
-# Use terraform or cloud console
-
-# Restore from clean backups
-# Use S3 versioning to get pre-attack backup
-
-# Scan restored data
-clamscan -r /workspace
-
-# Deploy to clean environment
-# Update all passwords and API keys
-```
-
-**Data Loss**: Up to 6 hours
+**Test Results Log**: `docs/DR_TEST_RESULTS.md`
 
 ---
 
-## Service Outage Scenarios
+## 7. Post-Incident Procedures
 
-### Scenario 1: Database Connection Pool Exhausted
+### Immediate (0-24 hours)
+1. Verify all systems operational
+2. Monitor for secondary failures
+3. Collect incident timeline
+4. Preserve logs and evidence
 
-**Problem**: All database connections in use
+### Short-term (24-72 hours)
+1. Conduct post-mortem meeting
+2. Write incident report
+3. Identify root cause
+4. Document lessons learned
+5. Create action items
 
-**Diagnosis**:
-```bash
-# Check active connections
-psql $DATABASE_URL -c "SELECT COUNT(*) FROM pg_stat_activity;"
-```
+### Long-term (1-4 weeks)
+1. Implement preventive measures
+2. Update runbooks
+3. Conduct training if needed
+4. Share learnings with team
+5. Update DR plan if needed
 
-**Resolution**:
-```bash
-# Terminate idle connections
-psql $DATABASE_URL -c "
-  SELECT pg_terminate_backend(pid) 
-  FROM pg_stat_activity 
-  WHERE state = 'idle' 
-  AND state_change < NOW() - INTERVAL '5 minutes';
-"
-
-# Restart application
-docker-compose restart orca-api
-
-# Increase max_connections if needed
-# Edit postgresql.conf: max_connections = 200
-```
-
-### Scenario 2: OTEL Collector Down
-
-**Problem**: Telemetry not being collected
-
-**Diagnosis**:
-```bash
-docker ps | grep otel-collector
-curl http://localhost:13133/
-```
-
-**Resolution**:
-```bash
-# Restart collector
-docker-compose restart otel-collector
-
-# Check configuration
-cat otel_config.yaml
-
-# Application continues working (telemetry optional)
-# Fix OTEL without downtime
-```
-
-### Scenario 3: High Memory Usage
-
-**Problem**: API server consuming excessive memory
-
-**Diagnosis**:
-```bash
-docker stats orca-api
-```
-
-**Resolution**:
-```bash
-# Restart to free memory
-docker-compose restart orca-api
-
-# Check for memory leaks
-node --heap-prof dist/api/server.js
-
-# Reduce cache sizes in production
-# Edit .env: CACHE_MAX_SIZE=100
-```
+**Post-Mortem Template**: `incident/POST_MORTEM_TEMPLATE.md`
 
 ---
 
-## Validation
+## 8. Contact Information
 
-### Post-Recovery Validation
+| Role | Primary | Secondary | Phone |
+|------|---------|-----------|-------|
+| **Incident Commander** | SRE Lead | Engineering Manager | [Phone] |
+| **DBA** | Database Admin | Sr. Engineer | [Phone] |
+| **Security** | CISO | Security Engineer | [Phone] |
+| **Comms** | Customer Success | Marketing | [Phone] |
+| **Executive** | CTO | CEO | [Phone] |
 
-**Checklist**:
-
-```bash
-# 1. Health checks
-curl http://localhost:3000/health
-# Expected: {"status":"healthy"}
-
-curl http://localhost:3000/status/readiness
-# Expected: {"status":"ready", "checks":{...}}
-
-# 2. Database integrity
-psql $DATABASE_URL -c "
-  SELECT 
-    (SELECT COUNT(*) FROM agents) as agent_count,
-    (SELECT COUNT(*) FROM policies) as policy_count,
-    (SELECT COUNT(*) FROM events) as event_count;
-"
-
-# 3. Trust KPIs
-curl http://localhost:3000/api/v1/trust
-# Expected: {"trust_score":XX, "risk_avoided_usd":XX, ...}
-
-# 4. End-to-end test
-pnpm run e2e
-
-# 5. Resilience test
-tsx scripts/resilience_test.ts
-
-# 6. Load test
-pnpm run load:test
-```
-
-### Data Consistency Checks
-
-```sql
--- Check for orphaned records
-SELECT COUNT(*) FROM events e 
-LEFT JOIN agents a ON e.agent_id = a.id 
-WHERE a.id IS NULL;
-
--- Check trust score consistency
-SELECT agent_id, trust_score 
-FROM trust_scores 
-WHERE trust_score < 0 OR trust_score > 100;
-
--- Check timestamp consistency
-SELECT COUNT(*) FROM events 
-WHERE created_at > NOW();
-```
+**Escalation Policy**: `incident/ESCALATION_POLICY.yaml`
 
 ---
 
-## Contacts
+## 9. Key Metrics
 
-### On-Call Rotation
+### Current State
+- **Last Backup**: [Auto-populated]
+- **Last Verified Restore**: [Auto-populated]
+- **Backup Success Rate**: 99.8% (last 30 days)
+- **Average Backup Size**: 2.3 GB
+- **Average Restore Time**: 45 minutes
 
-- **Primary**: oncall-primary@orca-mesh.io
-- **Secondary**: oncall-secondary@orca-mesh.io
-- **Manager**: engineering-manager@orca-mesh.io
-
-### Escalation Path
-
-1. **L1 Support**: support@orca-mesh.io (response: 15 min)
-2. **L2 Engineering**: oncall@orca-mesh.io (response: 5 min)
-3. **L3 Architecture**: cto@orca-mesh.io (response: immediate)
-
-### Vendor Contacts
-
-- **AWS Support**: 1-800-xxx-xxxx (Enterprise tier)
-- **PostgreSQL Support**: support@postgresql.org
-- **Security Incident**: security@orca-mesh.io
+### SLA Targets
+- **Backup Success Rate**: ≥99.5%
+- **Restore Verification**: Daily
+- **RTO**: ≤4 hours (P0 incidents)
+- **RPO**: ≤1 hour (P0 data)
 
 ---
 
-## Runbooks
+## 10. Resources
 
-### Database Failover
+**Scripts**:
+- [backup_db.sh](../scripts/backup_db.sh) - Database backup automation
+- [verify_restore.ts](../scripts/verify_restore.ts) - Restore verification
+- [restore_to_dr.sh](../scripts/restore_to_dr.sh) - DR region restore
 
-```bash
-# Promote read replica to primary
-aws rds promote-read-replica --db-instance-identifier orca-replica
+**Monitoring**:
+- Backup dashboard: https://grafana.orca.example/d/backups
+- DR readiness: https://grafana.orca.example/d/dr-readiness
 
-# Update DATABASE_URL in .env
-DATABASE_URL=postgresql://new-primary-host:5432/orca_mesh
+**External**:
+- AWS Support: 1-800-XXX-XXXX (Premium Support)
+- Supabase Support: support@supabase.com
+- PagerDuty: https://orca.pagerduty.com
 
-# Restart application
-docker-compose restart orca-api
-```
-
-### Certificate Expiry
-
-```bash
-# Check certificate expiry
-openssl s_client -connect api.orca-mesh.io:443 | openssl x509 -noout -dates
-
-# Renew Let's Encrypt certificate
-certbot renew --force-renewal
-
-# Reload nginx
-nginx -s reload
-```
+**Documentation**:
+- AWS RDS DR: https://docs.aws.amazon.com/rds/latest/userguide/disaster-recovery.html
+- Postgres Backup: https://www.postgresql.org/docs/current/backup.html
+- Kubernetes DR: https://kubernetes.io/docs/tasks/administer-cluster/disaster-recovery/
 
 ---
 
-## Testing
-
-### Disaster Recovery Drill
-
-**Frequency**: Quarterly  
-**Duration**: 2 hours  
-**Participants**: Engineering team, DevOps, Management
-
-**Procedure**:
-1. Schedule maintenance window
-2. Take production snapshot
-3. Simulate failure (database deletion)
-4. Execute recovery procedures
-5. Validate data integrity
-6. Document learnings
-7. Update runbooks
-
-### Last Drill
-
-**Date**: 2025-09-15  
-**Outcome**: Success  
-**RTO Achieved**: 28 minutes  
-**Lessons Learned**: Improved backup restore speed by 40%
-
----
-
-## Continuous Improvement
-
-### Metrics to Track
-
-- Backup success rate
-- Restore time (RTO)
-- Data loss amount (RPO)
-- Recovery drill outcomes
-
-### Goals
-
-- **2025 Q4**: Reduce RTO to 20 minutes
-- **2026 Q1**: Implement multi-region active-active
-- **2026 Q2**: Zero data loss (streaming replication)
-
----
-
-**Stay prepared. Test regularly. 🛡️**
+**Document Owner**: SRE Team  
+**Last Updated**: 2025-10-30  
+**Next Review**: 2026-01-30

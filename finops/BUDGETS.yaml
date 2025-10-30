@@ -1,0 +1,208 @@
+# FinOps Budget Configuration
+# Monthly budget thresholds and alerts for cost control
+
+version: '1.0'
+last_updated: '2025-10-30'
+currency: USD
+
+# Overall monthly budget
+total_monthly_budget: 10000 # $10k/month
+
+# Budget allocation by category
+categories:
+  
+  compute:
+    budget: 3000
+    services:
+      - ecs_fargate
+      - ec2_instances
+      - lambda
+    alert_thresholds:
+      warning: 0.80  # 80% of budget
+      critical: 0.95 # 95% of budget
+    tags:
+      - environment:production
+      - team:platform
+      
+  database:
+    budget: 2500
+    services:
+      - rds_postgresql
+      - supabase
+    alert_thresholds:
+      warning: 0.80
+      critical: 0.95
+    optimization:
+      - Use read replicas for analytics
+      - Enable query performance insights
+      - Review slow queries monthly
+      
+  storage:
+    budget: 1500
+    services:
+      - s3
+      - ebs_volumes
+      - backups
+    alert_thresholds:
+      warning: 0.80
+      critical: 0.95
+    optimization:
+      - S3 lifecycle: Standard → IA (30d) → Glacier (90d)
+      - Delete old EBS snapshots (>90d)
+      - Compress backups
+      
+  networking:
+    budget: 1000
+    services:
+      - data_transfer
+      - load_balancer
+      - nat_gateway
+    alert_thresholds:
+      warning: 0.80
+      critical: 0.95
+    optimization:
+      - Cache responses (CloudFront/CDN)
+      - Compress API responses
+      - Use VPC endpoints for AWS services
+      
+  observability:
+    budget: 1000
+    services:
+      - cloudwatch_logs
+      - prometheus
+      - grafana_cloud
+      - sentry
+    alert_thresholds:
+      warning: 0.80
+      critical: 0.95
+    optimization:
+      - Telemetry sampling (10% of traces)
+      - Log retention: 30d hot, 90d archive
+      - Aggregate metrics (hourly rollups)
+      
+  third_party:
+    budget: 1000
+    services:
+      - supabase
+      - stripe
+      - sendgrid
+      - github
+    alert_thresholds:
+      warning: 0.80
+      critical: 0.95
+
+# Cost anomaly detection
+anomaly_detection:
+  enabled: true
+  baseline_days: 30
+  anomaly_threshold: 1.5 # 50% increase triggers alert
+  exclude_days: # Exclude from baseline
+    - 2025-12-25 # Christmas
+    - 2026-01-01 # New Year
+
+# Alerts
+alerts:
+  email:
+    - platform-team@orca-platform.example
+    - finance@orca-platform.example
+  slack:
+    channel: '#finops-alerts'
+    webhook_url: ${SLACK_FINOPS_WEBHOOK}
+    
+  pagerduty:
+    enabled: false # Only critical budget overruns
+    service_key: ${PAGERDUTY_FINOPS_KEY}
+
+# Reporting
+reports:
+  frequency: weekly
+  recipients:
+    - engineering-manager@orca-platform.example
+    - cfo@orca-platform.example
+  include:
+    - cost_by_category
+    - cost_by_service
+    - cost_trends
+    - recommendations
+
+# Cost optimization recommendations
+recommendations:
+  automated:
+    - unused_ebs_volumes
+    - unattached_eips
+    - idle_load_balancers
+    - underutilized_instances
+    
+  manual_review:
+    - reserved_instance_coverage
+    - savings_plans_opportunities
+    - spot_instance_eligibility
+
+# Forecasting
+forecast:
+  model: linear_regression
+  horizon_days: 90
+  confidence_interval: 0.95
+  alert_if_overbudget: true
+
+# Tagging policy
+tagging:
+  required_tags:
+    - environment # production, staging, development
+    - team # platform, engineering, data
+    - project # orca-api, orca-analytics
+    - cost_center # engineering, marketing, sales
+    
+  enforcement: report # Options: report, block
+  
+# Cost allocation
+allocation:
+  by_tenant:
+    enabled: true
+    method: proportional # Based on resource usage
+    report_frequency: monthly
+    
+  by_team:
+    enabled: true
+    method: tagging
+    
+  by_environment:
+    enabled: true
+    method: tagging
+
+# Budget actions
+actions:
+  80_percent:
+    - Send warning email
+    - Post to Slack
+    - Review cost dashboard
+    
+  95_percent:
+    - Send critical alert
+    - Page on-call engineer
+    - Freeze non-essential spending
+    - Emergency cost review meeting
+    
+  100_percent:
+    - Immediate escalation to CFO/CTO
+    - Identify top cost drivers
+    - Implement emergency cost cuts
+    - Daily cost review until under budget
+
+# Historical data
+historical:
+  2025-09: 8500
+  2025-10: 9200
+  trend: increasing
+  growth_rate: 0.08 # 8% month-over-month
+
+# Targets
+targets:
+  cost_per_tenant: 50 # $50/tenant/month
+  cost_per_workflow_execution: 0.01 # $0.01/execution
+  cost_per_api_request: 0.0001 # $0.0001/request
+  
+  improvement_goals:
+    - Reduce compute costs by 15% (reserved instances)
+    - Reduce storage costs by 20% (lifecycle policies)
+    - Reduce observability costs by 30% (sampling)
