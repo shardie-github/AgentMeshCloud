@@ -1,0 +1,366 @@
+{
+  "version": "3.0.0",
+  "lastUpdated": "2025-10-30",
+  "currency": "USD",
+  "tiers": {
+    "free": {
+      "name": "Free",
+      "tagline": "Get started with AI agent orchestration",
+      "price": {
+        "monthly": 0,
+        "annual": 0
+      },
+      "limits": {
+        "agents": 5,
+        "apiCallsPerMonth": 10000,
+        "storageGB": 1,
+        "teamMembers": 3,
+        "workflowsPerAgent": 10,
+        "telemetryRetentionDays": 7,
+        "customPolicies": 5,
+        "webhooks": 0,
+        "dataExports": 1
+      },
+      "features": {
+        "included": [
+          "Basic AI agents",
+          "Standard workflows",
+          "Community support",
+          "Basic telemetry",
+          "Email notifications",
+          "Standard policies",
+          "Public documentation"
+        ],
+        "notIncluded": [
+          "Advanced agents",
+          "Custom policies",
+          "Webhooks",
+          "Priority support",
+          "SLA guarantee",
+          "Advanced security",
+          "Team collaboration",
+          "Audit logs"
+        ]
+      },
+      "support": {
+        "channels": ["community", "documentation"],
+        "responseTime": "best_effort",
+        "availability": "community_hours"
+      },
+      "cta": {
+        "text": "Get Started Free",
+        "link": "/signup?tier=free"
+      }
+    },
+    "pro": {
+      "name": "Professional",
+      "tagline": "Scale your AI operations with advanced features",
+      "badge": "Most Popular",
+      "price": {
+        "monthly": 99,
+        "annual": 990,
+        "annualSavings": 198
+      },
+      "limits": {
+        "agents": 50,
+        "apiCallsPerMonth": 500000,
+        "storageGB": 50,
+        "teamMembers": 25,
+        "workflowsPerAgent": 100,
+        "telemetryRetentionDays": 90,
+        "customPolicies": 50,
+        "webhooks": 10,
+        "dataExports": -1
+      },
+      "features": {
+        "included": [
+          "Everything in Free, plus:",
+          "Advanced AI agents",
+          "Complex workflows",
+          "Custom governance policies",
+          "Webhooks & integrations",
+          "Priority support",
+          "Advanced telemetry & analytics",
+          "Team collaboration tools",
+          "Role-based access control",
+          "Audit logs",
+          "Data export API",
+          "99.9% uptime SLA",
+          "SSO (SAML)",
+          "API rate limit: 600/min"
+        ],
+        "addons": [
+          "Advanced compliance packages",
+          "Premium support",
+          "Extended retention"
+        ]
+      },
+      "support": {
+        "channels": ["email", "chat", "documentation"],
+        "responseTime": "4_hours",
+        "availability": "business_hours"
+      },
+      "trial": {
+        "days": 14,
+        "creditCardRequired": true
+      },
+      "cta": {
+        "text": "Start 14-Day Trial",
+        "link": "/signup?tier=pro&trial=14"
+      }
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "tagline": "Mission-critical AI with enterprise-grade security",
+      "badge": "Best Value",
+      "price": {
+        "monthly": 999,
+        "annual": 9990,
+        "annualSavings": 2998,
+        "customPricing": true,
+        "contactSales": true
+      },
+      "limits": {
+        "agents": -1,
+        "apiCallsPerMonth": -1,
+        "storageGB": 1000,
+        "teamMembers": -1,
+        "workflowsPerAgent": -1,
+        "telemetryRetentionDays": 365,
+        "customPolicies": -1,
+        "webhooks": -1,
+        "dataExports": -1
+      },
+      "features": {
+        "included": [
+          "Everything in Professional, plus:",
+          "Unlimited agents & workflows",
+          "Unlimited API calls",
+          "Dedicated support team",
+          "99.99% uptime SLA",
+          "Advanced security controls",
+          "Compliance packages (HIPAA, FedRAMP, SOC2)",
+          "Custom deployment options",
+          "White-label capabilities",
+          "Multi-region deployment",
+          "Dedicated instance option",
+          "Custom integrations",
+          "Advanced analytics & BI",
+          "Executive reporting",
+          "Quarterly business reviews",
+          "Custom training & onboarding",
+          "Dedicated account manager",
+          "API rate limit: unlimited"
+        ],
+        "addons": [
+          "Dedicated instance",
+          "On-premise deployment",
+          "Custom SLA terms",
+          "Additional regions"
+        ]
+      },
+      "support": {
+        "channels": ["phone", "email", "chat", "slack", "dedicated_manager"],
+        "responseTime": "1_hour",
+        "availability": "24x7",
+        "criticalIssueResponse": "15_minutes"
+      },
+      "trial": {
+        "days": 30,
+        "creditCardRequired": false,
+        "pocIncluded": true
+      },
+      "cta": {
+        "text": "Contact Sales",
+        "link": "/contact-sales?tier=enterprise"
+      }
+    }
+  },
+  "addons": {
+    "dedicated_instance": {
+      "name": "Dedicated Instance",
+      "description": "Single-tenant deployment with isolated infrastructure",
+      "pricePerMonth": 2000,
+      "availableFor": ["enterprise"],
+      "features": [
+        "Isolated compute & storage",
+        "Custom resource allocation",
+        "Enhanced security",
+        "Regulatory compliance",
+        "Custom backup policies"
+      ]
+    },
+    "advanced_compliance": {
+      "name": "Advanced Compliance Package",
+      "description": "HIPAA, FedRAMP, and industry-specific compliance",
+      "pricePerMonth": 500,
+      "availableFor": ["pro", "enterprise"],
+      "includes": [
+        "HIPAA BAA",
+        "FedRAMP compliance",
+        "SOC 2 Type II audit",
+        "Custom compliance frameworks",
+        "Quarterly compliance reports"
+      ]
+    },
+    "premium_support": {
+      "name": "Premium Support",
+      "description": "24/7 support with 30-minute response time",
+      "pricePerMonth": 299,
+      "availableFor": ["pro", "enterprise"],
+      "features": [
+        "24/7 phone & chat support",
+        "30-minute response time",
+        "Dedicated support engineer",
+        "Proactive monitoring alerts",
+        "Priority bug fixes"
+      ]
+    },
+    "white_label": {
+      "name": "White Label",
+      "description": "Custom branding and domain configuration",
+      "pricePerMonth": 500,
+      "availableFor": ["enterprise"],
+      "features": [
+        "Custom domain",
+        "Branded UI",
+        "Custom email templates",
+        "Logo & color customization",
+        "Remove AI-Agent Mesh branding"
+      ]
+    },
+    "extended_retention": {
+      "name": "Extended Data Retention",
+      "description": "2-year retention for telemetry and audit logs",
+      "pricePerMonth": 199,
+      "availableFor": ["pro", "enterprise"],
+      "includes": [
+        "24-month telemetry retention",
+        "24-month audit log retention",
+        "Advanced search capabilities",
+        "Export historical data"
+      ]
+    }
+  },
+  "discounts": {
+    "annual": {
+      "name": "Annual Commitment Discount",
+      "percentage": 16.67,
+      "description": "Save ~2 months when you pay annually"
+    },
+    "volume": {
+      "name": "Volume Discount",
+      "tiers": [
+        {
+          "agentCount": "100-500",
+          "discount": 0.10
+        },
+        {
+          "agentCount": "501-1000",
+          "discount": 0.20
+        },
+        {
+          "agentCount": "1000+",
+          "discount": 0.30
+        }
+      ]
+    },
+    "nonprofit": {
+      "name": "Nonprofit Discount",
+      "percentage": 30,
+      "requiresVerification": true,
+      "description": "For registered 501(c)(3) organizations"
+    },
+    "education": {
+      "name": "Education Discount",
+      "percentage": 50,
+      "requiresVerification": true,
+      "description": "For accredited educational institutions"
+    },
+    "startup": {
+      "name": "Startup Program",
+      "percentage": 50,
+      "durationMonths": 12,
+      "requirements": [
+        "Less than $5M raised",
+        "Founded within last 3 years",
+        "First-time AI-Agent Mesh customer"
+      ],
+      "applicationRequired": true
+    }
+  },
+  "usageBasedPricing": {
+    "apiCalls": {
+      "unit": "per 1,000 calls",
+      "tiers": {
+        "free": {
+          "included": 10000,
+          "overageRate": null,
+          "hardLimit": true
+        },
+        "pro": {
+          "included": 500000,
+          "overageRate": 0.02
+        },
+        "enterprise": {
+          "included": -1,
+          "overageRate": 0.01,
+          "volumeDiscounts": true
+        }
+      }
+    },
+    "agentHours": {
+      "unit": "per agent compute hour",
+      "tiers": {
+        "free": {
+          "included": 10,
+          "overageRate": 0.10,
+          "hardLimit": true
+        },
+        "pro": {
+          "included": 500,
+          "overageRate": 0.08
+        },
+        "enterprise": {
+          "included": -1,
+          "overageRate": 0.05,
+          "customRates": true
+        }
+      }
+    },
+    "storage": {
+      "unit": "per GB per month",
+      "tiers": {
+        "free": {
+          "included": 1,
+          "overageRate": 0.20,
+          "hardLimit": true
+        },
+        "pro": {
+          "included": 50,
+          "overageRate": 0.10
+        },
+        "enterprise": {
+          "included": 1000,
+          "overageRate": 0.05
+        }
+      }
+    }
+  },
+  "comparisonHighlights": {
+    "free_vs_pro": [
+      "10x more agents (5 → 50)",
+      "50x more API calls (10K → 500K)",
+      "Priority support",
+      "Custom policies",
+      "Team collaboration"
+    ],
+    "pro_vs_enterprise": [
+      "Unlimited agents & workflows",
+      "99.99% SLA (vs 99.9%)",
+      "Dedicated support team",
+      "Advanced compliance",
+      "Custom deployment options"
+    ]
+  }
+}

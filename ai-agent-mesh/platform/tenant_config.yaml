@@ -1,0 +1,168 @@
+# Tenant Configuration Schema for AI-Agent Mesh
+# Defines multi-tenant isolation, resource allocation, and governance policies
+
+version: "3.0.0"
+
+# Default tenant configuration template
+default_tenant:
+  isolation_level: "strict"  # strict | standard | relaxed
+  resource_allocation:
+    compute:
+      cpu_limit: "2000m"
+      memory_limit: "4Gi"
+      cpu_request: "500m"
+      memory_request: "1Gi"
+    storage:
+      persistent_volume: "10Gi"
+      ephemeral_storage: "5Gi"
+    network:
+      ingress_bandwidth: "100Mbps"
+      egress_bandwidth: "100Mbps"
+  
+  security_policies:
+    encryption_at_rest: true
+    encryption_in_transit: true
+    data_residency: "auto"  # auto | us | eu | apac | mena
+    audit_logging: true
+    mfa_required: false
+    ip_whitelist_enabled: false
+    
+  compliance_frameworks:
+    - "SOC2_TYPE_II"
+    - "GDPR"
+    
+  governance:
+    policy_enforcement_mode: "monitor"  # enforce | monitor | disabled
+    drift_detection_interval: "5m"
+    policy_sync_interval: "1h"
+    
+  monitoring:
+    metrics_retention_days: 30
+    log_retention_days: 90
+    alerting_enabled: true
+    prometheus_scrape: true
+
+# Tier-specific overrides
+tiers:
+  free:
+    resource_allocation:
+      compute:
+        cpu_limit: "500m"
+        memory_limit: "1Gi"
+      storage:
+        persistent_volume: "1Gi"
+    monitoring:
+      metrics_retention_days: 7
+      log_retention_days: 7
+    security_policies:
+      audit_logging: false
+      
+  pro:
+    resource_allocation:
+      compute:
+        cpu_limit: "4000m"
+        memory_limit: "8Gi"
+      storage:
+        persistent_volume: "50Gi"
+    monitoring:
+      metrics_retention_days: 90
+      log_retention_days: 90
+    security_policies:
+      mfa_required: true
+      
+  enterprise:
+    resource_allocation:
+      compute:
+        cpu_limit: "unlimited"
+        memory_limit: "unlimited"
+      storage:
+        persistent_volume: "1Ti"
+    monitoring:
+      metrics_retention_days: 365
+      log_retention_days: 365
+      custom_dashboards: true
+    security_policies:
+      mfa_required: true
+      ip_whitelist_enabled: true
+      sso_enabled: true
+      dedicated_instance: true
+    governance:
+      policy_enforcement_mode: "enforce"
+    sla:
+      uptime_guarantee: "99.99%"
+      support_response_time: "1h"
+      incident_response_time: "15m"
+
+# Regional configurations
+regions:
+  us-east-1:
+    data_residency: "us"
+    compliance_frameworks:
+      - "SOC2_TYPE_II"
+      - "HIPAA"
+      - "FedRAMP"
+      
+  eu-west-1:
+    data_residency: "eu"
+    compliance_frameworks:
+      - "GDPR"
+      - "SOC2_TYPE_II"
+      - "ISO27001"
+      
+  ap-southeast-1:
+    data_residency: "apac"
+    compliance_frameworks:
+      - "SOC2_TYPE_II"
+      - "PDPA"
+      
+  me-south-1:
+    data_residency: "mena"
+    compliance_frameworks:
+      - "NDPR"
+      - "CITC"
+
+# Rate limiting configuration
+rate_limiting:
+  free:
+    api_calls_per_minute: 60
+    api_calls_per_hour: 1000
+    api_calls_per_day: 10000
+    concurrent_requests: 5
+    
+  pro:
+    api_calls_per_minute: 600
+    api_calls_per_hour: 20000
+    api_calls_per_day: 500000
+    concurrent_requests: 50
+    
+  enterprise:
+    api_calls_per_minute: -1  # unlimited
+    api_calls_per_hour: -1
+    api_calls_per_day: -1
+    concurrent_requests: -1
+
+# Feature flags by tier
+feature_flags:
+  free:
+    - "basic_agents"
+    - "standard_workflows"
+    - "community_support"
+    
+  pro:
+    - "basic_agents"
+    - "advanced_agents"
+    - "complex_workflows"
+    - "custom_policies"
+    - "webhooks"
+    - "api_access"
+    - "team_management"
+    - "audit_logs"
+    
+  enterprise:
+    - "all_features"
+    - "sso"
+    - "white_label"
+    - "dedicated_support"
+    - "custom_deployment"
+    - "advanced_security"
+    - "compliance_packages"
