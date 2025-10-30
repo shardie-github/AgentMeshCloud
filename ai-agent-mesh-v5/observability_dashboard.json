@@ -1,0 +1,490 @@
+{
+  "dashboard": {
+    "id": "mesh-os-observability",
+    "title": "Autonomous Mesh OS - Observability Dashboard",
+    "version": "5.0.0",
+    "tags": ["mesh-os", "observability", "production"],
+    "timezone": "UTC",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Agent Health Overview",
+        "type": "stat",
+        "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(mesh_os_agent_status{status='healthy'})",
+            "legendFormat": "Healthy",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(mesh_os_agent_status{status='degraded'})",
+            "legendFormat": "Degraded",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(mesh_os_agent_status{status='unhealthy'})",
+            "legendFormat": "Unhealthy",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "yellow" },
+                { "value": 3, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Agent Uptime",
+        "type": "gauge",
+        "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "avg(mesh_os_agent_uptime_percent)",
+            "legendFormat": "Uptime %",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 95, "color": "yellow" },
+                { "value": 99, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Job Throughput",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "rate(mesh_os_jobs_completed_total[5m])",
+            "legendFormat": "Completed",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(mesh_os_jobs_failed_total[5m])",
+            "legendFormat": "Failed",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          { "format": "ops", "label": "Jobs/sec" },
+          { "format": "short" }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Policy Violations",
+        "type": "stat",
+        "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(increase(mesh_os_policy_violations_total[1h]))",
+            "legendFormat": "Last Hour",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 5, "color": "yellow" },
+                { "value": 10, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Agent Latency (P50, P95, P99)",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(mesh_os_agent_latency_bucket[5m]))",
+            "legendFormat": "P50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(mesh_os_agent_latency_bucket[5m]))",
+            "legendFormat": "P95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(mesh_os_agent_latency_bucket[5m]))",
+            "legendFormat": "P99",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          { "format": "ms", "label": "Latency" },
+          { "format": "short" }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Job Queue Depth",
+        "type": "graph",
+        "gridPos": { "x": 12, "y": 4, "w": 12, "h": 6 },
+        "targets": [
+          {
+            "expr": "mesh_os_jobs_pending",
+            "legendFormat": "Pending",
+            "refId": "A"
+          },
+          {
+            "expr": "mesh_os_jobs_running",
+            "legendFormat": "Running",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          { "format": "short", "label": "Jobs" },
+          { "format": "short" }
+        ],
+        "alert": {
+          "name": "High Queue Depth",
+          "conditions": [
+            {
+              "evaluator": { "type": "gt", "params": [100] },
+              "operator": { "type": "and" },
+              "query": { "params": ["A", "5m", "now"] },
+              "reducer": { "type": "avg" },
+              "type": "query"
+            }
+          ],
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Job queue depth exceeds 100",
+          "noDataState": "no_data",
+          "executionErrorState": "alerting"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Resource Utilization by Agent",
+        "type": "bargauge",
+        "gridPos": { "x": 0, "y": 10, "w": 8, "h": 6 },
+        "targets": [
+          {
+            "expr": "mesh_os_agent_cpu_usage",
+            "legendFormat": "{{agent_id}} CPU",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 70, "color": "yellow" },
+                { "value": 90, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Self-Healing Actions",
+        "type": "timeseries",
+        "gridPos": { "x": 8, "y": 10, "w": 8, "h": 6 },
+        "targets": [
+          {
+            "expr": "sum by(action_type) (increase(mesh_os_healing_actions_total[1h]))",
+            "legendFormat": "{{action_type}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "custom": {
+              "drawStyle": "bars",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "fillOpacity": 80,
+              "gradientMode": "none"
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Carbon Intensity",
+        "type": "gauge",
+        "gridPos": { "x": 16, "y": 10, "w": 8, "h": 6 },
+        "targets": [
+          {
+            "expr": "avg(mesh_os_carbon_intensity_gco2_kwh)",
+            "legendFormat": "gCO2/kWh",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "gCO2/kWh",
+            "min": 0,
+            "max": 500,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 100, "color": "yellow" },
+                { "value": 200, "color": "orange" },
+                { "value": 300, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Cost Trends",
+        "type": "graph",
+        "gridPos": { "x": 0, "y": 16, "w": 12, "h": 6 },
+        "targets": [
+          {
+            "expr": "sum by(category) (mesh_os_cost_usd)",
+            "legendFormat": "{{category}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          { "format": "currencyUSD", "label": "Cost" },
+          { "format": "short" }
+        ],
+        "stack": true
+      },
+      {
+        "id": 11,
+        "title": "Top Agents by Job Count",
+        "type": "table",
+        "gridPos": { "x": 12, "y": 16, "w": 12, "h": 6 },
+        "targets": [
+          {
+            "expr": "topk(10, sum by(agent_id) (mesh_os_agent_jobs_total))",
+            "format": "table",
+            "instant": true,
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "agent_id": "Agent ID",
+                "Value": "Job Count"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Error Rate",
+        "type": "stat",
+        "gridPos": { "x": 0, "y": 22, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "sum(rate(mesh_os_jobs_failed_total[5m])) / sum(rate(mesh_os_jobs_total[5m])) * 100",
+            "legendFormat": "Error Rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1, "color": "yellow" },
+                { "value": 5, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "MTTR (Mean Time To Recovery)",
+        "type": "stat",
+        "gridPos": { "x": 6, "y": 22, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "avg(mesh_os_healing_recovery_time_seconds)",
+            "legendFormat": "MTTR",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 300, "color": "yellow" },
+                { "value": 600, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 14,
+        "title": "SLO Adherence",
+        "type": "stat",
+        "gridPos": { "x": 12, "y": 22, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "avg(mesh_os_slo_adherence_percent)",
+            "legendFormat": "SLO %",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 95, "color": "yellow" },
+                { "value": 99, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 15,
+        "title": "Network Traffic",
+        "type": "graph",
+        "gridPos": { "x": 18, "y": 22, "w": 6, "h": 4 },
+        "targets": [
+          {
+            "expr": "rate(mesh_os_network_bytes_in[5m])",
+            "legendFormat": "Inbound",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(mesh_os_network_bytes_out[5m])",
+            "legendFormat": "Outbound",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          { "format": "Bps", "label": "Bytes/sec" },
+          { "format": "short" }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Recent Alerts",
+        "type": "logs",
+        "gridPos": { "x": 0, "y": 26, "w": 24, "h": 8 },
+        "targets": [
+          {
+            "expr": "{job=\"mesh-os\", level=~\"error|critical\"} |~ \"alert\"",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showLabels": true,
+          "showTime": true,
+          "sortOrder": "Descending",
+          "wrapLogMessage": true
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "query": "label_values(mesh_os_agent_status, environment)",
+          "current": { "text": "production", "value": "production" },
+          "hide": 0,
+          "includeAll": false,
+          "multi": false
+        },
+        {
+          "name": "agent_type",
+          "type": "query",
+          "query": "label_values(mesh_os_agent_status{environment=\"$environment\"}, agent_type)",
+          "current": { "text": "All", "value": "$__all" },
+          "hide": 0,
+          "includeAll": true,
+          "multi": true
+        },
+        {
+          "name": "agent_id",
+          "type": "query",
+          "query": "label_values(mesh_os_agent_status{environment=\"$environment\",agent_type=~\"$agent_type\"}, agent_id)",
+          "current": { "text": "All", "value": "$__all" },
+          "hide": 0,
+          "includeAll": true,
+          "multi": true
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "mesh_os_deployment_timestamp",
+          "iconColor": "blue",
+          "enable": true
+        },
+        {
+          "name": "Incidents",
+          "datasource": "Prometheus",
+          "expr": "mesh_os_incident_timestamp",
+          "iconColor": "red",
+          "enable": true
+        }
+      ]
+    }
+  },
+  "overwrite": true
+}

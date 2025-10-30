@@ -1,0 +1,385 @@
+---
+# Autonomous Mesh OS - Alert Rules
+# Comprehensive alerting configuration for Prometheus/Grafana
+
+groups:
+  - name: mesh_os_health
+    interval: 30s
+    rules:
+      - alert: AgentDown
+        expr: up{job="mesh-agents"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: health
+        annotations:
+          summary: "Agent {{ $labels.agent_id }} is down"
+          description: "Agent {{ $labels.agent_id }} has been unreachable for more than 2 minutes."
+          runbook_url: "https://docs.mesh-os.io/runbooks/agent-down"
+      
+      - alert: AgentDegraded
+        expr: mesh_os_agent_health_score < 70
+        for: 5m
+        labels:
+          severity: warning
+          category: health
+        annotations:
+          summary: "Agent {{ $labels.agent_id }} health degraded"
+          description: "Agent {{ $labels.agent_id }} health score is {{ $value }}%."
+          runbook_url: "https://docs.mesh-os.io/runbooks/agent-degraded"
+      
+      - alert: HighAgentFailureRate
+        expr: (sum by(agent_id) (rate(mesh_os_agent_failures_total[5m])) / sum by(agent_id) (rate(mesh_os_agent_requests_total[5m]))) > 0.05
+        for: 10m
+        labels:
+          severity: high
+          category: health
+        annotations:
+          summary: "High failure rate on agent {{ $labels.agent_id }}"
+          description: "Agent {{ $labels.agent_id }} has a failure rate of {{ $value | humanizePercentage }} over the last 10 minutes."
+      
+      - alert: MultipleAgentsDown
+        expr: count(up{job="mesh-agents"} == 0) >= 3
+        for: 1m
+        labels:
+          severity: critical
+          category: health
+        annotations:
+          summary: "Multiple agents are down"
+          description: "{{ $value }} agents are currently down. Possible systemic issue."
+          runbook_url: "https://docs.mesh-os.io/runbooks/multiple-agents-down"
+
+  - name: mesh_os_performance
+    interval: 30s
+    rules:
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(mesh_os_agent_latency_bucket[5m])) > 5000
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High latency on agent {{ $labels.agent_id }}"
+          description: "P95 latency for agent {{ $labels.agent_id }} is {{ $value }}ms."
+          runbook_url: "https://docs.mesh-os.io/runbooks/high-latency"
+      
+      - alert: CriticalLatency
+        expr: histogram_quantile(0.99, rate(mesh_os_agent_latency_bucket[5m])) > 10000
+        for: 5m
+        labels:
+          severity: critical
+          category: performance
+        annotations:
+          summary: "Critical latency on agent {{ $labels.agent_id }}"
+          description: "P99 latency for agent {{ $labels.agent_id }} is {{ $value }}ms."
+      
+      - alert: HighCPUUsage
+        expr: mesh_os_agent_cpu_usage > 90
+        for: 15m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High CPU usage on agent {{ $labels.agent_id }}"
+          description: "CPU usage on agent {{ $labels.agent_id }} is {{ $value }}%."
+          runbook_url: "https://docs.mesh-os.io/runbooks/high-cpu"
+      
+      - alert: HighMemoryUsage
+        expr: mesh_os_agent_memory_usage > 85
+        for: 15m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High memory usage on agent {{ $labels.agent_id }}"
+          description: "Memory usage on agent {{ $labels.agent_id }} is {{ $value }}%."
+          runbook_url: "https://docs.mesh-os.io/runbooks/high-memory"
+      
+      - alert: JobQueueBacklog
+        expr: mesh_os_jobs_pending > 100
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High job queue backlog"
+          description: "{{ $value }} jobs are pending in the queue."
+          runbook_url: "https://docs.mesh-os.io/runbooks/queue-backlog"
+
+  - name: mesh_os_cost
+    interval: 1h
+    rules:
+      - alert: BudgetExceeded
+        expr: mesh_os_cost_budget_usage_percent > 100
+        for: 5m
+        labels:
+          severity: critical
+          category: cost
+        annotations:
+          summary: "Monthly budget exceeded"
+          description: "Current spending is {{ $value }}% of monthly budget."
+          runbook_url: "https://docs.mesh-os.io/runbooks/budget-exceeded"
+      
+      - alert: BudgetWarning
+        expr: mesh_os_cost_budget_usage_percent > 80
+        for: 1h
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "Approaching budget limit"
+          description: "Current spending is {{ $value }}% of monthly budget."
+      
+      - alert: CostAnomaly
+        expr: abs(mesh_os_cost_daily_usd - avg_over_time(mesh_os_cost_daily_usd[7d])) > (2 * stddev_over_time(mesh_os_cost_daily_usd[7d]))
+        for: 2h
+        labels:
+          severity: high
+          category: cost
+        annotations:
+          summary: "Cost anomaly detected"
+          description: "Daily cost of ${{ $value }} is significantly higher than the 7-day average."
+          runbook_url: "https://docs.mesh-os.io/runbooks/cost-anomaly"
+      
+      - alert: IdleResourceCost
+        expr: mesh_os_idle_resource_cost_usd > 500
+        for: 24h
+        labels:
+          severity: medium
+          category: cost
+        annotations:
+          summary: "High idle resource cost"
+          description: "Idle resources are costing ${{ $value }}/month."
+
+  - name: mesh_os_compliance
+    interval: 1h
+    rules:
+      - alert: PolicyViolation
+        expr: increase(mesh_os_policy_violations_total[1h]) > 10
+        for: 5m
+        labels:
+          severity: high
+          category: compliance
+        annotations:
+          summary: "High policy violation rate"
+          description: "{{ $value }} policy violations in the last hour."
+          runbook_url: "https://docs.mesh-os.io/runbooks/policy-violation"
+      
+      - alert: ComplianceCheckFailed
+        expr: mesh_os_compliance_check_status == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: compliance
+        annotations:
+          summary: "Compliance check failed: {{ $labels.check_name }}"
+          description: "Compliance check {{ $labels.check_name }} has failed."
+          runbook_url: "https://docs.mesh-os.io/runbooks/compliance-failure"
+      
+      - alert: UntaggedResources
+        expr: count(mesh_os_agent_status{tags=""}) > 5
+        for: 24h
+        labels:
+          severity: medium
+          category: compliance
+        annotations:
+          summary: "Untagged resources detected"
+          description: "{{ $value }} agents are missing required tags."
+      
+      - alert: AuditLogFailure
+        expr: rate(mesh_os_audit_log_errors_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          category: compliance
+        annotations:
+          summary: "Audit logging failure"
+          description: "Audit log errors detected. Compliance may be compromised."
+          runbook_url: "https://docs.mesh-os.io/runbooks/audit-log-failure"
+
+  - name: mesh_os_security
+    interval: 1m
+    rules:
+      - alert: UnauthorizedAccess
+        expr: increase(mesh_os_unauthorized_requests_total[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Unauthorized access attempts"
+          description: "{{ $value }} unauthorized access attempts in the last 5 minutes."
+          runbook_url: "https://docs.mesh-os.io/runbooks/unauthorized-access"
+      
+      - alert: RateLimitExceeded
+        expr: increase(mesh_os_rate_limit_exceeded_total[1m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Rate limit exceeded"
+          description: "Rate limit exceeded {{ $value }} times in the last minute."
+      
+      - alert: SSLCertificateExpiring
+        expr: (mesh_os_ssl_cert_expiry_timestamp - time()) < (7 * 24 * 3600)
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.domain }} expires in {{ $value | humanizeDuration }}."
+          runbook_url: "https://docs.mesh-os.io/runbooks/ssl-expiry"
+      
+      - alert: SSLCertificateExpired
+        expr: mesh_os_ssl_cert_expiry_timestamp < time()
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "SSL certificate expired"
+          description: "SSL certificate for {{ $labels.domain }} has expired."
+          runbook_url: "https://docs.mesh-os.io/runbooks/ssl-expired"
+
+  - name: mesh_os_self_healing
+    interval: 5m
+    rules:
+      - alert: SelfHealingFailure
+        expr: mesh_os_healing_action_status{status="failed"} > 0
+        for: 5m
+        labels:
+          severity: high
+          category: healing
+        annotations:
+          summary: "Self-healing action failed"
+          description: "Self-healing action {{ $labels.action_type }} failed on agent {{ $labels.agent_id }}."
+          runbook_url: "https://docs.mesh-os.io/runbooks/healing-failure"
+      
+      - alert: HighHealingRate
+        expr: rate(mesh_os_healing_actions_total[15m]) > 0.5
+        for: 15m
+        labels:
+          severity: warning
+          category: healing
+        annotations:
+          summary: "High self-healing action rate"
+          description: "Self-healing rate is {{ $value }} actions per second. Possible systemic issue."
+      
+      - alert: AgentQuarantined
+        expr: mesh_os_agent_quarantined == 1
+        for: 1m
+        labels:
+          severity: high
+          category: healing
+        annotations:
+          summary: "Agent {{ $labels.agent_id }} quarantined"
+          description: "Agent {{ $labels.agent_id }} has been quarantined due to repeated failures."
+          runbook_url: "https://docs.mesh-os.io/runbooks/agent-quarantined"
+
+  - name: mesh_os_slo
+    interval: 5m
+    rules:
+      - alert: SLOViolation
+        expr: mesh_os_slo_adherence_percent < 99
+        for: 1h
+        labels:
+          severity: high
+          category: slo
+        annotations:
+          summary: "SLO violation for {{ $labels.slo_name }}"
+          description: "SLO adherence is {{ $value }}%, below target of 99%."
+          runbook_url: "https://docs.mesh-os.io/runbooks/slo-violation"
+      
+      - alert: ErrorBudgetExhausted
+        expr: mesh_os_error_budget_remaining_percent < 10
+        for: 5m
+        labels:
+          severity: critical
+          category: slo
+        annotations:
+          summary: "Error budget exhausted for {{ $labels.slo_name }}"
+          description: "Only {{ $value }}% of error budget remaining."
+          runbook_url: "https://docs.mesh-os.io/runbooks/error-budget"
+
+  - name: mesh_os_carbon
+    interval: 1h
+    rules:
+      - alert: HighCarbonIntensity
+        expr: mesh_os_carbon_intensity_gco2_kwh > 200
+        for: 2h
+        labels:
+          severity: medium
+          category: carbon
+        annotations:
+          summary: "High carbon intensity"
+          description: "Current carbon intensity is {{ $value }} gCO2/kWh."
+      
+      - alert: CarbonBudgetExceeded
+        expr: mesh_os_carbon_emissions_monthly_kg > mesh_os_carbon_budget_monthly_kg
+        for: 1h
+        labels:
+          severity: warning
+          category: carbon
+        annotations:
+          summary: "Monthly carbon budget exceeded"
+          description: "Carbon emissions are {{ $value }}kg, exceeding monthly budget."
+
+  - name: mesh_os_infrastructure
+    interval: 1m
+    rules:
+      - alert: DiskSpaceLow
+        expr: (mesh_os_disk_free_bytes / mesh_os_disk_total_bytes) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk space is {{ $value | humanizePercentage }} full."
+          runbook_url: "https://docs.mesh-os.io/runbooks/low-disk-space"
+      
+      - alert: DiskSpaceCritical
+        expr: (mesh_os_disk_free_bytes / mesh_os_disk_total_bytes) < 0.05
+        for: 5m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Disk space is {{ $value | humanizePercentage }} full."
+      
+      - alert: NetworkErrors
+        expr: rate(mesh_os_network_errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High network error rate"
+          description: "Network errors at {{ $value }} per second."
+
+  - name: mesh_os_federation
+    interval: 1m
+    rules:
+      - alert: FederationSyncFailure
+        expr: mesh_os_federation_sync_status == 0
+        for: 5m
+        labels:
+          severity: high
+          category: federation
+        annotations:
+          summary: "Federation sync failure with {{ $labels.peer_mesh }}"
+          description: "Failed to sync with federated mesh {{ $labels.peer_mesh }}."
+          runbook_url: "https://docs.mesh-os.io/runbooks/federation-sync"
+      
+      - alert: TrustScoreDropped
+        expr: mesh_os_trust_score < 70
+        for: 10m
+        labels:
+          severity: warning
+          category: federation
+        annotations:
+          summary: "Trust score dropped for {{ $labels.agent_id }}"
+          description: "Trust score is {{ $value }}%."

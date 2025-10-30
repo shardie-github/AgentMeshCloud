@@ -1,0 +1,268 @@
+---
+# Autonomous Mesh OS - Scheduler Configuration
+# Defines core runtime parameters for job scheduling, health monitoring, and auto-scaling
+
+mesh:
+  name: "Autonomous Mesh OS"
+  version: "5.0.0"
+  environment: "production"
+  region: "global"
+
+scheduler:
+  # Maximum concurrent jobs across the mesh
+  maxConcurrentJobs: 100
+  
+  # Scheduler tick interval (ms)
+  schedulerInterval: 5000
+  
+  # Job priority levels
+  priorities:
+    - critical    # P0 - immediate execution
+    - high        # P1 - < 1 minute
+    - normal      # P2 - < 5 minutes
+    - low         # P3 - best effort
+  
+  # Retry policy for failed jobs
+  retryPolicy:
+    maxRetries: 3
+    backoffMultiplier: 2        # Exponential backoff: 2s, 4s, 8s
+    initialBackoffMs: 1000
+    maxBackoffMs: 30000
+  
+  # Job timeout configuration
+  timeouts:
+    critical: 60000     # 1 minute
+    high: 300000        # 5 minutes
+    normal: 900000      # 15 minutes
+    low: 3600000        # 1 hour
+  
+  # Queue management
+  queueLimits:
+    maxPendingJobs: 10000
+    maxJobAge: 86400000    # 24 hours
+    purgeFailedAfter: 604800000  # 7 days
+
+health:
+  # Health check interval (ms)
+  checkInterval: 30000
+  
+  # Heartbeat timeout before marking agent unhealthy (ms)
+  heartbeatTimeout: 60000
+  
+  # Number of consecutive failures before quarantine
+  failureThreshold: 3
+  
+  # Auto-recovery configuration
+  autoRecover:
+    enabled: true
+    cooldownPeriod: 300000    # 5 minutes
+    maxRecoveryAttempts: 5
+  
+  # Health probe types
+  probes:
+    - type: http
+      endpoint: /health
+      timeout: 5000
+      expectedStatus: 200
+    
+    - type: tcp
+      port: 8080
+      timeout: 3000
+    
+    - type: metrics
+      threshold:
+        cpu: 90          # CPU usage %
+        memory: 85       # Memory usage %
+        latency: 5000    # Response time ms
+
+telemetry:
+  # Telemetry collection interval (ms)
+  collectionInterval: 10000
+  
+  # Retention policy
+  retention:
+    maxSnapshots: 10000
+    maxAgeHours: 72
+  
+  # Metrics to collect
+  metrics:
+    - agent.uptime
+    - agent.job.count
+    - agent.job.success_rate
+    - agent.job.avg_latency
+    - agent.cpu.usage
+    - agent.memory.usage
+    - agent.network.bytes_in
+    - agent.network.bytes_out
+  
+  # Export configuration
+  export:
+    enabled: true
+    format: prometheus
+    endpoint: /metrics
+    interval: 15000
+
+scaling:
+  # Auto-scaling configuration
+  enabled: true
+  
+  # Scale-up triggers
+  scaleUp:
+    cpuThreshold: 75              # CPU usage %
+    memoryThreshold: 80           # Memory usage %
+    queueDepthThreshold: 50       # Pending jobs
+    latencyThreshold: 3000        # Avg latency ms
+    cooldownPeriod: 300000        # 5 minutes between scale-ups
+  
+  # Scale-down triggers
+  scaleDown:
+    cpuThreshold: 30              # CPU usage %
+    memoryThreshold: 40           # Memory usage %
+    idleThreshold: 600000         # 10 minutes idle
+    cooldownPeriod: 600000        # 10 minutes between scale-downs
+  
+  # Scaling limits
+  limits:
+    minAgents: 3
+    maxAgents: 100
+    scaleStep: 2                  # Number of agents to add/remove
+
+agents:
+  # Default agent configuration
+  - id: agent-analytics-01
+    name: "Analytics Agent 01"
+    type: analytics
+    endpoint: "http://localhost:9001"
+    capabilities:
+      - compute
+      - analytics
+      - ml-inference
+    resources:
+      cpu: 4
+      memory: 8192
+      storage: 100
+  
+  - id: agent-governance-01
+    name: "Governance Agent 01"
+    type: governance
+    endpoint: "http://localhost:9002"
+    capabilities:
+      - policy-enforcement
+      - audit
+      - compliance
+    resources:
+      cpu: 2
+      memory: 4096
+      storage: 50
+  
+  - id: agent-federation-01
+    name: "Federation Agent 01"
+    type: federation
+    endpoint: "http://localhost:9003"
+    capabilities:
+      - federation
+      - trust-verification
+      - consensus
+    resources:
+      cpu: 4
+      memory: 8192
+      storage: 200
+
+policies:
+  # Job assignment policies
+  assignment:
+    strategy: "least-loaded"      # Options: round-robin, least-loaded, capability-match
+    affinityRules:
+      - jobType: analytics
+        preferredAgents: ["agent-analytics-*"]
+      
+      - jobType: compliance
+        preferredAgents: ["agent-governance-*"]
+  
+  # Resource policies
+  resources:
+    cpuLimit: 95                  # % per agent
+    memoryLimit: 90               # % per agent
+    diskLimit: 85                 # % per agent
+  
+  # Quarantine policy
+  quarantine:
+    enabled: true
+    conditions:
+      - consecutiveFailures: 5
+      - healthCheckFailures: 3
+      - resourceViolations: 3
+    duration: 900000              # 15 minutes
+    notifyOnQuarantine: true
+
+alerting:
+  # Alert configuration
+  enabled: true
+  channels:
+    - type: webhook
+      url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+      severity: ["critical", "high"]
+    
+    - type: email
+      recipients: ["ops@example.com", "sre@example.com"]
+      severity: ["critical"]
+  
+  # Alert rules
+  rules:
+    - name: "High Job Failure Rate"
+      condition: "failure_rate > 0.05"
+      severity: high
+      cooldown: 600000            # 10 minutes
+    
+    - name: "Agent Quarantined"
+      condition: "agent.quarantined"
+      severity: critical
+      cooldown: 0
+    
+    - name: "Queue Depth Critical"
+      condition: "pending_jobs > 1000"
+      severity: high
+      cooldown: 300000            # 5 minutes
+
+logging:
+  level: "info"                   # Options: debug, info, warn, error
+  format: "json"                  # Options: json, text
+  outputs:
+    - console
+    - file
+  file:
+    path: "/var/log/mesh-os/kernel.log"
+    maxSize: 104857600            # 100MB
+    maxFiles: 10
+    compress: true
+
+security:
+  # Authentication & Authorization
+  authentication:
+    enabled: true
+    method: "jwt"                 # Options: jwt, oauth2, mtls
+    tokenExpiry: 3600             # 1 hour
+  
+  authorization:
+    enabled: true
+    rbac:
+      - role: admin
+        permissions: ["*"]
+      
+      - role: operator
+        permissions: ["job:submit", "agent:view", "metrics:view"]
+      
+      - role: viewer
+        permissions: ["metrics:view", "status:view"]
+  
+  # Rate limiting
+  rateLimit:
+    enabled: true
+    requestsPerMinute: 1000
+    burstSize: 100
+  
+  # Encryption
+  encryption:
+    inTransit: true
+    atRest: true
+    algorithm: "AES-256-GCM"

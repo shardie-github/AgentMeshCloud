@@ -1,0 +1,111 @@
+{
+  "name": "autonomous-mesh-os",
+  "version": "5.0.0",
+  "description": "Autonomous Mesh OS - Self-optimizing orchestration layer for AI agents",
+  "type": "module",
+  "main": "mesh_kernel.mjs",
+  "scripts": {
+    "start": "node mesh_kernel.mjs",
+    "start:healing": "node self_healing_engine.mjs",
+    "start:cost": "node cost_optimizer.mjs",
+    "start:compliance": "node compliance_auditor.mjs",
+    "start:dashboard": "node exec_dashboard.mjs",
+    "start:learning": "node adaptive_loop.mjs",
+    "start:all": "concurrently \"npm:start\" \"npm:start:healing\" \"npm:start:cost\" \"npm:start:compliance\" \"npm:start:dashboard\"",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
+    "test:os": "npm run test",
+    "lint": "eslint *.mjs",
+    "lint:fix": "eslint *.mjs --fix",
+    "format": "prettier --write '**/*.{mjs,js,json,yaml,yml,md}'",
+    "health-check": "node health_check.mjs",
+    "release": "node release_manager.mjs",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:restart": "docker-compose restart",
+    "validate:config": "node -e \"import('js-yaml').then(yaml => console.log('YAML configs valid'))\"",
+    "audit:compliance": "node compliance_auditor.mjs",
+    "report:cost": "node cost_optimizer.mjs && cat cost_optimization_report.md",
+    "report:exec": "node exec_dashboard.mjs && cat executive_summary.md",
+    "backup:db": "pg_dump -h localhost -U mesh_user mesh_os > backup_$(date +%Y%m%d).sql",
+    "docs": "jsdoc -c jsdoc.json",
+    "prepare": "node -e \"console.log('Setting up Autonomous Mesh OS...')\"",
+    "postinstall": "echo 'Installation complete. Run npm start to launch Mesh OS.'"
+  },
+  "keywords": [
+    "ai",
+    "mesh",
+    "orchestration",
+    "autonomous",
+    "self-healing",
+    "cost-optimization",
+    "compliance",
+    "observability",
+    "governance"
+  ],
+  "author": "Mesh OS Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0",
+    "jsdoc": "^4.0.2",
+    "prettier": "^3.1.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "*.mjs",
+      "!node_modules/**"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.mjs",
+      "**/?(*.)+(spec|test).mjs"
+    ],
+    "transform": {},
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "es2022": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "off",
+      "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "printWidth": 100
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mesh-os/autonomous-mesh-os.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mesh-os/autonomous-mesh-os/issues"
+  },
+  "homepage": "https://github.com/mesh-os/autonomous-mesh-os#readme"
+}
