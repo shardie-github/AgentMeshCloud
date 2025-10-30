@@ -1,0 +1,903 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "generated": "2025-10-30T00:00:00Z",
+    "description": "Agent and automation topology map showing nodes and edges",
+    "total_nodes": 29,
+    "total_edges": 47
+  },
+  "nodes": [
+    {
+      "id": "chatgpt-customer-service",
+      "type": "mcp_agent",
+      "label": "Customer Support ChatBot",
+      "category": "agent",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": ["GDPR", "PCI-DSS"],
+      "owner": "customer-success@acme.com",
+      "hardening_status": "partial",
+      "issues_count": 3
+    },
+    {
+      "id": "github-copilot-enterprise",
+      "type": "mcp_agent",
+      "label": "GitHub Copilot",
+      "category": "agent",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["code_security"],
+      "owner": "engineering@acme.com",
+      "hardening_status": "good",
+      "issues_count": 1
+    },
+    {
+      "id": "claude-financial-analyst",
+      "type": "mcp_agent",
+      "label": "Financial Analyst",
+      "category": "agent",
+      "status": "active",
+      "risk_level": "critical",
+      "compliance": ["SOX", "SEC"],
+      "owner": "finance@acme.com",
+      "hardening_status": "critical",
+      "issues_count": 3
+    },
+    {
+      "id": "llama-data-pipeline",
+      "type": "mcp_agent",
+      "label": "Data Science Pipeline",
+      "category": "agent",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": [],
+      "owner": "data-science@acme.com",
+      "hardening_status": "needs_work",
+      "issues_count": 3
+    },
+    {
+      "id": "unknown-marketing-chatbot",
+      "type": "shadow_ai",
+      "label": "Shadow AI - Marketing",
+      "category": "agent",
+      "status": "quarantined",
+      "risk_level": "critical",
+      "compliance": [],
+      "owner": "security@acme.com",
+      "hardening_status": "quarantined",
+      "issues_count": 4
+    },
+    {
+      "id": "api-gateway",
+      "type": "service",
+      "label": "API Gateway",
+      "category": "infrastructure",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": [],
+      "owner": "platform@example.com",
+      "hardening_status": "needs_work",
+      "issues_count": 2
+    },
+    {
+      "id": "registry-service",
+      "type": "service",
+      "label": "Registry Service",
+      "category": "infrastructure",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["agent_registry"],
+      "owner": "platform@example.com",
+      "hardening_status": "good",
+      "issues_count": 1
+    },
+    {
+      "id": "telemetry-service",
+      "type": "service",
+      "label": "Telemetry Service",
+      "category": "infrastructure",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["observability"],
+      "owner": "platform@example.com",
+      "hardening_status": "good",
+      "issues_count": 0
+    },
+    {
+      "id": "policy-service",
+      "type": "service",
+      "label": "Policy Enforcement",
+      "category": "infrastructure",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["policy_enforcement"],
+      "owner": "compliance@acme.com",
+      "hardening_status": "good",
+      "issues_count": 1
+    },
+    {
+      "id": "federation-service",
+      "type": "service",
+      "label": "Context Federation",
+      "category": "infrastructure",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": ["data_federation"],
+      "owner": "platform@example.com",
+      "hardening_status": "needs_work",
+      "issues_count": 2
+    },
+    {
+      "id": "workflow-worker",
+      "type": "worker",
+      "label": "Workflow Worker",
+      "category": "worker",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": [],
+      "owner": "ops@example.com",
+      "hardening_status": "needs_work",
+      "issues_count": 3
+    },
+    {
+      "id": "a2a-worker",
+      "type": "worker",
+      "label": "A2A Worker",
+      "category": "worker",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": ["message_integrity"],
+      "owner": "ops@example.com",
+      "hardening_status": "needs_work",
+      "issues_count": 3
+    },
+    {
+      "id": "mcp-worker",
+      "type": "worker",
+      "label": "MCP Worker",
+      "category": "worker",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": [],
+      "owner": "ops@example.com",
+      "hardening_status": "good",
+      "issues_count": 1
+    },
+    {
+      "id": "agent-worker",
+      "type": "worker",
+      "label": "Agent Worker",
+      "category": "worker",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": ["agent_lifecycle"],
+      "owner": "ops@example.com",
+      "hardening_status": "needs_work",
+      "issues_count": 2
+    },
+    {
+      "id": "mesh-scheduler",
+      "type": "scheduler",
+      "label": "Mesh Scheduler",
+      "category": "scheduler",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["job_scheduling"],
+      "owner": "ops@example.com",
+      "hardening_status": "good",
+      "issues_count": 2
+    },
+    {
+      "id": "zapier-agent-created",
+      "type": "zapier",
+      "label": "Zapier: Agent Created",
+      "category": "integration",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": [],
+      "owner": "ai-ops@acme.com",
+      "hardening_status": "needs_work",
+      "issues_count": 3
+    },
+    {
+      "id": "zapier-workflow-completed",
+      "type": "zapier",
+      "label": "Zapier: Workflow Completed",
+      "category": "integration",
+      "status": "active",
+      "risk_level": "critical",
+      "compliance": [],
+      "owner": "ai-ops@acme.com",
+      "hardening_status": "critical",
+      "issues_count": 4
+    },
+    {
+      "id": "zapier-policy-violated",
+      "type": "zapier",
+      "label": "Zapier: Policy Violated",
+      "category": "integration",
+      "status": "active",
+      "risk_level": "critical",
+      "compliance": ["policy_enforcement"],
+      "owner": "compliance@acme.com",
+      "hardening_status": "critical",
+      "issues_count": 3
+    },
+    {
+      "id": "zapier-health-alert",
+      "type": "zapier",
+      "label": "Zapier: Health Alert",
+      "category": "integration",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": ["monitoring"],
+      "owner": "sre@example.com",
+      "hardening_status": "needs_work",
+      "issues_count": 2
+    },
+    {
+      "id": "dr-drill-workflow",
+      "type": "github_workflow",
+      "label": "DR Drill",
+      "category": "workflow",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["disaster_recovery"],
+      "owner": "sre@example.com",
+      "hardening_status": "good",
+      "issues_count": 1
+    },
+    {
+      "id": "slo-check-workflow",
+      "type": "github_workflow",
+      "label": "SLO Check",
+      "category": "workflow",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["sla_monitoring"],
+      "owner": "sre@example.com",
+      "hardening_status": "good",
+      "issues_count": 0
+    },
+    {
+      "id": "chaos-check-workflow",
+      "type": "github_workflow",
+      "label": "Chaos Check",
+      "category": "workflow",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": ["resilience"],
+      "owner": "sre@example.com",
+      "hardening_status": "needs_work",
+      "issues_count": 2
+    },
+    {
+      "id": "release-pr-workflow",
+      "type": "github_workflow",
+      "label": "Release PR",
+      "category": "workflow",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["release_mgmt"],
+      "owner": "release-engineering@example.com",
+      "hardening_status": "good",
+      "issues_count": 1
+    },
+    {
+      "id": "postgres-db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "category": "datastore",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": [],
+      "owner": "platform@example.com",
+      "hardening_status": "good",
+      "issues_count": 0
+    },
+    {
+      "id": "redis-cache",
+      "type": "cache",
+      "label": "Redis",
+      "category": "datastore",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": [],
+      "owner": "platform@example.com",
+      "hardening_status": "good",
+      "issues_count": 0
+    },
+    {
+      "id": "prometheus",
+      "type": "metrics",
+      "label": "Prometheus",
+      "category": "observability",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": [],
+      "owner": "platform@example.com",
+      "hardening_status": "good",
+      "issues_count": 0
+    },
+    {
+      "id": "opa-engine",
+      "type": "policy_engine",
+      "label": "Open Policy Agent",
+      "category": "governance",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": ["policy_enforcement"],
+      "owner": "compliance@acme.com",
+      "hardening_status": "good",
+      "issues_count": 0
+    },
+    {
+      "id": "external-systems",
+      "type": "external",
+      "label": "External Systems",
+      "category": "external",
+      "status": "active",
+      "risk_level": "medium",
+      "compliance": [],
+      "owner": "various",
+      "hardening_status": "unknown",
+      "issues_count": 0
+    },
+    {
+      "id": "s3-bucket",
+      "type": "storage",
+      "label": "S3 Storage",
+      "category": "datastore",
+      "status": "active",
+      "risk_level": "low",
+      "compliance": [],
+      "owner": "platform@example.com",
+      "hardening_status": "good",
+      "issues_count": 0
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "api-gateway",
+      "target": "chatgpt-customer-service",
+      "type": "http",
+      "label": "Chat requests",
+      "protocol": "REST",
+      "sync": true,
+      "issues": ["Missing idempotency"]
+    },
+    {
+      "id": "e2",
+      "source": "api-gateway",
+      "target": "registry-service",
+      "type": "http",
+      "label": "Registry queries",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e3",
+      "source": "api-gateway",
+      "target": "telemetry-service",
+      "type": "http",
+      "label": "Telemetry data",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e4",
+      "source": "api-gateway",
+      "target": "policy-service",
+      "type": "http",
+      "label": "Policy checks",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e5",
+      "source": "api-gateway",
+      "target": "federation-service",
+      "type": "http",
+      "label": "Context queries",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e6",
+      "source": "registry-service",
+      "target": "postgres-db",
+      "type": "db",
+      "label": "Agent registry",
+      "protocol": "PostgreSQL",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e7",
+      "source": "registry-service",
+      "target": "redis-cache",
+      "type": "cache",
+      "label": "Registry cache",
+      "protocol": "Redis",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e8",
+      "source": "federation-service",
+      "target": "redis-cache",
+      "type": "cache",
+      "label": "Context cache",
+      "protocol": "Redis",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e9",
+      "source": "telemetry-service",
+      "target": "prometheus",
+      "type": "metrics",
+      "label": "Metrics export",
+      "protocol": "Prometheus",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e10",
+      "source": "policy-service",
+      "target": "opa-engine",
+      "type": "policy",
+      "label": "Policy eval",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e11",
+      "source": "mesh-scheduler",
+      "target": "workflow-worker",
+      "type": "queue",
+      "label": "Workflow jobs",
+      "protocol": "Internal Queue",
+      "sync": false,
+      "issues": ["No correlation ID"]
+    },
+    {
+      "id": "e12",
+      "source": "mesh-scheduler",
+      "target": "mcp-worker",
+      "type": "queue",
+      "label": "MCP jobs",
+      "protocol": "Internal Queue",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e13",
+      "source": "mesh-scheduler",
+      "target": "agent-worker",
+      "type": "queue",
+      "label": "Agent jobs",
+      "protocol": "Internal Queue",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e14",
+      "source": "workflow-worker",
+      "target": "chatgpt-customer-service",
+      "type": "invoke",
+      "label": "Execute agent",
+      "protocol": "MCP",
+      "sync": false,
+      "issues": ["No idempotency"]
+    },
+    {
+      "id": "e15",
+      "source": "workflow-worker",
+      "target": "claude-financial-analyst",
+      "type": "invoke",
+      "label": "Execute agent",
+      "protocol": "MCP",
+      "sync": false,
+      "issues": ["No SAGA"]
+    },
+    {
+      "id": "e16",
+      "source": "workflow-worker",
+      "target": "llama-data-pipeline",
+      "type": "invoke",
+      "label": "Execute agent",
+      "protocol": "MCP",
+      "sync": false,
+      "issues": ["No DLQ"]
+    },
+    {
+      "id": "e17",
+      "source": "a2a-worker",
+      "target": "chatgpt-customer-service",
+      "type": "message",
+      "label": "Agent message",
+      "protocol": "A2A",
+      "sync": false,
+      "issues": ["No ordering guarantee"]
+    },
+    {
+      "id": "e18",
+      "source": "a2a-worker",
+      "target": "github-copilot-enterprise",
+      "type": "message",
+      "label": "Agent message",
+      "protocol": "A2A",
+      "sync": false,
+      "issues": ["No ordering guarantee"]
+    },
+    {
+      "id": "e19",
+      "source": "mcp-worker",
+      "target": "chatgpt-customer-service",
+      "type": "mcp",
+      "label": "MCP request",
+      "protocol": "MCP",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e20",
+      "source": "mcp-worker",
+      "target": "github-copilot-enterprise",
+      "type": "mcp",
+      "label": "MCP request",
+      "protocol": "MCP",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e21",
+      "source": "chatgpt-customer-service",
+      "target": "zapier-workflow-completed",
+      "type": "webhook",
+      "label": "Workflow completed",
+      "protocol": "Webhook",
+      "sync": false,
+      "issues": ["No webhook auth", "No retry"]
+    },
+    {
+      "id": "e22",
+      "source": "registry-service",
+      "target": "zapier-agent-created",
+      "type": "webhook",
+      "label": "Agent created",
+      "protocol": "Webhook/Polling",
+      "sync": false,
+      "issues": ["Excessive polling"]
+    },
+    {
+      "id": "e23",
+      "source": "policy-service",
+      "target": "zapier-policy-violated",
+      "type": "webhook",
+      "label": "Policy violation",
+      "protocol": "Webhook",
+      "sync": false,
+      "issues": ["CRITICAL: No auth", "No audit trail"]
+    },
+    {
+      "id": "e24",
+      "source": "telemetry-service",
+      "target": "zapier-health-alert",
+      "type": "webhook",
+      "label": "Health alert",
+      "protocol": "Webhook",
+      "sync": false,
+      "issues": ["Alert storm risk"]
+    },
+    {
+      "id": "e25",
+      "source": "zapier-agent-created",
+      "target": "external-systems",
+      "type": "integration",
+      "label": "Notify external",
+      "protocol": "Various",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e26",
+      "source": "zapier-workflow-completed",
+      "target": "external-systems",
+      "type": "integration",
+      "label": "Notify external",
+      "protocol": "Various",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e27",
+      "source": "zapier-policy-violated",
+      "target": "external-systems",
+      "type": "integration",
+      "label": "Alert external",
+      "protocol": "Various",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e28",
+      "source": "zapier-health-alert",
+      "target": "external-systems",
+      "type": "integration",
+      "label": "Alert external",
+      "protocol": "Various",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e29",
+      "source": "dr-drill-workflow",
+      "target": "postgres-db",
+      "type": "backup",
+      "label": "Backup test",
+      "protocol": "SQL",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e30",
+      "source": "slo-check-workflow",
+      "target": "prometheus",
+      "type": "metrics",
+      "label": "SLO query",
+      "protocol": "PromQL",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e31",
+      "source": "chaos-check-workflow",
+      "target": "api-gateway",
+      "type": "chaos",
+      "label": "Chaos test",
+      "protocol": "HTTP",
+      "sync": true,
+      "issues": ["No prod safeguards"]
+    },
+    {
+      "id": "e32",
+      "source": "llama-data-pipeline",
+      "target": "s3-bucket",
+      "type": "storage",
+      "label": "Data read/write",
+      "protocol": "S3",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e33",
+      "source": "claude-financial-analyst",
+      "target": "postgres-db",
+      "type": "db",
+      "label": "Financial data",
+      "protocol": "PostgreSQL",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e34",
+      "source": "unknown-marketing-chatbot",
+      "target": "external-systems",
+      "type": "unknown",
+      "label": "UNKNOWN",
+      "protocol": "UNKNOWN",
+      "sync": false,
+      "issues": ["CRITICAL: Unauthorized", "No governance"]
+    },
+    {
+      "id": "e35",
+      "source": "chatgpt-customer-service",
+      "target": "federation-service",
+      "type": "context",
+      "label": "Context sharing",
+      "protocol": "MCP",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e36",
+      "source": "github-copilot-enterprise",
+      "target": "federation-service",
+      "type": "context",
+      "label": "Context sharing",
+      "protocol": "MCP",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e37",
+      "source": "claude-financial-analyst",
+      "target": "federation-service",
+      "type": "context",
+      "label": "Context sharing",
+      "protocol": "MCP",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e38",
+      "source": "chatgpt-customer-service",
+      "target": "policy-service",
+      "type": "policy",
+      "label": "Policy check",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e39",
+      "source": "github-copilot-enterprise",
+      "target": "policy-service",
+      "type": "policy",
+      "label": "Policy check",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e40",
+      "source": "claude-financial-analyst",
+      "target": "policy-service",
+      "type": "policy",
+      "label": "Policy check",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e41",
+      "source": "chatgpt-customer-service",
+      "target": "telemetry-service",
+      "type": "telemetry",
+      "label": "Send telemetry",
+      "protocol": "OTLP",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e42",
+      "source": "github-copilot-enterprise",
+      "target": "telemetry-service",
+      "type": "telemetry",
+      "label": "Send telemetry",
+      "protocol": "OTLP",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e43",
+      "source": "claude-financial-analyst",
+      "target": "telemetry-service",
+      "type": "telemetry",
+      "label": "Send telemetry",
+      "protocol": "OTLP",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e44",
+      "source": "agent-worker",
+      "target": "registry-service",
+      "type": "http",
+      "label": "Register agent",
+      "protocol": "REST",
+      "sync": true,
+      "issues": []
+    },
+    {
+      "id": "e45",
+      "source": "workflow-worker",
+      "target": "telemetry-service",
+      "type": "telemetry",
+      "label": "Execution logs",
+      "protocol": "OTLP",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e46",
+      "source": "a2a-worker",
+      "target": "telemetry-service",
+      "type": "telemetry",
+      "label": "Message logs",
+      "protocol": "OTLP",
+      "sync": false,
+      "issues": []
+    },
+    {
+      "id": "e47",
+      "source": "api-gateway",
+      "target": "claude-financial-analyst",
+      "type": "http",
+      "label": "Financial queries",
+      "protocol": "REST",
+      "sync": true,
+      "issues": ["No circuit breaker"]
+    }
+  ],
+  "risk_analysis": {
+    "critical_paths": [
+      {
+        "path": ["api-gateway", "chatgpt-customer-service", "zapier-workflow-completed", "external-systems"],
+        "risk": "high",
+        "reason": "Missing webhook authentication, no retry logic"
+      },
+      {
+        "path": ["policy-service", "zapier-policy-violated", "external-systems"],
+        "risk": "critical",
+        "reason": "Security webhook without authentication or audit trail"
+      },
+      {
+        "path": ["unknown-marketing-chatbot", "external-systems"],
+        "risk": "critical",
+        "reason": "Unauthorized shadow AI with no governance"
+      },
+      {
+        "path": ["api-gateway", "claude-financial-analyst", "postgres-db"],
+        "risk": "high",
+        "reason": "SOX-critical path missing SAGA pattern"
+      }
+    ],
+    "single_points_of_failure": [
+      "api-gateway",
+      "policy-service",
+      "federation-service",
+      "postgres-db",
+      "redis-cache"
+    ],
+    "unprotected_external_calls": [
+      "zapier-agent-created",
+      "zapier-workflow-completed",
+      "zapier-policy-violated",
+      "zapier-health-alert"
+    ],
+    "missing_observability": [
+      "unknown-marketing-chatbot",
+      "zapier-agent-created",
+      "zapier-workflow-completed"
+    ]
+  },
+  "topology_insights": {
+    "hub_nodes": [
+      "api-gateway",
+      "federation-service",
+      "policy-service",
+      "telemetry-service"
+    ],
+    "leaf_nodes": [
+      "external-systems",
+      "s3-bucket",
+      "postgres-db",
+      "prometheus",
+      "opa-engine"
+    ],
+    "isolated_nodes": [
+      "unknown-marketing-chatbot"
+    ],
+    "bottlenecks": [
+      {
+        "node": "api-gateway",
+        "reason": "Central ingress point with no rate limiting",
+        "impact": "High"
+      },
+      {
+        "node": "federation-service",
+        "reason": "Race conditions in vector dedup",
+        "impact": "Medium"
+      }
+    ]
+  }
+}
