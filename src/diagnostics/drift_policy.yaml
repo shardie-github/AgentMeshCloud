@@ -1,0 +1,81 @@
+drift_detection:
+  enabled: true
+  check_interval_minutes: 30
+  
+  thresholds:
+    staleness_hours: 48  # 2x the default freshness SLO
+    drift_score_critical: 80
+    drift_score_warning: 50
+  
+  rules:
+    - name: sync_staleness
+      enabled: true
+      description: "Detect workflows that haven't received events within SLO"
+      severity: medium
+      auto_remediate: true
+      remediation_actions:
+        - reset_workflow_status
+        - notify_owner
+    
+    - name: config_drift
+      enabled: true
+      description: "Detect configuration changes in workflow definitions"
+      severity: high
+      auto_remediate: false
+      remediation_actions:
+        - notify_owner
+        - create_incident
+    
+    - name: behavior_anomaly
+      enabled: true
+      description: "Detect unusual patterns in workflow execution"
+      severity: high
+      auto_remediate: false
+      remediation_actions:
+        - notify_owner
+        - create_incident
+    
+    - name: performance_degradation
+      enabled: true
+      description: "Detect significant increases in latency or error rates"
+      severity: medium
+      auto_remediate: true
+      remediation_actions:
+        - scale_resources
+        - notify_owner
+
+self_healing:
+  enabled: true
+  max_retries: 3
+  retry_delay_seconds: 60
+  
+  actions:
+    reset_workflow_status:
+      enabled: true
+      description: "Reset workflow status from error to active"
+      risk_level: low
+    
+    scale_resources:
+      enabled: false
+      description: "Automatically scale compute resources"
+      risk_level: medium
+    
+    notify_owner:
+      enabled: true
+      description: "Send notification to workflow owner"
+      risk_level: low
+    
+    create_incident:
+      enabled: true
+      description: "Create incident in incident management system"
+      risk_level: low
+    
+    rollback_config:
+      enabled: false
+      description: "Rollback workflow configuration to last known good state"
+      risk_level: high
+
+logging:
+  log_all_detections: true
+  log_remediation_actions: true
+  retention_days: 90

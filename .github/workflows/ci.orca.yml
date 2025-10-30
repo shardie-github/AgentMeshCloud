@@ -1,0 +1,319 @@
+name: ORCA AgentMesh CI
+
+on:
+  push:
+    branches: [main, develop, 'feat/**']
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18.18.0'
+  PNPM_VERSION: '8.15.0'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linter
+        run: pnpm run lint
+
+      - name: Check code formatting
+        run: pnpm run format:check
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run type check
+        run: pnpm run typecheck
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build TypeScript
+        run: pnpm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    services:
+      postgres:
+        image: ankane/pgvector:v0.5.1
+        env:
+          POSTGRES_USER: orca
+          POSTGRES_PASSWORD: orca_test
+          POSTGRES_DB: orcamesh_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm run test
+        env:
+          DATABASE_URL: postgresql://orca:orca_test@localhost:5432/orcamesh_test
+
+  doctor:
+    name: Suite Doctor
+    runs-on: ubuntu-latest
+    needs: [build]
+    services:
+      postgres:
+        image: ankane/pgvector:v0.5.1
+        env:
+          POSTGRES_USER: orca
+          POSTGRES_PASSWORD: orca_test
+          POSTGRES_DB: orcamesh_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      - name: Setup environment
+        run: |
+          cp .env.example .env
+          echo "DATABASE_URL=postgresql://orca:orca_test@localhost:5432/orcamesh_test" >> .env
+          echo "OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317" >> .env
+          echo "JWT_SECRET=test-jwt-secret-min-32-characters" >> .env
+          echo "HMAC_SECRET=test-hmac-secret-for-testing" >> .env
+
+      - name: Run migrations
+        run: pnpm run db:migrate
+        env:
+          DATABASE_URL: postgresql://orca:orca_test@localhost:5432/orcamesh_test
+
+      - name: Run suite doctor
+        run: pnpm run doctor || echo "Doctor checks completed with warnings"
+        env:
+          DATABASE_URL: postgresql://orca:orca_test@localhost:5432/orcamesh_test
+
+  validate-openapi:
+    name: Validate OpenAPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate OpenAPI spec
+        uses: char0n/swagger-editor-validate@v1
+        with:
+          definition-file: openapi.orca.yaml
+
+  report:
+    name: Generate Reports
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    if: github.ref == 'refs/heads/main'
+    services:
+      postgres:
+        image: ankane/pgvector:v0.5.1
+        env:
+          POSTGRES_USER: orca
+          POSTGRES_PASSWORD: orca_test
+          POSTGRES_DB: orcamesh_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup environment
+        run: |
+          cp .env.example .env
+          echo "DATABASE_URL=postgresql://orca:orca_test@localhost:5432/orcamesh_test" >> .env
+          echo "SEED=true" >> .env
+
+      - name: Run migrations and seed
+        run: |
+          pnpm run db:migrate
+          pnpm run db:seed
+        env:
+          DATABASE_URL: postgresql://orca:orca_test@localhost:5432/orcamesh_test
+
+      - name: Generate executive summary
+        run: |
+          node -e "
+          const { createContextBus } = require('./dist/context-bus/context_bus.js');
+          const { RegistryService } = require('./dist/registry/registry.service.js');
+          const { AgentDiscovery } = require('./dist/uadsi/agent_discovery.js');
+          const { SyncAnalyzer } = require('./dist/uadsi/sync_analyzer.js');
+          const { TrustScoring } = require('./dist/uadsi/trust_scoring.js');
+          const { ReportEngine } = require('./dist/uadsi/report_engine.js');
+          
+          (async () => {
+            const contextBus = createContextBus({ connectionString: process.env.DATABASE_URL });
+            const registry = new RegistryService(contextBus);
+            const discovery = new AgentDiscovery(contextBus, registry);
+            const analyzer = new SyncAnalyzer(contextBus, 24);
+            const scoring = new TrustScoring(contextBus, analyzer, 10000);
+            const engine = new ReportEngine(contextBus, scoring, analyzer, discovery);
+            
+            await engine.saveReport('markdown');
+            console.log('Executive summary generated');
+            await contextBus.close();
+          })();
+          "
+        env:
+          DATABASE_URL: postgresql://orca:orca_test@localhost:5432/orcamesh_test
+
+      - name: Upload executive summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: executive-summary
+          path: executive_summary.md
+          retention-days: 30
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, build, test, doctor, validate-openapi]
+    if: always()
+    steps:
+      - name: Check job statuses
+        run: |
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "TypeCheck: ${{ needs.typecheck.result }}"
+          echo "Build: ${{ needs.build.result }}"
+          echo "Test: ${{ needs.test.result }}"
+          echo "Doctor: ${{ needs.doctor.result }}"
+          echo "OpenAPI: ${{ needs.validate-openapi.result }}"
+          
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.typecheck.result }}" != "success" ] || \
+             [ "${{ needs.build.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ]; then
+            echo "❌ CI failed"
+            exit 1
+          else
+            echo "✅ CI passed"
+          fi

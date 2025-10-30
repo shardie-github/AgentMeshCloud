@@ -1,0 +1,79 @@
+{
+  "compilerOptions": {
+    // Language and Environment
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    
+    // Emit
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "removeComments": false,
+    "noEmit": false,
+    
+    // Interop Constraints
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    
+    // Type Checking (Strict Mode)
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    
+    // Advanced
+    "skipLibCheck": true,
+    "incremental": true,
+    
+    // Path Aliases
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "src/api/server.ts",
+    "src/api/routes/*.ts",
+    "src/context-bus/context_bus.ts",
+    "src/telemetry/otel.ts",
+    "src/policy/policy_enforcer.ts",
+    "src/registry/registry.service.ts",
+    "src/uadsi/agent_discovery.ts",
+    "src/uadsi/sync_analyzer.ts",
+    "src/uadsi/trust_scoring.ts",
+    "src/uadsi/report_engine.ts",
+    "src/adapters/zapier.ts",
+    "src/adapters/n8n.ts",
+    "src/diagnostics/self_healing_engine.ts",
+    "scripts/migrate.ts",
+    "scripts/seed.ts",
+    "scripts/suite_doctor.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/api/index.ts",
+    "src/adapters/index.ts",
+    "src/common/**/*",
+    "src/registry/agent-registry.ts",
+    "src/policy/policy-enforcer.ts",
+    "src/uadsi/agent-discovery.ts",
+    "src/uadsi/trust-scoring.ts",
+    "src/uadsi/report-engine.ts",
+    "src/api/routes/health.ts"
+  ]
+}

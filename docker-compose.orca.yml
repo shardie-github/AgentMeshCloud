@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector:v0.5.1
+    container_name: orca-postgres
+    environment:
+      POSTGRES_USER: orca
+      POSTGRES_PASSWORD: orca_secure_pass
+      POSTGRES_DB: orcamesh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/context-bus/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orca -d orcamesh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orca-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.91.0
+    container_name: orca-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./src/telemetry/otel_config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter
+    networks:
+      - orca-network
+    depends_on:
+      - prometheus
+
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: orca-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    volumes:
+      - ./prometheus.orca.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - orca-network
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: orca-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./src/telemetry/observability_dashboard.json:/etc/grafana/provisioning/dashboards/orca-dashboard.json
+    ports:
+      - "3001:3000"
+    networks:
+      - orca-network
+    depends_on:
+      - prometheus
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orca-api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://orca:orca_secure_pass@db:5432/orcamesh
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_NAME: orca-agentmesh
+      JWT_SECRET: your-jwt-secret-min-32-chars-change-in-production
+      HMAC_SECRET: your-hmac-secret-for-adapter-webhooks-change-in-production
+      ADAPTER_SECRET: your-adapter-webhook-verification-secret
+      SEED: "true"
+      TRUST_SCORE_BASELINE: "0.85"
+      RISK_BASELINE_COST_USD: "10000"
+      SYNC_FRESHNESS_SLO_HOURS: "24"
+      DRIFT_THRESHOLD_PCT: "5.0"
+      COMPLIANCE_SLA_TARGET_PCT: "99.5"
+      ENABLE_SELF_HEALING: "true"
+      ENABLE_DRIFT_DETECTION: "true"
+      ENABLE_TRUST_SCORING: "true"
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    networks:
+      - orca-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  orca-network:
+    driver: bridge

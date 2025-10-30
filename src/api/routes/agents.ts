@@ -1,157 +1,70 @@
-/**
- * Agents API Routes
- */
+import { Router } from 'express';
+import { Agent } from '../../context-bus/context_bus.js';
 
-import { Router, Request, Response, NextFunction } from 'express';
-import { agentRegistry } from '@/registry';
-import { AgentStatus, AgentType } from '@/common/types';
-import { ValidationError } from '@/common/errors';
-import { withSpan } from '@/telemetry/tracer';
+export const agentsRouter = Router();
 
-export const agentRouter = Router();
-
-/**
- * GET /api/v1/agents
- * List all agents
- */
-agentRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
+agentsRouter.get('/', async (req, res) => {
   try {
-    await withSpan('list_agents', async () => {
-      const { agents, total } = await agentRegistry.query({
-        status: req.query.status as AgentStatus,
-        type: req.query.type as AgentType,
-        vendor: req.query.vendor as string,
-        compliance_tier: req.query.compliance_tier as string,
-        limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : undefined,
-      });
+    const { agentDiscovery } = req.app.locals;
+    const agents: Agent[] = await agentDiscovery.discoverAgents();
 
-      res.json({
-        success: true,
-        data: {
-          agents,
-          total,
-          count: agents.length,
-        },
-      });
+    res.json({
+      total: agents.length,
+      agents: agents.map((agent: Agent) => ({
+        id: agent.id,
+        name: agent.name,
+        type: agent.type,
+        owner: agent.owner,
+        access_tier: agent.access_tier,
+        trust_level: agent.trust_level,
+        created_at: agent.created_at,
+      })),
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 });
 
-/**
- * POST /api/v1/agents
- * Register new agent
- */
-agentRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
+agentsRouter.get('/:id', async (req, res) => {
   try {
-    await withSpan('register_agent', async () => {
-      if (!req.body.name || !req.body.type || !req.body.vendor || !req.body.model) {
-        throw new ValidationError('Missing required fields: name, type, vendor, model');
-      }
+    const { contextBus, agentDiscovery } = req.app.locals;
+    const agent = await contextBus.getAgentById(req.params.id);
 
-      const agent = await agentRegistry.register(req.body);
+    if (!agent) {
+      res.status(404).json({ error: 'Agent not found' });
+      return;
+    }
 
-      res.status(201).json({
-        success: true,
-        data: agent,
-      });
+    const health = await agentDiscovery.getAgentHealth(agent.id);
+
+    res.json({
+      ...agent,
+      health,
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 });
 
-/**
- * GET /api/v1/agents/:id
- * Get agent by ID
- */
-agentRouter.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+agentsRouter.get('/:id/telemetry', async (req, res) => {
   try {
-    await withSpan('get_agent', async () => {
-      const agent = await agentRegistry.getById(req.params.id);
+    const { contextBus } = req.app.locals;
+    const limit = parseInt(req.query.limit as string, 10) || 100;
+    
+    const telemetry = await contextBus.getTelemetryByAgent(req.params.id, limit);
 
-      res.json({
-        success: true,
-        data: agent,
-      });
+    res.json({
+      agent_id: req.params.id,
+      total: telemetry.length,
+      telemetry,
     });
   } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * PUT /api/v1/agents/:id
- * Update agent
- */
-agentRouter.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await withSpan('update_agent', async () => {
-      const agent = await agentRegistry.update(req.params.id, req.body);
-
-      res.json({
-        success: true,
-        data: agent,
-      });
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * DELETE /api/v1/agents/:id
- * Delete agent
- */
-agentRouter.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await withSpan('delete_agent', async () => {
-      await agentRegistry.delete(req.params.id);
-
-      res.status(204).send();
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * POST /api/v1/agents/:id/suspend
- * Suspend agent
- */
-agentRouter.post('/:id/suspend', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await withSpan('suspend_agent', async () => {
-      const reason = req.body.reason || 'No reason provided';
-      const agent = await agentRegistry.suspend(req.params.id, reason);
-
-      res.json({
-        success: true,
-        data: agent,
-      });
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * GET /api/v1/agents/stats
- * Get agent statistics
- */
-agentRouter.get('/stats', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await withSpan('get_agent_stats', async () => {
-      const stats = await agentRegistry.getStats();
-
-      res.json({
-        success: true,
-        data: stats,
-      });
-    });
-  } catch (error) {
-    next(error);
   }
 });

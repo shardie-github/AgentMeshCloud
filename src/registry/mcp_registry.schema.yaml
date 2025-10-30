@@ -1,0 +1,40 @@
+version: "1.0.0"
+servers:
+  filesystem:
+    name: filesystem
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "/workspace"
+    capabilities:
+      - read
+      - write
+      - list
+    description: "MCP server for filesystem operations"
+    
+  brave-search:
+    name: brave-search
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-brave-search"
+    env:
+      BRAVE_API_KEY: "${BRAVE_API_KEY}"
+    capabilities:
+      - search
+      - web
+    description: "MCP server for Brave Search API"
+    
+  postgres:
+    name: postgres
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-postgres"
+    env:
+      POSTGRES_URL: "${DATABASE_URL}"
+    capabilities:
+      - query
+      - schema
+    description: "MCP server for PostgreSQL database operations"

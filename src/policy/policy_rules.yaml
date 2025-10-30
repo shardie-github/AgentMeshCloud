@@ -1,0 +1,59 @@
+rules:
+  - name: rbac_check
+    type: rbac
+    enabled: true
+    config:
+      default_role: viewer
+      roles:
+        - viewer
+        - editor
+        - admin
+
+  - name: hmac_verification
+    type: hmac_verification
+    enabled: true
+    config:
+      header_name: x-signature
+      algorithm: sha256
+
+  - name: data_classification
+    type: data_classification
+    enabled: true
+    config:
+      mask_pii: true
+      log_access: true
+
+  - name: rate_limit
+    type: rate_limit
+    enabled: true
+    config:
+      requests_per_minute: 100
+      burst: 20
+
+pii_fields:
+  - email
+  - phone
+  - ssn
+  - credit_card
+  - password
+  - api_key
+  - secret
+  - token
+  - private_key
+
+allowed_adapters:
+  - zapier
+  - n8n
+  - mcp
+  - make
+  - integromat
+
+public_routes:
+  - /status
+  - /health
+  - /metrics
+
+privileged_routes:
+  - /reports
+  - /admin
+  - /policy

@@ -1,455 +1,325 @@
-# MCP Alignment - ORCA Core
-
-**Model Context Protocol (MCP) Compliance**  
-**Version**: 1.0.0  
-**Date**: 2025-10-30
+# MCP Alignment Guide
 
 ## Overview
 
-This document describes how ORCA Core aligns with and extends the Model Context Protocol (MCP) standard.
+ORCA AgentMesh aligns with the **Model Context Protocol (MCP)** by:
+- Discovering MCP servers from a registry
+- Registering them as first-class agents
+- Tracking their capabilities and health
+- Providing unified observability
 
-## MCP Fundamentals
+## MCP Registry
 
-### What is MCP?
+### Location
 
-The Model Context Protocol (MCP) is a standardized protocol for:
-- Agent registration and discovery
-- Context sharing between agents
-- Tool/function calling
-- Streaming responses
-- Capability negotiation
+`src/registry/mcp_registry.schema.yaml`
 
-**Key Principles**:
-1. **Vendor Neutrality**: Works with any LLM provider
-2. **Standardized Interfaces**: Common API contracts
-3. **Context Portability**: Share context across agents
-4. **Security First**: Built-in authentication and authorization
+### Format
 
-## ORCA's MCP Implementation
+```yaml
+version: "1.0.0"
+servers:
+  <server-name>:
+    name: string           # Display name
+    command: string        # Executable command
+    args: string[]         # Command arguments
+    env:                   # Environment variables
+      KEY: value
+    capabilities: string[] # MCP capabilities
+    description: string    # Human description
+```
 
-### 1. Agent Registry (MCP-Compliant)
+### Example
 
-**MCP Standard**: Agent registration with metadata  
-**ORCA Implementation**: `src/registry/agent-registry.ts`
+```yaml
+version: "1.0.0"
+servers:
+  filesystem:
+    name: filesystem
+    command: npx
+    args:
+      - "-y"
+      - "@modelcontextprotocol/server-filesystem"
+      - "/workspace"
+    capabilities:
+      - read
+      - write
+      - list
+    description: "MCP server for filesystem operations"
+```
+
+## Discovery Process
+
+### 1. Registry Loading
+
+On API startup:
+```typescript
+const registry = new RegistryService(contextBus);
+registry.loadMCPRegistry();
+```
+
+### 2. Agent Synchronization
 
 ```typescript
-interface MCPConfig {
-  protocol_version: string;       // MCP version (e.g., "1.0.0")
-  capabilities: string[];         // Supported capabilities
-  context_window: number;         // Token limit
-  temperature: number;            // Sampling temperature
-  top_p: number;                 // Nucleus sampling
-  max_tokens: number;            // Max generation length
-  system_prompt_template?: string; // System instructions
-}
+const mcpAgents = await registry.syncMCPAgents();
 ```
 
-**Extensions**:
-- Compliance tier classification
-- Policy attachment
-- Observability configuration
-- Deployment metadata
+For each MCP server:
+- Check if agent already exists (by name + type)
+- Create agent record if missing
+- Set initial trust level (0.75)
+- Store metadata (command, args, capabilities)
 
-**Example Registration**:
-```yaml
-# mcp_registry.yaml
-agents:
-  - id: "chatgpt-customer-service"
-    name: "Customer Support ChatBot"
-    type: "chatbot"
-    vendor: "openai"
-    model: "gpt-4-turbo-2024-04-09"
-    status: "active"
-    mcp_config:
-      protocol_version: "1.0.0"
-      capabilities:
-        - "context_sharing"
-        - "tool_use"
-        - "streaming_responses"
-      context_window: 128000
-      temperature: 0.7
-```
+### 3. Agent Record
 
-### 2. Context Sharing
-
-**MCP Standard**: Federated context exchange  
-**ORCA Implementation**: `src/context-bus/` (foundation)
-
-**MCP Context Format**:
-```json
+```typescript
 {
-  "context_id": "ctx-123",
-  "agent_id": "agent-456",
-  "content": "...",
-  "metadata": {
-    "timestamp": "2025-10-30T...",
-    "classification": "internal",
-    "ttl_seconds": 3600
+  id: uuid,
+  name: "filesystem",
+  type: "mcp",
+  owner: "system",
+  model: "npx",
+  trust_level: 0.75,
+  access_tier: "standard",
+  metadata: {
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
+    capabilities: ["read", "write", "list"],
+    description: "MCP server for filesystem operations"
   }
 }
 ```
 
-**ORCA Extensions**:
-- Vector embeddings for semantic search
-- Multi-modal context (text, images, audio)
-- Deduplication and versioning
-- Access control and encryption
+## Capability Tracking
 
-**Context Bus Features**:
-```yaml
-# context_bus.yaml
-storage:
-  type: "pgvector"  # MCP-compatible storage
-  dimension: 1536   # Embedding dimension
+MCP capabilities are stored in agent metadata:
 
-search:
-  algorithm: "cosine"  # MCP-standard similarity
-  threshold: 0.75
-
-deduplication:
-  enabled: true
-  threshold: 0.95  # Cosine similarity
-```
-
-### 3. Capability Negotiation
-
-**MCP Standard**: Declare and negotiate capabilities  
-**ORCA Implementation**: Automatic detection and validation
-
-**Supported Capabilities**:
 ```typescript
-const STANDARD_MCP_CAPABILITIES = [
-  // Core
-  'context_sharing',
-  'tool_use',
-  'streaming_responses',
-  
-  // Advanced
-  'structured_outputs',
-  'batch_processing',
-  'code_execution',
-  
-  // ORCA Extensions
-  'policy_enforcement',
-  'telemetry_export',
-  'trust_scoring'
-];
+const agent = await contextBus.getAgentById(agentId);
+const capabilities = agent.metadata?.capabilities as string[];
+
+if (capabilities?.includes('read')) {
+  // Agent can read
+}
 ```
 
-**Capability Checking**:
+## Health Monitoring
+
+MCP agents are monitored like all other agents:
+
+### Telemetry Collection
+
+(Future) When MCP server operations occur:
 ```typescript
-const agent = await agentRegistry.getById('agent-123');
-const hasToolUse = agent.mcp_config?.capabilities.includes('tool_use');
+await contextBus.createTelemetry({
+  agent_id: mcpAgent.id,
+  ts: new Date(),
+  latency_ms: operationLatency,
+  errors: operationFailed ? 1 : 0,
+  policy_violations: 0,
+  success_count: operationFailed ? 0 : 1,
+});
 ```
 
-### 4. Tool/Function Calling
+### Health Scoring
 
-**MCP Standard**: Structured function definitions  
-**ORCA Implementation**: Aligned with MCP tool schema
+```bash
+GET /agents/:id
+```
 
-**MCP Tool Schema**:
+Returns:
 ```json
 {
-  "name": "get_weather",
-  "description": "Get current weather for a location",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "location": {
-        "type": "string",
-        "description": "City name"
-      }
-    },
-    "required": ["location"]
+  "id": "...",
+  "name": "filesystem",
+  "type": "mcp",
+  "health": {
+    "health_score": 0.95,
+    "status": "healthy",
+    "metrics": {
+      "avg_latency_ms": 45,
+      "total_errors": 0,
+      "success_rate": 1.0
+    }
   }
 }
 ```
 
-**ORCA Extensions**:
-- Policy checks before tool execution
-- Audit logging of tool calls
-- Rate limiting per tool
-- Tool result validation
+## Trust Scoring
 
-### 5. Streaming Responses
+MCP agents participate in system-wide trust scoring:
 
-**MCP Standard**: Server-sent events (SSE) or WebSocket  
-**ORCA Implementation**: Planned for Phase 2
+- **Agent Uptime**: Success rate of MCP operations
+- **Policy Adherence**: Compliance with data classification rules
+- **Risk Exposure**: MCP agent trust level contributes to avg
 
-**Current**: HTTP/JSON responses  
-**Roadmap**: Add SSE and WebSocket support
+## MCP Server Management
 
-```typescript
-// Future API
-app.get('/api/v1/agents/:id/stream', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  // Stream MCP-compliant events
-});
-```
+### Adding a New MCP Server
 
-## ORCA's MCP Extensions
-
-### 1. Policy Layer
-
-**Not in MCP**: Policy enforcement and governance  
-**ORCA Addition**: Full policy framework
-
-**Benefits**:
-- RBAC for MCP agents
-- Data classification (public, confidential, etc.)
-- Compliance (NIST AI RMF, OWASP LLM Top 10)
-- PII detection and redaction
-
-**Example**:
+1. Edit `mcp_registry.schema.yaml`:
 ```yaml
-# policy_rules.yaml
-policies:
-  - id: "mcp-agent-rbac"
-    applies_to: "mcp_agents"
-    rules:
-      - allow_role: ["admin", "power_user"]
-      - deny_pii_in_public_context: true
+servers:
+  my-new-server:
+    name: my-new-server
+    command: npx
+    args: ["-y", "@vendor/mcp-server-package"]
+    capabilities: ["custom-cap"]
+    description: "My custom MCP server"
 ```
 
-### 2. Trust Scoring
-
-**Not in MCP**: Agent reliability metrics  
-**ORCA Addition**: UADSI trust scoring
-
-**Trust Score Components**:
-- Reliability (uptime, error rates)
-- Policy adherence (violations)
-- Context freshness (data staleness)
-- Risk exposure (compliance tier)
-
-**Integration with MCP**:
-```typescript
-// Attach trust score to MCP agent
-const agent = await agentRegistry.getById('agent-123');
-const trustScore = await trustScoringEngine.computeTrustScore('agent-123');
-
-agent.metadata.trust_score = trustScore.score;
+2. Restart API:
+```bash
+docker compose restart api
 ```
 
-### 3. Observability
-
-**Not in MCP**: Telemetry and monitoring  
-**ORCA Addition**: OpenTelemetry integration
-
-**Observability Features**:
-- Distributed tracing with correlation IDs
-- Custom metrics (trust score, drift rate)
-- Structured logging with PII redaction
-- Automatic alert generation
-
-**MCP Event Tracing**:
-```typescript
-// Trace MCP context sharing
-await withSpan('mcp_context_share', async (span) => {
-  span.setAttribute('agent_id', agentId);
-  span.setAttribute('context_size', contextSize);
-  
-  await contextBus.shareContext(context);
-});
+3. Verify:
+```bash
+curl http://localhost:3000/agents | jq '.agents[] | select(.name=="my-new-server")'
 ```
 
-### 4. Discovery & Synchronization
+### Removing an MCP Server
 
-**Not in MCP**: Multi-platform agent discovery  
-**ORCA Addition**: UADSI discovery and sync analysis
+1. Remove from `mcp_registry.schema.yaml`
+2. Restart API
+3. Agent record remains in database (soft delete model)
 
-**Discovery Sources**:
-- MCP servers (native)
-- Zapier, Make, n8n (adapters)
-- Airflow, Lambda (adapters)
+### Updating MCP Server Config
 
-**Sync Monitoring**:
-- Detect MCP context staleness
-- Monitor cross-agent sync lag
-- Alert on sync gaps
+1. Modify registry YAML
+2. Restart API
+3. Metadata updated on next sync (future: auto-sync)
 
-## MCP Compliance Matrix
+## MCP Protocol Integration
 
-| MCP Feature | Status | Implementation | Notes |
-|-------------|--------|----------------|-------|
-| Agent Registration | ✅ Full | `src/registry/` | MCP-compliant schema |
-| Capability Declaration | ✅ Full | `mcp_config.capabilities` | Standard + extensions |
-| Context Sharing | 🟡 Partial | `src/context-bus/` | Foundation only |
-| Tool Calling | 🟡 Planned | Roadmap | Phase 2 |
-| Streaming | 🟡 Planned | Roadmap | Phase 2 |
-| Authentication | ✅ Full | JWT + API keys | MCP-compatible |
-| Encryption | ✅ Full | TLS 1.3 | At rest + in transit |
+### Current State (MVP)
 
-**Legend**:
-- ✅ Full: Complete MCP compliance
-- 🟡 Partial: Foundation in place, full implementation pending
-- 🟡 Planned: On roadmap
+- **Registry-based discovery**: ✅
+- **Agent registration**: ✅
+- **Metadata tracking**: ✅
+- **Health monitoring**: ✅ (via telemetry)
+- **Trust scoring**: ✅
 
-## Migration from Non-MCP Agents
+### Future Enhancements
 
-### Step 1: Assess Current Agent
+- **Direct MCP protocol support**: Spawn and manage MCP servers
+- **Tool invocation**: Call MCP tools via ORCA API
+- **Resource access**: Proxy MCP resource requests
+- **Prompt management**: Store and version prompts
+- **Sampling coordination**: Multi-agent MCP sampling
 
-```typescript
-// Check if agent is MCP-compatible
-const isMCP = agent.mcp_config !== undefined;
+## Security
 
-if (!isMCP) {
-  // Non-MCP agent - needs adapter
-  console.log('Creating adapter for non-MCP agent');
-}
-```
+### MCP Server Isolation
 
-### Step 2: Create MCP Configuration
+- MCP servers run in separate processes (not managed by ORCA MVP)
+- Environment variables passed securely
+- File system access controlled by MCP server config
+
+### Trust Levels
+
+MCP servers default to `trust_level: 0.75`:
+- **0.90+**: Highly trusted, privileged access
+- **0.75-0.90**: Standard trust, normal operations
+- **0.50-0.75**: Lower trust, monitoring required
+- **< 0.50**: Critical, may require intervention
+
+Trust levels update automatically based on telemetry.
+
+## Example: Filesystem MCP
+
+### Registry Entry
 
 ```yaml
-# Add MCP config to existing agent
-mcp_config:
-  protocol_version: "1.0.0"
+filesystem:
+  name: filesystem
+  command: npx
+  args:
+    - "-y"
+    - "@modelcontextprotocol/server-filesystem"
+    - "/workspace"
   capabilities:
-    - "context_sharing"  # Minimum required
-  context_window: 4096   # Token limit
-  temperature: 0.7
+    - read
+    - write
+    - list
+  description: "MCP server for filesystem operations"
 ```
 
-### Step 3: Implement Adapter (if needed)
+### Agent Record
 
-```typescript
-// Example: Zapier to MCP adapter
-class ZapierMCPAdapter {
-  async transformToMCPFormat(zapierEvent) {
-    return {
-      event_type: 'mcp.context.share',
-      agent_id: zapierEvent.zap_id,
-      content: zapierEvent.data,
-      mcp_config: {
-        protocol_version: '1.0.0',
-        capabilities: ['context_sharing']
-      }
-    };
-  }
+```json
+{
+  "id": "a1b2c3d4-...",
+  "name": "filesystem",
+  "type": "mcp",
+  "owner": "system",
+  "model": "npx",
+  "trust_level": 0.85,
+  "access_tier": "standard",
+  "metadata": {
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
+    "capabilities": ["read", "write", "list"],
+    "description": "MCP server for filesystem operations"
+  },
+  "created_at": "2023-12-01T10:00:00Z"
 }
 ```
 
-### Step 4: Register in ORCA
+### Health Check
 
-```typescript
-await agentRegistry.register({
-  name: 'Migrated Agent',
-  type: 'service',
-  vendor: 'custom',
-  model: 'legacy',
-  mcp_config: {
-    protocol_version: '1.0.0',
-    capabilities: ['context_sharing'],
-    context_window: 4096,
-    temperature: 0.7
+```bash
+curl http://localhost:3000/agents/a1b2c3d4-... | jq '.health'
+```
+
+```json
+{
+  "health_score": 0.95,
+  "status": "healthy",
+  "metrics": {
+    "avg_latency_ms": 45,
+    "total_errors": 0,
+    "total_policy_violations": 0,
+    "success_rate": 1.0
   }
-});
+}
 ```
 
 ## Best Practices
 
-### 1. MCP Configuration
+1. **Capability Documentation**: Clearly document what each MCP server can do
+2. **Environment Variables**: Use `.env` for secrets, reference in registry
+3. **Resource Limits**: Configure MCP servers with appropriate constraints
+4. **Monitoring**: Actively monitor MCP agent health and trust levels
+5. **Version Pinning**: Pin MCP server versions in package.json or use exact npx versions
 
-✅ **DO**:
-- Set realistic context_window (match model limits)
-- Declare only supported capabilities
-- Use semantic versioning for protocol_version
-- Include meaningful system_prompt_template
+## Troubleshooting
 
-❌ **DON'T**:
-- Over-declare capabilities you don't support
-- Hardcode secrets in configuration
-- Ignore MCP version compatibility
-- Skip capability validation
+### MCP Server Not Appearing
 
-### 2. Context Sharing
+**Check**:
+1. Registry syntax: `yaml-lint mcp_registry.schema.yaml`
+2. API logs: `docker compose logs api | grep MCP`
+3. Agent list: `curl http://localhost:3000/agents`
 
-✅ **DO**:
-- Encrypt sensitive context
-- Set appropriate TTLs
-- Use deduplication to save storage
-- Tag contexts for easy retrieval
+### Low Trust Level
 
-❌ **DON'T**:
-- Share PII without redaction
-- Keep stale contexts indefinitely
-- Skip access control checks
-- Ignore classification labels
+**Check**:
+1. Telemetry errors: `/agents/:id/telemetry`
+2. Policy violations: Check policy_violations table
+3. Recent changes: Compare with baseline
 
-### 3. Tool Integration
+### MCP Server Fails to Start
 
-✅ **DO**:
-- Validate tool inputs
-- Log all tool executions
-- Handle errors gracefully
-- Rate limit tool calls
-
-❌ **DON'T**:
-- Execute untrusted tool code
-- Skip policy checks
-- Ignore audit requirements
-- Allow unbounded tool execution
-
-## Interoperability
-
-### MCP Server Integration
-
-```typescript
-// Connect to external MCP server
-agentDiscovery.addSource({
-  type: 'mcp',
-  endpoint: 'https://mcp-server.example.com',
-  credentials: {
-    apiKey: process.env.MCP_API_KEY
-  }
-});
-
-// Scan and register agents
-await agentDiscovery.scanAll();
-```
-
-### Cross-Platform Context
-
-```typescript
-// Share context from Zapier to MCP agent
-const zapierEvent = await zapierAdapter.transformToMeshEvent(webhook);
-const mcpContext = await contextBus.publishContext(zapierEvent.data);
-
-// MCP agent can now access context
-const contexts = await contextBus.searchContext({
-  agent_id: 'mcp-agent-123',
-  similarity_threshold: 0.8
-});
-```
-
-## Future MCP Enhancements
-
-### Roadmap
-
-1. **Q1 2026**: Full context bus with pgvector
-2. **Q2 2026**: Tool calling framework
-3. **Q3 2026**: Streaming responses (SSE + WebSocket)
-4. **Q4 2026**: Multi-agent orchestration
-
-### Research Areas
-
-- **Federated MCP**: Cross-org agent collaboration
-- **MCP Extensions**: Standard proposals for governance
-- **Performance**: Optimize context sharing at scale
-- **Security**: Zero-trust architecture for MCP
-
----
+**Check**:
+1. Command executable: `npx <package> --version`
+2. Environment variables: Ensure secrets are set
+3. Resource access: Check file permissions
+4. Logs: Application-level MCP server logs
 
 ## References
 
-- **MCP Specification**: https://modelcontextprotocol.io/spec
-- **ORCA MCP Registry**: `/mcp_registry.yaml`
-- **Context Bus Config**: `/context_bus.yaml`
-- **Implementation**: `/src/registry/`, `/src/context-bus/`
-
----
-
-**Document Version**: 1.0.0  
-**Last Updated**: 2025-10-30  
-**Maintained By**: ORCA Platform Team
+- [MCP Specification](https://modelcontextprotocol.io)
+- [MCP Server Packages](https://github.com/modelcontextprotocol)
+- [ORCA Registry Service](../src/registry/registry.service.ts)
+- [Agent Discovery](../src/uadsi/agent_discovery.ts)
