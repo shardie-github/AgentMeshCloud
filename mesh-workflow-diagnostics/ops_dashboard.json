@@ -1,0 +1,702 @@
+{
+  "dashboard": {
+    "title": "AgentMesh Workflow Operations Dashboard",
+    "version": "1.0.0",
+    "generated": "2025-10-30T00:00:00Z",
+    "refresh_interval": 60,
+    "layout": "grid",
+    "sections": [
+      {
+        "id": "agent_kanban",
+        "title": "Agent Kanban Board - Task Flow",
+        "type": "kanban",
+        "description": "Real-time agent task status with residency log integration",
+        "columns": [
+          {
+            "id": "backlog",
+            "name": "Backlog",
+            "color": "#6B7280",
+            "agents": [
+              {
+                "id": "unknown-marketing-chatbot",
+                "name": "Shadow AI - Marketing",
+                "status": "quarantined",
+                "task": "Security Review Required",
+                "scope": "Unauthorized agent discovered",
+                "policies": ["quarantine-shadow-ai"],
+                "timeframe": "URGENT - 2 days",
+                "output_model": "N/A",
+                "integrations": ["unknown"],
+                "risk_level": "critical",
+                "residency_log": {
+                  "discovered_at": "2025-10-30T13:45:00Z",
+                  "pattern": "Unregistered API calls to OpenAI",
+                  "behavior": "Customer engagement without governance",
+                  "improvement_areas": [
+                    "Implement agent discovery automation",
+                    "Add approval workflow for new agents"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "todo",
+            "name": "To Do",
+            "color": "#3B82F6",
+            "agents": [
+              {
+                "id": "llama-data-pipeline",
+                "name": "Data Science Pipeline",
+                "status": "pending",
+                "task": "Implement DLQ and Idempotency",
+                "scope": "Batch data processing hardening",
+                "policies": ["rbac-data-science", "code-security-scan"],
+                "timeframe": "5 days",
+                "output_model": "llama-3.1-70b-instruct",
+                "integrations": ["s3", "postgres", "airflow"],
+                "risk_level": "medium",
+                "residency_log": {
+                  "avg_execution_time": "45 minutes",
+                  "failure_rate": "8%",
+                  "pattern": "Daily batch processing at 2 AM UTC",
+                  "behavior": "No retry on S3 read failures",
+                  "improvement_areas": [
+                    "Add batch idempotency tracking",
+                    "Implement retry with exponential backoff",
+                    "Add DLQ for failed batches"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "in_progress",
+            "name": "In Progress",
+            "color": "#F59E0B",
+            "agents": [
+              {
+                "id": "claude-financial-analyst",
+                "name": "Financial Analysis Agent",
+                "status": "active",
+                "task": "Implement SAGA Pattern",
+                "scope": "Multi-step financial workflows",
+                "policies": ["rbac-finance-data", "sox-compliance", "audit-trail-finance"],
+                "timeframe": "10 days (P0)",
+                "output_model": "claude-opus-20240229",
+                "integrations": ["postgres", "market-data-api", "compliance-service"],
+                "risk_level": "critical",
+                "residency_log": {
+                  "avg_execution_time": "8 seconds",
+                  "failure_rate": "2%",
+                  "pattern": "Scheduled Mon-Fri 9 AM + on-demand API calls",
+                  "behavior": "Retry without idempotency → duplicate risk",
+                  "improvement_areas": [
+                    "CRITICAL: Implement SAGA with compensating transactions",
+                    "Add idempotency keys to all financial ops",
+                    "Enforce 7-year log retention in config"
+                  ]
+                }
+              },
+              {
+                "id": "zapier-workflow-completed",
+                "name": "Zapier Workflow Hook",
+                "status": "active",
+                "task": "Add Webhook Authentication",
+                "scope": "Secure webhook endpoints",
+                "policies": ["webhook-security"],
+                "timeframe": "3 days (P0)",
+                "output_model": "N/A",
+                "integrations": ["zapier", "external-systems", "slack", "pagerduty"],
+                "risk_level": "critical",
+                "residency_log": {
+                  "avg_execution_time": "1.2 seconds",
+                  "failure_rate": "15%",
+                  "pattern": "Event-driven webhook delivery",
+                  "behavior": "No signature validation, no retry with DLQ",
+                  "improvement_areas": [
+                    "CRITICAL: Add HMAC signature validation",
+                    "Implement webhook retry with exponential backoff",
+                    "Add DLQ for failed deliveries"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "in_review",
+            "name": "In Review",
+            "color": "#8B5CF6",
+            "agents": [
+              {
+                "id": "workflow-worker",
+                "name": "Workflow Execution Worker",
+                "status": "active",
+                "task": "DLQ Implementation Testing",
+                "scope": "Background worker hardening",
+                "policies": ["job-scheduling"],
+                "timeframe": "2 days",
+                "output_model": "N/A",
+                "integrations": ["redis", "postgres", "mesh-scheduler"],
+                "risk_level": "medium",
+                "residency_log": {
+                  "avg_execution_time": "3.5 seconds",
+                  "failure_rate": "5%",
+                  "pattern": "Continuous polling (1000ms interval)",
+                  "behavior": "Linear retry without state tracking",
+                  "improvement_areas": [
+                    "Add execution state persistence",
+                    "Implement exponential backoff",
+                    "Add DLQ with manual review UI"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "id": "done",
+            "name": "Done",
+            "color": "#10B981",
+            "agents": [
+              {
+                "id": "github-copilot-enterprise",
+                "name": "GitHub Copilot",
+                "status": "active",
+                "task": "Production Ready",
+                "scope": "Code completion with governance",
+                "policies": ["rbac-source-code", "code-security-scan", "rate-limit-per-developer"],
+                "timeframe": "N/A",
+                "output_model": "codex-cushman-002",
+                "integrations": ["github", "vscode", "policy-service"],
+                "risk_level": "low",
+                "residency_log": {
+                  "avg_execution_time": "180ms",
+                  "failure_rate": "0.5%",
+                  "pattern": "Real-time code completion",
+                  "behavior": "Well-governed with rate limiting",
+                  "improvement_areas": [
+                    "Add DLQ for rate limit breaches (minor)"
+                  ]
+                }
+              },
+              {
+                "id": "chatgpt-customer-service",
+                "name": "Customer Support ChatBot",
+                "status": "active",
+                "task": "Minor Improvements Needed",
+                "scope": "Customer support with PII protection",
+                "policies": ["rbac-customer-data", "content-safety", "pii-redaction", "rate-limit-per-user"],
+                "timeframe": "N/A",
+                "output_model": "gpt-4-turbo-2024-04-09",
+                "integrations": ["crm", "knowledge-base", "api-gateway"],
+                "risk_level": "medium",
+                "residency_log": {
+                  "avg_execution_time": "2.1 seconds",
+                  "failure_rate": "3%",
+                  "pattern": "Real-time chat requests",
+                  "behavior": "Missing idempotency on webhook",
+                  "improvement_areas": [
+                    "Add idempotency key to webhook endpoint",
+                    "Implement retry policy",
+                    "Scope API key per environment"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "metrics": {
+          "total_agents": 29,
+          "backlog": 1,
+          "todo": 1,
+          "in_progress": 2,
+          "in_review": 1,
+          "done": 24
+        }
+      },
+      {
+        "id": "enterprise_integration_flow",
+        "title": "Enterprise Architecture Integration Flow",
+        "type": "flow_diagram",
+        "description": "Arrow-style view of agent integration with enterprise systems",
+        "nodes": [
+          {
+            "id": "external_triggers",
+            "label": "External Triggers",
+            "type": "source",
+            "systems": ["Zapier", "Make", "n8n", "Webhooks", "Cron Jobs"]
+          },
+          {
+            "id": "api_gateway",
+            "label": "API Gateway",
+            "type": "gateway",
+            "status": "needs_work",
+            "issues": ["No rate limiting", "No circuit breaker"]
+          },
+          {
+            "id": "policy_enforcement",
+            "label": "Policy Enforcement (OPA)",
+            "type": "governance",
+            "status": "good",
+            "policies_enforced": 7
+          },
+          {
+            "id": "agent_layer",
+            "label": "Agent Layer (MCP)",
+            "type": "agents",
+            "count": 5,
+            "status": "partial"
+          },
+          {
+            "id": "context_federation",
+            "label": "Context Federation",
+            "type": "federation",
+            "status": "needs_work",
+            "issues": ["Race conditions in dedup"]
+          },
+          {
+            "id": "data_layer",
+            "label": "Data Layer",
+            "type": "datastore",
+            "systems": ["PostgreSQL", "Redis", "S3", "Vector DB"]
+          },
+          {
+            "id": "enterprise_systems",
+            "label": "Enterprise Systems",
+            "type": "integration",
+            "systems": ["CRM", "ERP", "HRIS", "IDP", "Market Data"]
+          },
+          {
+            "id": "observability",
+            "label": "Observability (OTel)",
+            "type": "monitoring",
+            "status": "good",
+            "coverage": "70%"
+          }
+        ],
+        "flows": [
+          {
+            "from": "external_triggers",
+            "to": "api_gateway",
+            "protocol": "HTTPS",
+            "arrow_style": "solid",
+            "color": "#3B82F6"
+          },
+          {
+            "from": "api_gateway",
+            "to": "policy_enforcement",
+            "protocol": "REST",
+            "arrow_style": "solid",
+            "color": "#10B981"
+          },
+          {
+            "from": "policy_enforcement",
+            "to": "agent_layer",
+            "protocol": "MCP",
+            "arrow_style": "solid",
+            "color": "#3B82F6"
+          },
+          {
+            "from": "agent_layer",
+            "to": "context_federation",
+            "protocol": "MCP Context Bus",
+            "arrow_style": "dashed",
+            "color": "#F59E0B"
+          },
+          {
+            "from": "agent_layer",
+            "to": "data_layer",
+            "protocol": "SQL/Redis/S3",
+            "arrow_style": "solid",
+            "color": "#3B82F6"
+          },
+          {
+            "from": "agent_layer",
+            "to": "enterprise_systems",
+            "protocol": "REST/GraphQL",
+            "arrow_style": "solid",
+            "color": "#8B5CF6"
+          },
+          {
+            "from": "agent_layer",
+            "to": "observability",
+            "protocol": "OpenTelemetry",
+            "arrow_style": "dotted",
+            "color": "#6B7280"
+          },
+          {
+            "from": "context_federation",
+            "to": "data_layer",
+            "protocol": "Vector Store",
+            "arrow_style": "solid",
+            "color": "#F59E0B"
+          }
+        ]
+      },
+      {
+        "id": "trust_kpis",
+        "title": "Trust KPIs",
+        "type": "metrics_grid",
+        "metrics": [
+          {
+            "name": "Policy Adherence",
+            "value": 95.5,
+            "target": 99.9,
+            "unit": "%",
+            "trend": "up",
+            "status": "warning"
+          },
+          {
+            "name": "Shadow AI Incidents",
+            "value": 1,
+            "target": 0,
+            "unit": "count",
+            "trend": "stable",
+            "status": "critical"
+          },
+          {
+            "name": "Compliance Score",
+            "value": 92.0,
+            "target": 100.0,
+            "unit": "%",
+            "trend": "up",
+            "status": "warning"
+          },
+          {
+            "name": "Data Integrity",
+            "value": 98.0,
+            "target": 100.0,
+            "unit": "%",
+            "trend": "stable",
+            "status": "warning"
+          },
+          {
+            "name": "Secret Rotation",
+            "value": 65.0,
+            "target": 100.0,
+            "unit": "%",
+            "trend": "down",
+            "status": "critical"
+          },
+          {
+            "name": "Unauthorized Access",
+            "value": 45,
+            "target": 0,
+            "unit": "count/day",
+            "trend": "stable",
+            "status": "warning"
+          }
+        ]
+      },
+      {
+        "id": "operational_health",
+        "title": "Operational Health",
+        "type": "metrics_grid",
+        "metrics": [
+          {
+            "name": "Sync Freshness",
+            "value": 92.0,
+            "target": 99.5,
+            "unit": "%",
+            "trend": "up",
+            "status": "critical"
+          },
+          {
+            "name": "Duplicate Event Rate",
+            "value": 15.0,
+            "target": 0.1,
+            "unit": "%",
+            "trend": "stable",
+            "status": "critical"
+          },
+          {
+            "name": "MTTR",
+            "value": 47,
+            "target": 8,
+            "unit": "minutes",
+            "trend": "down",
+            "status": "critical"
+          },
+          {
+            "name": "Idempotency Coverage",
+            "value": 40.0,
+            "target": 100.0,
+            "unit": "%",
+            "trend": "up",
+            "status": "critical"
+          },
+          {
+            "name": "Webhook Success Rate",
+            "value": 85.0,
+            "target": 99.5,
+            "unit": "%",
+            "trend": "stable",
+            "status": "critical"
+          },
+          {
+            "name": "DLQ Depth",
+            "value": 23,
+            "target": 0,
+            "unit": "count",
+            "trend": "up",
+            "status": "warning"
+          }
+        ]
+      },
+      {
+        "id": "performance",
+        "title": "Performance Metrics",
+        "type": "metrics_grid",
+        "metrics": [
+          {
+            "name": "P95 Latency",
+            "value": 2100,
+            "target": 500,
+            "unit": "ms",
+            "trend": "stable",
+            "status": "critical"
+          },
+          {
+            "name": "Throughput",
+            "value": 850,
+            "target": 1000,
+            "unit": "req/s",
+            "trend": "up",
+            "status": "warning"
+          },
+          {
+            "name": "Circuit Breaker Open",
+            "value": 2.5,
+            "target": 0.1,
+            "unit": "%",
+            "trend": "stable",
+            "status": "warning"
+          },
+          {
+            "name": "Availability",
+            "value": 99.2,
+            "target": 99.9,
+            "unit": "%",
+            "trend": "stable",
+            "status": "warning"
+          }
+        ]
+      },
+      {
+        "id": "risk_and_savings",
+        "title": "Risk Avoided & Cost Savings",
+        "type": "financial_summary",
+        "risk_avoided": {
+          "annual": 214400,
+          "breakdown": [
+            {
+              "category": "Security Breach Prevention",
+              "amount": 50000,
+              "status": "partial"
+            },
+            {
+              "category": "Compliance Penalties",
+              "amount": 50000,
+              "status": "partial"
+            },
+            {
+              "category": "Duplicate Operations",
+              "amount": 14400,
+              "status": "critical"
+            },
+            {
+              "category": "Downtime Avoidance",
+              "amount": 100000,
+              "status": "good"
+            }
+          ]
+        },
+        "cost_savings": {
+          "annual": 42000,
+          "breakdown": [
+            {
+              "category": "Zapier Task Optimization",
+              "amount": 14400,
+              "status": "pending"
+            },
+            {
+              "category": "API Key Scoping",
+              "amount": 3600,
+              "status": "pending"
+            },
+            {
+              "category": "MTTR Reduction",
+              "amount": 18000,
+              "status": "in_progress"
+            },
+            {
+              "category": "Manual Recovery",
+              "amount": 6000,
+              "status": "in_progress"
+            }
+          ]
+        },
+        "total_annual_value": 256400
+      },
+      {
+        "id": "agent_residency_insights",
+        "title": "Agent Residency Log - Pattern Analysis",
+        "type": "insights",
+        "description": "Deep learning from agent behavior patterns",
+        "insights": [
+          {
+            "category": "High-Risk Patterns",
+            "findings": [
+              {
+                "agent": "claude-financial-analyst",
+                "pattern": "Retry without idempotency on financial operations",
+                "risk": "Critical",
+                "impact": "Potential duplicate charges → SOX violation",
+                "recommendation": "Implement SAGA pattern immediately"
+              },
+              {
+                "agent": "zapier-workflow-completed",
+                "pattern": "Webhook delivery without authentication",
+                "risk": "Critical",
+                "impact": "Spoofed webhooks could trigger unauthorized actions",
+                "recommendation": "Add HMAC signature validation"
+              },
+              {
+                "agent": "unknown-marketing-chatbot",
+                "pattern": "Unauthorized API calls to OpenAI",
+                "risk": "Critical",
+                "impact": "Shadow AI bypassing governance",
+                "recommendation": "Quarantine immediately + implement agent discovery"
+              }
+            ]
+          },
+          {
+            "category": "Efficiency Opportunities",
+            "findings": [
+              {
+                "agent": "llama-data-pipeline",
+                "pattern": "8% batch failure rate with no retry",
+                "impact": "Wasted compute + manual recovery",
+                "recommendation": "Add DLQ and exponential backoff retry"
+              },
+              {
+                "agent": "workflow-worker",
+                "pattern": "No execution state persistence",
+                "impact": "Failed workflows don't resume",
+                "recommendation": "Implement checkpoint/resume pattern"
+              }
+            ]
+          },
+          {
+            "category": "Success Patterns",
+            "findings": [
+              {
+                "agent": "github-copilot-enterprise",
+                "pattern": "Well-governed real-time completion",
+                "success_factors": [
+                  "Rate limiting enforced",
+                  "RBAC policies applied",
+                  "Code security scans integrated"
+                ],
+                "replicate_to": ["other real-time agents"]
+              },
+              {
+                "agent": "telemetry-service",
+                "pattern": "100% observability coverage",
+                "success_factors": [
+                  "OpenTelemetry integration",
+                  "Structured logging",
+                  "Correlation IDs"
+                ],
+                "replicate_to": ["all services"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "top_priorities",
+        "title": "Top 10 Priorities",
+        "type": "priority_list",
+        "items": [
+          {
+            "rank": 1,
+            "task": "Quarantine Shadow AI",
+            "status": "completed",
+            "risk_avoided": "$50K",
+            "effort": "low"
+          },
+          {
+            "rank": 2,
+            "task": "Add Webhook Authentication",
+            "status": "in_progress",
+            "risk_avoided": "$25K",
+            "effort": "low"
+          },
+          {
+            "rank": 3,
+            "task": "Implement Financial SAGA",
+            "status": "in_progress",
+            "risk_avoided": "$50K",
+            "effort": "high"
+          },
+          {
+            "rank": 4,
+            "task": "Scope API Keys",
+            "status": "todo",
+            "risk_avoided": "$15K",
+            "effort": "medium"
+          },
+          {
+            "rank": 5,
+            "task": "Add DLQ to Workers",
+            "status": "in_review",
+            "risk_avoided": "$5K",
+            "effort": "medium"
+          },
+          {
+            "rank": 6,
+            "task": "API Gateway Rate Limiting",
+            "status": "todo",
+            "risk_avoided": "$3K",
+            "effort": "low"
+          },
+          {
+            "rank": 7,
+            "task": "Implement Circuit Breakers",
+            "status": "todo",
+            "risk_avoided": "$10K",
+            "effort": "low"
+          },
+          {
+            "rank": 8,
+            "task": "Automated HRIS Sync",
+            "status": "todo",
+            "risk_avoided": "$20K",
+            "effort": "high"
+          },
+          {
+            "rank": 9,
+            "task": "Add Correlation IDs",
+            "status": "todo",
+            "risk_avoided": "$2K",
+            "effort": "medium"
+          },
+          {
+            "rank": 10,
+            "task": "Fix CRM Sync Lag",
+            "status": "todo",
+            "risk_avoided": "$0",
+            "effort": "medium"
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "refresh_url": "/api/v3/dashboard/refresh",
+    "export_url": "/api/v3/dashboard/export",
+    "last_updated": "2025-10-30T00:00:00Z",
+    "version": "1.0.0"
+  }
+}

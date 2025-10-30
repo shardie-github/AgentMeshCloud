@@ -1,0 +1,500 @@
+# Workflow & Automation KPIs
+# Defines measurable outcomes and Trust KPIs for operational excellence
+# Version: 1.0.0
+# Generated: 2025-10-30
+
+---
+
+# =============================================================================
+# OPERATIONAL KPIs
+# =============================================================================
+
+operational_kpis:
+  sync_freshness:
+    name: "Sync Freshness Percentage"
+    description: "Percentage of data syncs completed within SLA"
+    formula: "(on_time_syncs / total_syncs) * 100"
+    unit: "percent"
+    target: 99.5
+    current: 92.0
+    threshold:
+      green: ">= 99.0"
+      yellow: "95.0 - 98.9"
+      red: "< 95.0"
+    measurement_interval: "5 minutes"
+    data_source: "sync_diagnostics_service"
+    
+  duplicate_event_rate:
+    name: "Duplicate Event Rate"
+    description: "Percentage of events that are duplicates"
+    formula: "(duplicate_events / total_events) * 100"
+    unit: "percent"
+    target: 0.1
+    current: 15.0
+    threshold:
+      green: "<= 0.5"
+      yellow: "0.5 - 2.0"
+      red: "> 2.0"
+    measurement_interval: "1 minute"
+    data_source: "telemetry_service"
+    
+  mean_drift_time:
+    name: "Mean Configuration Drift Time"
+    description: "Average time for configuration to drift from desired state"
+    formula: "avg(drift_detected_time - last_sync_time)"
+    unit: "minutes"
+    target: 5.0
+    current: 18.0
+    threshold:
+      green: "<= 10"
+      yellow: "10 - 30"
+      red: "> 30"
+    measurement_interval: "15 minutes"
+    data_source: "drift_monitor"
+    
+  policy_adherence:
+    name: "Policy Adherence Percentage"
+    description: "Percentage of operations complying with policies"
+    formula: "(policy_compliant_ops / total_ops) * 100"
+    unit: "percent"
+    target: 99.9
+    current: 95.5
+    threshold:
+      green: ">= 99.5"
+      yellow: "98.0 - 99.4"
+      red: "< 98.0"
+    measurement_interval: "5 minutes"
+    data_source: "policy_service"
+    
+  mttr:
+    name: "Mean Time To Recovery"
+    description: "Average time to recover from incidents"
+    formula: "avg(incident_resolved_time - incident_detected_time)"
+    unit: "minutes"
+    target: 8.0
+    current: 47.0
+    threshold:
+      green: "<= 15"
+      yellow: "15 - 30"
+      red: "> 30"
+    measurement_interval: "real-time"
+    data_source: "incident_management"
+    
+  idempotency_coverage:
+    name: "Idempotency Coverage"
+    description: "Percentage of mutation operations with idempotency keys"
+    formula: "(operations_with_idempotency / total_mutations) * 100"
+    unit: "percent"
+    target: 100.0
+    current: 40.0
+    threshold:
+      green: ">= 95.0"
+      yellow: "80.0 - 94.9"
+      red: "< 80.0"
+    measurement_interval: "5 minutes"
+    data_source: "api_gateway"
+    
+  webhook_delivery_success_rate:
+    name: "Webhook Delivery Success Rate"
+    description: "Percentage of webhooks delivered successfully"
+    formula: "(successful_webhooks / total_webhooks) * 100"
+    unit: "percent"
+    target: 99.5
+    current: 85.0
+    threshold:
+      green: ">= 99.0"
+      yellow: "95.0 - 98.9"
+      red: "< 95.0"
+    measurement_interval: "1 minute"
+    data_source: "webhook_service"
+    
+  dlq_depth:
+    name: "Dead Letter Queue Depth"
+    description: "Number of failed jobs in DLQ"
+    formula: "count(dlq_messages)"
+    unit: "count"
+    target: 0
+    current: 23
+    threshold:
+      green: "<= 10"
+      yellow: "10 - 50"
+      red: "> 50"
+    measurement_interval: "1 minute"
+    data_source: "dlq_service"
+
+# =============================================================================
+# PERFORMANCE KPIs
+# =============================================================================
+
+performance_kpis:
+  p95_latency:
+    name: "95th Percentile Latency"
+    description: "95% of requests complete within this time"
+    formula: "percentile(request_duration, 95)"
+    unit: "milliseconds"
+    target: 500
+    current: 2100
+    threshold:
+      green: "<= 500"
+      yellow: "500 - 1000"
+      red: "> 1000"
+    measurement_interval: "1 minute"
+    data_source: "telemetry_service"
+    
+  throughput:
+    name: "Request Throughput"
+    description: "Requests processed per second"
+    formula: "count(requests) / time_window"
+    unit: "requests/second"
+    target: 1000
+    current: 850
+    threshold:
+      green: ">= 1000"
+      yellow: "500 - 999"
+      red: "< 500"
+    measurement_interval: "1 minute"
+    data_source: "api_gateway"
+    
+  circuit_breaker_open_rate:
+    name: "Circuit Breaker Open Rate"
+    description: "Percentage of time circuit breakers are open"
+    formula: "(time_breaker_open / total_time) * 100"
+    unit: "percent"
+    target: 0.1
+    current: 2.5
+    threshold:
+      green: "<= 1.0"
+      yellow: "1.0 - 5.0"
+      red: "> 5.0"
+    measurement_interval: "5 minutes"
+    data_source: "circuit_breaker_service"
+
+# =============================================================================
+# TRUST KPIs (Security, Compliance, Reliability)
+# =============================================================================
+
+trust_kpis:
+  shadow_ai_incidents:
+    name: "Shadow AI Incidents"
+    description: "Number of unauthorized AI agents discovered"
+    formula: "count(shadow_ai_detected)"
+    unit: "count"
+    target: 0
+    current: 1
+    threshold:
+      green: "0"
+      yellow: "1 - 2"
+      red: "> 2"
+    measurement_interval: "daily"
+    data_source: "agent_discovery"
+    trust_impact: "high"
+    
+  policy_violations:
+    name: "Policy Violations"
+    description: "Number of governance policy violations"
+    formula: "count(policy_violated_events)"
+    unit: "count"
+    target: 0
+    current: 12
+    threshold:
+      green: "<= 2"
+      yellow: "2 - 10"
+      red: "> 10"
+    measurement_interval: "daily"
+    data_source: "policy_service"
+    trust_impact: "high"
+    
+  unauthorized_access_attempts:
+    name: "Unauthorized Access Attempts"
+    description: "Failed authentication/authorization attempts"
+    formula: "count(auth_failed)"
+    unit: "count"
+    target: 0
+    current: 45
+    threshold:
+      green: "<= 10"
+      yellow: "10 - 50"
+      red: "> 50"
+    measurement_interval: "hourly"
+    data_source: "auth_service"
+    trust_impact: "critical"
+    
+  compliance_audit_score:
+    name: "Compliance Audit Score"
+    description: "Percentage of compliance controls passing"
+    formula: "(passing_controls / total_controls) * 100"
+    unit: "percent"
+    target: 100.0
+    current: 92.0
+    threshold:
+      green: ">= 98.0"
+      yellow: "90.0 - 97.9"
+      red: "< 90.0"
+    measurement_interval: "daily"
+    data_source: "compliance_auditor"
+    trust_impact: "high"
+    
+  data_integrity_score:
+    name: "Data Integrity Score"
+    description: "Percentage of data operations maintaining integrity"
+    formula: "(valid_data_ops / total_data_ops) * 100"
+    unit: "percent"
+    target: 100.0
+    current: 98.0
+    threshold:
+      green: ">= 99.9"
+      yellow: "99.0 - 99.8"
+      red: "< 99.0"
+    measurement_interval: "5 minutes"
+    data_source: "data_validation_service"
+    trust_impact: "critical"
+    
+  secret_rotation_compliance:
+    name: "Secret Rotation Compliance"
+    description: "Percentage of secrets rotated on schedule"
+    formula: "(rotated_secrets / total_secrets) * 100"
+    unit: "percent"
+    target: 100.0
+    current: 65.0
+    threshold:
+      green: ">= 95.0"
+      yellow: "80.0 - 94.9"
+      red: "< 80.0"
+    measurement_interval: "daily"
+    data_source: "secret_manager"
+    trust_impact: "high"
+
+# =============================================================================
+# COST KPIs
+# =============================================================================
+
+cost_kpis:
+  cost_per_transaction:
+    name: "Cost Per Transaction"
+    description: "Average cost per transaction"
+    formula: "total_cost / total_transactions"
+    unit: "dollars"
+    target: 0.01
+    current: 0.025
+    threshold:
+      green: "<= 0.015"
+      yellow: "0.015 - 0.03"
+      red: "> 0.03"
+    measurement_interval: "hourly"
+    data_source: "cost_optimizer"
+    
+  wasted_compute:
+    name: "Wasted Compute Percentage"
+    description: "Percentage of compute resources unused"
+    formula: "(idle_compute / total_compute) * 100"
+    unit: "percent"
+    target: 5.0
+    current: 18.0
+    threshold:
+      green: "<= 10.0"
+      yellow: "10.0 - 20.0"
+      red: "> 20.0"
+    measurement_interval: "hourly"
+    data_source: "resource_monitor"
+    
+  api_cost_efficiency:
+    name: "API Cost Efficiency"
+    description: "Cost per successful API call"
+    formula: "total_api_cost / successful_api_calls"
+    unit: "dollars"
+    target: 0.001
+    current: 0.0035
+    threshold:
+      green: "<= 0.002"
+      yellow: "0.002 - 0.005"
+      red: "> 0.005"
+    measurement_interval: "hourly"
+    data_source: "billing_service"
+
+# =============================================================================
+# RISK AVOIDED (Financial Impact)
+# =============================================================================
+
+risk_avoided:
+  security_breach_prevention:
+    name: "Security Breach Prevention"
+    description: "Estimated cost avoided from prevented breaches"
+    formula: "shadow_ai_blocked * avg_breach_cost + policy_violations_blocked * avg_violation_cost"
+    unit: "dollars"
+    estimated_annual: 50000
+    calculation:
+      - shadow_ai_blocked: 1
+      - avg_breach_cost: 25000
+      - policy_violations_blocked: 15
+      - avg_violation_cost: 1000
+    trust_impact: "critical"
+    
+  compliance_penalty_avoidance:
+    name: "Compliance Penalty Avoidance"
+    description: "Fines avoided through compliance"
+    formula: "compliance_gaps_fixed * avg_penalty"
+    unit: "dollars"
+    estimated_annual: 50000
+    calculation:
+      - compliance_gaps_fixed: 5
+      - avg_penalty: 10000
+    trust_impact: "high"
+    
+  duplicate_operation_prevention:
+    name: "Duplicate Operation Prevention"
+    description: "Cost saved by preventing duplicate operations"
+    formula: "duplicates_prevented * avg_operation_cost"
+    unit: "dollars"
+    estimated_annual: 14400
+    calculation:
+      - duplicates_prevented: 4000
+      - avg_operation_cost: 3.60
+    trust_impact: "medium"
+    
+  downtime_avoidance:
+    name: "Downtime Avoidance"
+    description: "Revenue preserved through high availability"
+    formula: "downtime_prevented_hours * revenue_per_hour"
+    unit: "dollars"
+    estimated_annual: 100000
+    calculation:
+      - downtime_prevented_hours: 50
+      - revenue_per_hour: 2000
+    trust_impact: "high"
+
+# =============================================================================
+# COST SAVINGS (Operational Efficiency)
+# =============================================================================
+
+cost_savings:
+  zapier_task_optimization:
+    name: "Zapier Task Credits Saved"
+    description: "Savings from webhook deduplication"
+    unit: "dollars/month"
+    monthly_savings: 1200
+    annual_savings: 14400
+    
+  api_key_scoping:
+    name: "API Cost Reduction"
+    description: "Savings from environment-scoped API keys"
+    unit: "dollars/month"
+    monthly_savings: 300
+    annual_savings: 3600
+    
+  mttr_reduction:
+    name: "Operational Time Saved"
+    description: "Engineering time saved from faster recovery"
+    unit: "dollars/month"
+    monthly_savings: 1500
+    annual_savings: 18000
+    
+  manual_recovery_elimination:
+    name: "Manual Recovery Eliminated"
+    description: "Savings from automated recovery"
+    unit: "dollars/month"
+    monthly_savings: 500
+    annual_savings: 6000
+
+# =============================================================================
+# SLIs (Service Level Indicators)
+# =============================================================================
+
+slis:
+  availability:
+    name: "Service Availability"
+    description: "Percentage of time service is available"
+    target: 99.9
+    current: 99.2
+    measurement_window: "30 days"
+    
+  latency:
+    name: "Request Latency (P95)"
+    description: "95th percentile request latency"
+    target: 500
+    current: 2100
+    unit: "milliseconds"
+    measurement_window: "5 minutes"
+    
+  error_rate:
+    name: "Error Rate"
+    description: "Percentage of requests resulting in errors"
+    target: 0.1
+    current: 1.8
+    unit: "percent"
+    measurement_window: "5 minutes"
+    
+  data_freshness:
+    name: "Data Freshness"
+    description: "Maximum age of synchronized data"
+    target: 300
+    current: 1800
+    unit: "seconds"
+    measurement_window: "1 minute"
+
+# =============================================================================
+# SUMMARY DASHBOARD
+# =============================================================================
+
+summary_dashboard:
+  overall_health_score:
+    formula: "weighted_average(all_kpis)"
+    current: 62
+    target: 95
+    status: "needs_improvement"
+    
+  trust_score:
+    formula: "weighted_average(trust_kpis)"
+    current: 68
+    target: 98
+    status: "needs_improvement"
+    
+  estimated_annual_value:
+    risk_avoided: 214400
+    cost_savings: 42000
+    total: 256400
+    
+  top_priorities:
+    - name: "Fix Zapier webhook authentication"
+      impact: "25K risk avoided"
+      effort: "low"
+    - name: "Implement financial SAGA pattern"
+      impact: "50K risk avoided"
+      effort: "high"
+    - name: "Scope API keys per environment"
+      impact: "15K risk avoided + 3.6K savings"
+      effort: "medium"
+
+# =============================================================================
+# ALERTING RULES
+# =============================================================================
+
+alerts:
+  critical:
+    - name: "Shadow AI Detected"
+      condition: "shadow_ai_incidents > 0"
+      action: "page_security_team"
+      
+    - name: "Policy Violation Rate High"
+      condition: "policy_violations > 5 per hour"
+      action: "page_compliance_team"
+      
+    - name: "Unauthorized Access Spike"
+      condition: "unauthorized_access_attempts > 20 per hour"
+      action: "page_security_team"
+      
+    - name: "DLQ Depth Critical"
+      condition: "dlq_depth > 100"
+      action: "page_ops_team"
+      
+  warning:
+    - name: "Sync Freshness Degraded"
+      condition: "sync_freshness < 95%"
+      action: "notify_ops_team"
+      
+    - name: "Duplicate Event Rate High"
+      condition: "duplicate_event_rate > 5%"
+      action: "notify_ops_team"
+      
+    - name: "Circuit Breaker Open"
+      condition: "circuit_breaker_open_rate > 5%"
+      action: "notify_ops_team"

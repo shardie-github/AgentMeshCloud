@@ -1,0 +1,670 @@
+# ============================================================================
+# AUTOMATION REGISTRY - Complete Inventory of Discovered Automations
+# Generated: 2025-10-30
+# Scope: All MCP-native and non-MCP automations discovered across the mesh
+# ============================================================================
+
+version: "1.0.0"
+discovery:
+  timestamp: "2025-10-30T00:00:00Z"
+  scan_scope:
+    - mcp_servers
+    - github_workflows
+    - cron_jobs
+    - webhooks
+    - schedulers
+    - zapier_integrations
+    - background_workers
+    - api_integrations
+  tools_used:
+    - codebase_scanner
+    - config_analyzer
+    - docker_compose_parser
+    - workflow_discovery
+
+# ============================================================================
+# MCP-NATIVE AGENTS
+# ============================================================================
+mcp_agents:
+  - id: "chatgpt-customer-service"
+    name: "Customer Support ChatBot"
+    type: "mcp_agent"
+    owner: "customer-success@acme.com"
+    purpose: "Handles customer support inquiries with MCP-compliant context management"
+    status: "active"
+    triggers:
+      - type: "webhook"
+        endpoint: "/api/chat"
+        method: "POST"
+    inputs:
+      - customer_query
+      - session_context
+      - customer_id
+    outputs:
+      - response_text
+      - sentiment_score
+      - escalation_flag
+    secrets:
+      - OPENAI_API_KEY
+    compliance_scope:
+      - GDPR
+      - PCI-DSS
+      - content_safety
+    hardening_status: "partial"
+    issues:
+      - "Missing idempotency key on webhook"
+      - "No retry policy configured"
+      - "Shared API key across environments"
+    location: "ai-agent-mesh/mcp_registry.yaml:14-101"
+
+  - id: "github-copilot-enterprise"
+    name: "GitHub Copilot Enterprise"
+    type: "mcp_agent"
+    owner: "engineering@acme.com"
+    purpose: "AI-powered code completion and generation"
+    status: "active"
+    triggers:
+      - type: "realtime"
+        integration: "vscode_extension"
+    inputs:
+      - code_context
+      - cursor_position
+      - language
+    outputs:
+      - code_suggestions
+      - completions
+    secrets:
+      - GITHUB_COPILOT_TOKEN
+    compliance_scope:
+      - code_security_scan
+      - rbac_source_code
+    hardening_status: "good"
+    issues:
+      - "Rate limit enforcement needs DLQ"
+    location: "ai-agent-mesh/mcp_registry.yaml:104-175"
+
+  - id: "claude-financial-analyst"
+    name: "Financial Analysis Agent"
+    type: "mcp_agent"
+    owner: "finance@acme.com"
+    purpose: "Analyzes financial data with SOX compliance"
+    status: "active"
+    triggers:
+      - type: "scheduled"
+        cron: "0 9 * * MON-FRI"
+      - type: "api"
+        endpoint: "/api/finance/analyze"
+    inputs:
+      - financial_data
+      - time_period
+      - analysis_type
+    outputs:
+      - analysis_report
+      - risk_assessment
+      - compliance_check
+    secrets:
+      - CLAUDE_API_KEY
+      - FINANCIAL_DB_PASSWORD
+    compliance_scope:
+      - SOX
+      - SEC_reporting
+      - audit_trail
+    hardening_status: "critical"
+    issues:
+      - "7-year log retention not enforced in config"
+      - "No SAGA pattern for multi-step workflows"
+      - "Missing circuit breaker"
+    location: "ai-agent-mesh/mcp_registry.yaml:178-257"
+
+  - id: "llama-data-pipeline"
+    name: "Data Science LLM Pipeline"
+    type: "mcp_agent"
+    owner: "data-science@acme.com"
+    purpose: "Batch processing for data science workflows"
+    status: "active"
+    triggers:
+      - type: "scheduled"
+        cron: "0 2 * * *"
+      - type: "event"
+        source: "s3_bucket"
+        event: "object_created"
+    inputs:
+      - dataset_path
+      - analysis_config
+    outputs:
+      - processed_data
+      - model_metrics
+    secrets:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+    compliance_scope:
+      - data_classification
+    hardening_status: "needs_work"
+    issues:
+      - "No batch idempotency tracking"
+      - "Missing DLQ for failed jobs"
+      - "Unscoped AWS credentials"
+    location: "ai-agent-mesh/mcp_registry.yaml:260-325"
+
+  - id: "unknown-marketing-chatbot"
+    name: "Marketing Department Chatbot (Shadow AI)"
+    type: "shadow_ai"
+    owner: "security@acme.com"
+    purpose: "Discovered unauthorized chatbot - requires review"
+    status: "quarantined"
+    triggers:
+      - type: "unknown"
+        detected_via: "agent-discovery-daemon"
+    inputs: []
+    outputs: []
+    secrets:
+      - UNKNOWN_OPENAI_KEY
+    compliance_scope:
+      - NONE
+    hardening_status: "quarantined"
+    issues:
+      - "CRITICAL: Unauthorized shadow AI"
+      - "No governance policies applied"
+      - "Unvetted API usage"
+      - "Potential data leakage"
+    location: "ai-agent-mesh/mcp_registry.yaml:328-378"
+
+# ============================================================================
+# GITHUB ACTIONS WORKFLOWS
+# ============================================================================
+github_workflows:
+  - id: "dr-drill"
+    name: "Disaster Recovery Drill"
+    type: "github_workflow"
+    owner: "sre@example.com"
+    purpose: "Monthly disaster recovery testing"
+    status: "active"
+    triggers:
+      - type: "schedule"
+        cron: "0 2 1 * *"
+        description: "First day of each month at 2 AM UTC"
+      - type: "manual"
+        workflow_dispatch: true
+    inputs:
+      - environment
+      - force_run
+    outputs:
+      - dr_report
+      - backup_validation
+    secrets:
+      - SHADOW_DATABASE_URL
+      - DATABASE_URL
+    compliance_scope:
+      - disaster_recovery
+      - backup_validation
+    hardening_status: "good"
+    issues:
+      - "Report generation could fail silently"
+    location: ".github/workflows/dr-drill.yml"
+
+  - id: "slo-check"
+    name: "SLO Monitoring Check"
+    type: "github_workflow"
+    owner: "sre@example.com"
+    purpose: "Daily SLO compliance monitoring"
+    status: "active"
+    triggers:
+      - type: "schedule"
+        cron: "0 1 * * *"
+        description: "Daily at 1 AM UTC"
+      - type: "manual"
+        workflow_dispatch: true
+    inputs: []
+    outputs:
+      - slo_report
+      - breach_alerts
+    secrets: []
+    compliance_scope:
+      - sla_monitoring
+    hardening_status: "good"
+    issues: []
+    location: ".github/workflows/slo-check.yml"
+
+  - id: "chaos-check"
+    name: "Chaos Engineering Check"
+    type: "github_workflow"
+    owner: "sre@example.com"
+    purpose: "Validates system resilience under chaos"
+    status: "active"
+    triggers:
+      - type: "label"
+        label: "chaos-check"
+      - type: "manual"
+        workflow_dispatch: true
+    inputs:
+      - chaos_scenario
+    outputs:
+      - chaos_report
+      - system_resilience_score
+    secrets:
+      - CHAOS_API_KEY
+    compliance_scope:
+      - resilience_testing
+    hardening_status: "needs_work"
+    issues:
+      - "No safeguards against production chaos"
+      - "Missing rollback automation"
+    location: ".github/workflows/chaos-check.yml"
+
+  - id: "release-pr"
+    name: "Release PR Workflow"
+    type: "github_workflow"
+    owner: "release-engineering@example.com"
+    purpose: "Automates release PR creation and validation"
+    status: "active"
+    triggers:
+      - type: "manual"
+        workflow_dispatch: true
+        inputs:
+          - version
+          - release_type
+    inputs:
+      - version
+      - release_type
+    outputs:
+      - release_pr_url
+      - changelog
+      - validation_report
+    secrets:
+      - GITHUB_TOKEN
+      - NPM_TOKEN
+    compliance_scope:
+      - release_management
+    hardening_status: "good"
+    issues:
+      - "Changelog generation could be more robust"
+    location: ".github/workflows/release-pr.yml"
+
+# ============================================================================
+# ZAPIER INTEGRATIONS
+# ============================================================================
+zapier_integrations:
+  - id: "zapier-agent-created"
+    name: "Agent Created Trigger"
+    type: "zapier_trigger"
+    owner: "ai-ops@acme.com"
+    purpose: "Notifies external systems when new agent is created"
+    status: "active"
+    triggers:
+      - type: "polling"
+        interval: "5 minutes"
+        endpoint: "https://api.ai-agent-mesh.com/v3/agents"
+    inputs:
+      - time_checked
+    outputs:
+      - agent_id
+      - agent_name
+      - agent_type
+      - created_at
+    secrets:
+      - MESH_API_KEY
+    compliance_scope: []
+    hardening_status: "needs_work"
+    issues:
+      - "No webhook deduplication"
+      - "Polling interval too frequent (rate limit risk)"
+      - "Missing correlation ID for tracing"
+    location: "ai-agent-mesh/integrations/zapier_integration.mjs:36-61"
+
+  - id: "zapier-workflow-completed"
+    name: "Workflow Completed Webhook"
+    type: "zapier_trigger"
+    owner: "ai-ops@acme.com"
+    purpose: "Triggers Zaps when workflow execution completes"
+    status: "active"
+    triggers:
+      - type: "webhook"
+        event: "workflow.completed"
+    inputs:
+      - workflow_id
+      - agent_id
+      - status
+      - output
+    outputs:
+      - execution_result
+    secrets:
+      - MESH_API_KEY
+    compliance_scope: []
+    hardening_status: "critical"
+    issues:
+      - "No webhook signature validation"
+      - "No retry on webhook delivery failure"
+      - "Missing idempotency key"
+      - "No DLQ for failed deliveries"
+    location: "ai-agent-mesh/integrations/zapier_integration.mjs:63-97"
+
+  - id: "zapier-policy-violated"
+    name: "Policy Violation Alert"
+    type: "zapier_trigger"
+    owner: "compliance@acme.com"
+    purpose: "Alerts when governance policy is violated"
+    status: "active"
+    triggers:
+      - type: "webhook"
+        event: "policy.violated"
+        priority: "high"
+    inputs:
+      - agent_id
+      - policy_name
+      - severity
+      - details
+    outputs:
+      - violation_report
+    secrets:
+      - MESH_API_KEY
+    compliance_scope:
+      - policy_enforcement
+      - audit_logging
+    hardening_status: "critical"
+    issues:
+      - "CRITICAL: Security webhook without auth"
+      - "No replay protection"
+      - "Missing audit trail"
+    location: "ai-agent-mesh/integrations/zapier_integration.mjs:100-130"
+
+  - id: "zapier-health-alert"
+    name: "Agent Health Alert"
+    type: "zapier_trigger"
+    owner: "sre@example.com"
+    purpose: "Alerts when agent health drops below threshold"
+    status: "active"
+    triggers:
+      - type: "webhook"
+        event: "agent.health_alert"
+    inputs:
+      - agent_id
+      - health_score
+      - status
+      - issues
+    outputs:
+      - alert_details
+    secrets:
+      - MESH_API_KEY
+    compliance_scope:
+      - operational_monitoring
+    hardening_status: "needs_work"
+    issues:
+      - "No exponential backoff on retries"
+      - "Alert storm risk without rate limiting"
+    location: "ai-agent-mesh/integrations/zapier_integration.mjs:133-161"
+
+# ============================================================================
+# BACKGROUND WORKERS & SCHEDULERS
+# ============================================================================
+background_workers:
+  - id: "mesh-scheduler"
+    name: "Mesh OS Scheduler"
+    type: "scheduler"
+    owner: "ops@example.com"
+    purpose: "Core job scheduler for autonomous mesh OS"
+    status: "active"
+    triggers:
+      - type: "continuous"
+        interval: "5000ms"
+    inputs:
+      - pending_jobs
+      - agent_capacity
+    outputs:
+      - scheduled_jobs
+      - failed_jobs
+    secrets: []
+    compliance_scope:
+      - job_scheduling
+    hardening_status: "good"
+    issues:
+      - "DLQ exists but purge policy could be better"
+      - "Job correlation IDs not consistently used"
+    location: "ai-agent-mesh-v5/scheduler_config.yaml:11-43"
+
+  - id: "workflow-worker"
+    name: "Workflow Execution Worker"
+    type: "background_worker"
+    owner: "ops@example.com"
+    purpose: "Processes workflow executions"
+    status: "active"
+    triggers:
+      - type: "polling"
+        interval: "1000ms"
+        queue: "workflow_queue"
+    inputs:
+      - workflow_definition
+      - input_data
+    outputs:
+      - execution_result
+      - logs
+    secrets: []
+    compliance_scope: []
+    hardening_status: "needs_work"
+    issues:
+      - "No idempotency tracking"
+      - "Missing visibility on stuck workflows"
+      - "Retry policy too aggressive"
+    location: "apps/orchestrator/src/workers/WorkflowWorker.ts"
+
+  - id: "a2a-worker"
+    name: "Agent-to-Agent Communication Worker"
+    type: "background_worker"
+    owner: "ops@example.com"
+    purpose: "Handles inter-agent communication"
+    status: "active"
+    triggers:
+      - type: "polling"
+        interval: "1000ms"
+        queue: "a2a_queue"
+    inputs:
+      - source_agent
+      - target_agent
+      - message
+    outputs:
+      - delivery_status
+    secrets: []
+    compliance_scope:
+      - message_integrity
+    hardening_status: "needs_work"
+    issues:
+      - "No message ordering guarantee"
+      - "Missing at-most-once/at-least-once semantics"
+      - "No dead letter handling"
+    location: "apps/orchestrator/src/workers/A2AWorker.ts"
+
+  - id: "mcp-worker"
+    name: "MCP Protocol Worker"
+    type: "background_worker"
+    owner: "ops@example.com"
+    purpose: "Processes MCP protocol messages"
+    status: "active"
+    triggers:
+      - type: "polling"
+        interval: "1000ms"
+        queue: "mcp_queue"
+    inputs:
+      - mcp_request
+    outputs:
+      - mcp_response
+    secrets: []
+    compliance_scope: []
+    hardening_status: "good"
+    issues:
+      - "Retry policy exists but needs exponential backoff"
+    location: "apps/orchestrator/src/workers/MCPWorker.ts"
+
+  - id: "agent-worker"
+    name: "Agent Management Worker"
+    type: "background_worker"
+    owner: "ops@example.com"
+    purpose: "Manages agent lifecycle"
+    status: "active"
+    triggers:
+      - type: "polling"
+        interval: "1000ms"
+        queue: "agent_queue"
+    inputs:
+      - agent_command
+    outputs:
+      - command_result
+    secrets: []
+    compliance_scope:
+      - agent_lifecycle
+    hardening_status: "needs_work"
+    issues:
+      - "No SAGA pattern for multi-step agent provisioning"
+      - "Orphan cleanup not automated"
+    location: "apps/orchestrator/src/workers/AgentWorker.ts"
+
+# ============================================================================
+# DOCKER SERVICES & DAEMONS
+# ============================================================================
+docker_services:
+  - id: "api-gateway"
+    name: "API Gateway Service"
+    type: "docker_service"
+    owner: "platform@example.com"
+    purpose: "Main API entry point"
+    status: "active"
+    triggers:
+      - type: "http"
+        port: 3000
+    inputs:
+      - http_requests
+    outputs:
+      - http_responses
+    secrets:
+      - DATABASE_URL
+      - REDIS_URL
+    compliance_scope: []
+    hardening_status: "needs_work"
+    issues:
+      - "Health check exists but no circuit breaker"
+      - "No rate limiting at gateway level"
+    location: "ai-agent-mesh/docker-compose.yml:7-32"
+
+  - id: "registry-service"
+    name: "Registry Service"
+    type: "docker_service"
+    owner: "platform@example.com"
+    purpose: "MCP agent registry"
+    status: "active"
+    triggers:
+      - type: "http"
+        port: 3001
+    inputs:
+      - registry_requests
+    outputs:
+      - registry_data
+    secrets:
+      - DATABASE_URL
+      - REDIS_URL
+    compliance_scope:
+      - agent_registry
+    hardening_status: "good"
+    issues:
+      - "Cache TTL could be tuned"
+    location: "ai-agent-mesh/docker-compose.yml:37-60"
+
+  - id: "telemetry-service"
+    name: "Telemetry Service"
+    type: "docker_service"
+    owner: "platform@example.com"
+    purpose: "Collects and exports telemetry"
+    status: "active"
+    triggers:
+      - type: "http"
+        port: 3002
+    inputs:
+      - telemetry_data
+    outputs:
+      - metrics
+      - traces
+    secrets:
+      - PROMETHEUS_URL
+      - ELASTICSEARCH_URL
+    compliance_scope:
+      - observability
+    hardening_status: "good"
+    issues: []
+    location: "ai-agent-mesh/docker-compose.yml:65-85"
+
+  - id: "policy-service"
+    name: "Policy Enforcement Service"
+    type: "docker_service"
+    owner: "compliance@acme.com"
+    purpose: "Enforces governance policies via OPA"
+    status: "active"
+    triggers:
+      - type: "http"
+        port: 3003
+    inputs:
+      - policy_requests
+    outputs:
+      - policy_decisions
+    secrets:
+      - OPA_URL
+    compliance_scope:
+      - policy_enforcement
+      - access_control
+    hardening_status: "good"
+    issues:
+      - "Decision cache could cause stale policies"
+    location: "ai-agent-mesh/docker-compose.yml:90-109"
+
+  - id: "federation-service"
+    name: "Context Federation Service"
+    type: "docker_service"
+    owner: "platform@example.com"
+    purpose: "Federates context across agents"
+    status: "active"
+    triggers:
+      - type: "http"
+        port: 3004
+    inputs:
+      - context_data
+    outputs:
+      - federated_context
+    secrets:
+      - REDIS_URL
+      - VECTOR_DB_URL
+    compliance_scope:
+      - data_federation
+    hardening_status: "needs_work"
+    issues:
+      - "Vector similarity dedup could cause race conditions"
+      - "No ACID guarantees on context writes"
+    location: "ai-agent-mesh/docker-compose.yml:114-134"
+
+# ============================================================================
+# SUMMARY STATISTICS
+# ============================================================================
+summary:
+  total_automations: 29
+  by_type:
+    mcp_agents: 5
+    github_workflows: 4
+    zapier_integrations: 4
+    background_workers: 5
+    docker_services: 5
+    shadow_ai: 1
+  by_status:
+    active: 28
+    quarantined: 1
+  by_hardening:
+    good: 10
+    needs_work: 11
+    partial: 1
+    critical: 4
+    quarantined: 1
+  critical_issues:
+    - "Shadow AI discovered - requires immediate review"
+    - "Zapier webhooks missing authentication"
+    - "Financial agent missing SAGA pattern"
+    - "No idempotency tracking on multiple workflows"
+  top_priorities:
+    - "Secure all webhook endpoints"
+    - "Implement idempotency keys"
+    - "Add DLQ for failed jobs"
+    - "Scope secrets to minimum privilege"
+    - "Add correlation IDs for distributed tracing"
