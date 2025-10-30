@@ -1,0 +1,25 @@
+{
+  "name": "@ai-mesh/telemetry",
+  "version": "1.0.0",
+  "description": "AI-Agent Mesh Telemetry Service - Metrics, traces, and logs collection",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs",
+    "dev": "node --watch index.mjs"
+  },
+  "keywords": [
+    "telemetry",
+    "opentelemetry",
+    "prometheus",
+    "observability"
+  ],
+  "author": "AI-Agent Mesh",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

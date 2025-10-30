@@ -1,0 +1,268 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # API Gateway (Entry point)
+  # ============================================================================
+  api-gateway:
+    build:
+      context: ./src/api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - API_PORT=3000
+      - REGISTRY_URL=http://registry:3001
+      - TELEMETRY_URL=http://telemetry:3002
+      - POLICY_URL=http://policy:3003
+      - FEDERATION_URL=http://federation:3004
+    depends_on:
+      - registry
+      - telemetry
+      - policy
+      - federation
+    networks:
+      - mesh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # ============================================================================
+  # Registry Service
+  # ============================================================================
+  registry:
+    build:
+      context: ./src/registry
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - REGISTRY_PORT=3001
+      - DATABASE_URL=${DATABASE_URL:-postgresql://mesh:mesh@postgres:5432/mesh_registry}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./mcp_registry.yaml:/app/ai-agent-mesh/mcp_registry.yaml:ro
+    networks:
+      - mesh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # ============================================================================
+  # Telemetry Service
+  # ============================================================================
+  telemetry:
+    build:
+      context: ./src/telemetry
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - TELEMETRY_PORT=3002
+      - PROMETHEUS_URL=${PROMETHEUS_URL:-http://prometheus:9090}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
+    depends_on:
+      - prometheus
+    networks:
+      - mesh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # ============================================================================
+  # Policy Service
+  # ============================================================================
+  policy:
+    build:
+      context: ./src/policy
+      dockerfile: Dockerfile
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=production
+      - POLICY_PORT=3003
+      - OPA_URL=${OPA_URL:-http://opa:8181}
+    volumes:
+      - ./policy_enforcer.mjs:/app/ai-agent-mesh/policy_enforcer.mjs:ro
+    networks:
+      - mesh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # ============================================================================
+  # Federation Service
+  # ============================================================================
+  federation:
+    build:
+      context: ./src/federation
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=production
+      - FEDERATION_PORT=3004
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - VECTOR_DB_URL=${VECTOR_DB_URL:-http://vector-db:8000}
+    depends_on:
+      - redis
+    networks:
+      - mesh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  # ============================================================================
+  # UI Dashboard
+  # ============================================================================
+  ui:
+    build:
+      context: ./src/ui
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - NEXT_PUBLIC_GRAPHQL_URL=http://localhost:3000/graphql
+    depends_on:
+      - api-gateway
+    networks:
+      - mesh-network
+    restart: unless-stopped
+  
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=mesh_registry
+      - POSTGRES_USER=mesh
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-mesh}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - mesh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mesh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - mesh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  # ============================================================================
+  # Prometheus (Metrics)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - mesh-network
+    restart: unless-stopped
+  
+  # ============================================================================
+  # Grafana (Dashboards)
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3100:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - mesh-network
+    restart: unless-stopped
+  
+  # ============================================================================
+  # Open Policy Agent (OPA)
+  # ============================================================================
+  opa:
+    image: openpolicyagent/opa:latest
+    ports:
+      - "8181:8181"
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "/policies"
+    volumes:
+      - ./opa-policies:/policies:ro
+    networks:
+      - mesh-network
+    restart: unless-stopped
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  mesh-network:
+    driver: bridge
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:

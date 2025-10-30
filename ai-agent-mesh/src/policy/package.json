@@ -1,0 +1,25 @@
+{
+  "name": "@ai-mesh/policy",
+  "version": "1.0.0",
+  "description": "AI-Agent Mesh Policy Service - Policy enforcement and compliance",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs",
+    "dev": "node --watch index.mjs"
+  },
+  "keywords": [
+    "policy",
+    "compliance",
+    "rbac",
+    "security"
+  ],
+  "author": "AI-Agent Mesh",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

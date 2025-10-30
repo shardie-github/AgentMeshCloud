@@ -1,0 +1,293 @@
+# AI-Agent Mesh Alignment Rules
+# Defines drift detection thresholds and re-alignment workflows
+
+version: "1.0.0"
+last_updated: "2025-10-30"
+
+# ============================================================================
+# DRIFT DETECTION THRESHOLDS
+# ============================================================================
+drift_thresholds:
+  # Output similarity (cosine similarity with baseline)
+  output_similarity: 0.85
+  
+  # Tone deviation from baseline
+  tone_deviation: 0.15
+  
+  # Policy violation rate
+  policy_violation_rate: 0.05
+  
+  # Error rate threshold
+  error_rate: 0.10
+  
+  # Response time degradation
+  latency_degradation: 0.30  # 30% slower than baseline
+  
+  # Token efficiency (tokens per response)
+  token_efficiency_drift: 0.25
+
+# ============================================================================
+# MEASUREMENT CONFIGURATION
+# ============================================================================
+measurement:
+  # Window for drift calculation
+  window: "7d"
+  
+  # Minimum samples before drift detection
+  min_samples: 100
+  
+  # Sampling rate (percentage of requests to measure)
+  sampling_rate: 0.10  # 10%
+  
+  # Baseline refresh frequency
+  baseline_refresh: "30d"
+
+# ============================================================================
+# ALERT CONFIGURATION
+# ============================================================================
+alerting:
+  # Alert channels
+  channels:
+    - slack
+    - email
+    - webhook
+  
+  # Severity thresholds
+  severity_mapping:
+    critical: 0.30  # Drift > 30%
+    high: 0.20
+    medium: 0.15
+    low: 0.10
+  
+  # Alert throttling (prevent alert spam)
+  throttle:
+    enabled: true
+    min_interval_minutes: 30
+    max_alerts_per_day: 50
+  
+  # Escalation rules
+  escalation:
+    - severity: critical
+      escalate_after_minutes: 15
+      escalate_to: ["cto@acme.com", "ai-ops-oncall"]
+    
+    - severity: high
+      escalate_after_minutes: 60
+      escalate_to: ["ai-ops@acme.com"]
+
+# ============================================================================
+# AUTO-REMEDIATION
+# ============================================================================
+auto_remediation:
+  # Enable automatic re-alignment
+  enabled: false  # Set to true for production
+  
+  # Workflows to trigger
+  workflows:
+    - drift_type: tone_deviation
+      actions:
+        - type: "update_system_prompt"
+          template: "aligned_tone_template"
+        - type: "notify_owners"
+          message: "Tone drift detected - system prompt updated"
+    
+    - drift_type: policy_violations
+      actions:
+        - type: "suspend_agent"
+          duration_minutes: 30
+        - type: "trigger_review"
+          assignee: "compliance@acme.com"
+    
+    - drift_type: error_rate
+      actions:
+        - type: "rollback_to_baseline"
+        - type: "enable_circuit_breaker"
+          threshold: 10
+    
+    - drift_type: latency_degradation
+      actions:
+        - type: "scale_resources"
+          target_replicas: 5
+        - type: "enable_caching"
+
+# ============================================================================
+# RE-ALIGNMENT WORKFLOWS
+# ============================================================================
+realignment:
+  # Manual re-alignment process
+  manual_workflow:
+    - step: "identify_drift_cause"
+      description: "Analyze logs and metrics to identify root cause"
+      owner: "ai-ops"
+    
+    - step: "prepare_updated_baseline"
+      description: "Collect new baseline samples from recent correct outputs"
+      min_samples: 500
+    
+    - step: "validate_alignment"
+      description: "Run validation tests against updated baseline"
+      success_criteria: "drift_score < 0.05"
+    
+    - step: "deploy_update"
+      description: "Deploy updated configuration or model"
+      approval_required: true
+    
+    - step: "monitor_post_deployment"
+      description: "Monitor for 24 hours post-deployment"
+      duration: "24h"
+  
+  # Automated re-training triggers
+  auto_retrain:
+    enabled: false
+    triggers:
+      - condition: "drift_score > 0.25 for 7 days"
+        action: "trigger_model_retrain"
+      
+      - condition: "policy_violation_rate > 0.10"
+        action: "update_safety_filters"
+      
+      - condition: "user_satisfaction < 0.70"
+        action: "request_human_review"
+
+# ============================================================================
+# BASELINE MANAGEMENT
+# ============================================================================
+baseline:
+  # Baseline establishment
+  establishment:
+    min_samples: 1000
+    collection_period: "14d"
+    quality_filters:
+      - "no_policy_violations"
+      - "user_satisfaction > 0.80"
+      - "response_complete"
+  
+  # Baseline versioning
+  versioning:
+    enabled: true
+    retention_versions: 5
+    auto_rollback_on_failure: true
+  
+  # Baseline refresh
+  refresh:
+    schedule: "monthly"
+    trigger_on_major_update: true
+    approval_required: true
+
+# ============================================================================
+# GOVERNANCE & COMPLIANCE
+# ============================================================================
+governance:
+  # Audit trail for drift events
+  audit:
+    enabled: true
+    retention_days: 2555  # 7 years
+    immutable: true
+  
+  # Compliance reporting
+  compliance_reporting:
+    enabled: true
+    frequency: "monthly"
+    recipients:
+      - "compliance@acme.com"
+      - "ciso@acme.com"
+    include:
+      - drift_summary
+      - alert_history
+      - remediation_actions
+      - effectiveness_metrics
+  
+  # Change control
+  change_control:
+    required_for:
+      - baseline_updates
+      - threshold_changes
+      - auto_remediation_config
+    approval_workflow: "standard"
+    notification_channels: ["slack", "email"]
+
+# ============================================================================
+# METRICS & KPIs
+# ============================================================================
+metrics:
+  # Track drift management effectiveness
+  kpis:
+    - name: "mean_time_to_detect"
+      target: "< 30 minutes"
+      description: "Time from drift occurrence to detection"
+    
+    - name: "mean_time_to_resolve"
+      target: "< 2 hours"
+      description: "Time from detection to resolution"
+    
+    - name: "false_positive_rate"
+      target: "< 5%"
+      description: "Percentage of false drift alerts"
+    
+    - name: "drift_prevention_rate"
+      target: "> 90%"
+      description: "Percentage of drift events prevented by proactive measures"
+  
+  # Dashboard integration
+  dashboard:
+    enabled: true
+    refresh_interval: "5m"
+    panels:
+      - "drift_score_timeline"
+      - "alert_volume"
+      - "remediation_effectiveness"
+      - "agent_health_overview"
+
+# ============================================================================
+# INTEGRATION
+# ============================================================================
+integrations:
+  # Integration with other services
+  services:
+    - name: "registry"
+      endpoint: "http://localhost:3001/api/v1"
+      purpose: "Fetch agent metadata and baselines"
+    
+    - name: "telemetry"
+      endpoint: "http://localhost:3002/api/v1"
+      purpose: "Send drift metrics and alerts"
+    
+    - name: "policy"
+      endpoint: "http://localhost:3003/api/v1"
+      purpose: "Query policy violations"
+  
+  # External tools
+  external:
+    - name: "slack"
+      webhook: "${SLACK_WEBHOOK_URL}"
+      enabled: true
+    
+    - name: "pagerduty"
+      api_key: "${PAGERDUTY_API_KEY}"
+      enabled: false
+    
+    - name: "datadog"
+      api_key: "${DATADOG_API_KEY}"
+      enabled: false
+
+# ============================================================================
+# EXPERIMENTAL FEATURES
+# ============================================================================
+experimental:
+  # AI-powered drift prediction
+  predictive_drift_detection:
+    enabled: false
+    model: "prophet"
+    forecast_horizon: "7d"
+  
+  # Automated A/B testing for re-alignment
+  ab_testing:
+    enabled: false
+    traffic_split: 0.10  # 10% to new baseline
+    duration: "7d"
+  
+  # Continuous learning
+  continuous_learning:
+    enabled: false
+    feedback_loop: true
+    human_in_the_loop: true
