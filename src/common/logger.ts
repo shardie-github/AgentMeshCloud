@@ -68,15 +68,36 @@ export class Logger {
   private getTraceContext(): {
     trace_id?: string;
     span_id?: string;
+    correlation_id?: string;
   } {
     const span = trace.getSpan(context.active());
-    if (!span) return {};
+    
+    // Import correlation storage dynamically to avoid circular deps
+    let correlationId: string | undefined;
+    try {
+      const { getCorrelationId } = require('../telemetry/correlation.js');
+      correlationId = getCorrelationId();
+    } catch {
+      // Correlation module not available
+    }
 
-    const spanContext = span.spanContext();
-    return {
-      trace_id: spanContext.traceId,
-      span_id: spanContext.spanId,
-    };
+    const result: {
+      trace_id?: string;
+      span_id?: string;
+      correlation_id?: string;
+    } = {};
+
+    if (span) {
+      const spanContext = span.spanContext();
+      result.trace_id = spanContext.traceId;
+      result.span_id = spanContext.spanId;
+    }
+
+    if (correlationId) {
+      result.correlation_id = correlationId;
+    }
+
+    return result;
   }
 
   private formatLog(

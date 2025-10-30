@@ -1,0 +1,246 @@
+# ORCA Service Level Objectives (SLOs)
+#
+# Defines the reliability targets for ORCA Core services
+# Review quarterly, adjust based on business requirements
+
+version: "1.0"
+service: orca-core
+owner: platform-team@orca-mesh.io
+last_updated: "2025-10-30"
+
+# Global SLOs
+slos:
+  # System Availability
+  - name: system_availability
+    description: Overall system uptime
+    objective: 99.5%
+    measurement_window: 30d
+    sli: |
+      (successful_requests / total_requests) * 100
+    burn_rate_alert:
+      fast: 2x      # Alert if consuming error budget 2x too fast
+      slow: 10x     # Page if consuming 10x too fast
+    prometheus_query: |
+      sum(rate(http_requests_total{status!~"5.."}[30d]))
+      /
+      sum(rate(http_requests_total[30d]))
+
+  # API Response Time
+  - name: api_latency_p95
+    description: 95th percentile API latency
+    objective: <= 500ms
+    measurement_window: 5m
+    sli: |
+      histogram_quantile(0.95, http_request_duration_seconds)
+    alert_threshold: 750ms
+    prometheus_query: |
+      histogram_quantile(0.95,
+        sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+      )
+
+  # API Response Time (p99)
+  - name: api_latency_p99
+    description: 99th percentile API latency
+    objective: <= 2000ms
+    measurement_window: 5m
+    sli: |
+      histogram_quantile(0.99, http_request_duration_seconds)
+    alert_threshold: 3000ms
+    prometheus_query: |
+      histogram_quantile(0.99,
+        sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+      )
+
+  # Error Rate
+  - name: error_rate
+    description: Percentage of requests resulting in errors
+    objective: <= 1%
+    measurement_window: 5m
+    sli: |
+      (http_5xx_errors / total_requests) * 100
+    alert_threshold: 5%
+    prometheus_query: |
+      sum(rate(http_requests_total{status=~"5.."}[5m]))
+      /
+      sum(rate(http_requests_total[5m]))
+
+  # Trust Score Availability
+  - name: trust_score_availability
+    description: Trust score calculation success rate
+    objective: >= 95%
+    measurement_window: 1h
+    sli: |
+      (successful_trust_calculations / total_trust_calculations) * 100
+    alert_threshold: 90%
+    prometheus_query: |
+      sum(rate(orca_trust_score_success[1h]))
+      /
+      sum(rate(orca_trust_score_total[1h]))
+
+  # Average Trust Score
+  - name: trust_score_threshold
+    description: Average trust score across all agents
+    objective: >= 80
+    measurement_window: 24h
+    sli: |
+      avg(orca_trust_score)
+    alert_threshold: 70
+    prometheus_query: |
+      avg(orca_trust_score)
+
+  # Drift Rate
+  - name: drift_rate
+    description: Percentage of agents with detected drift
+    objective: <= 5%
+    measurement_window: 1h
+    sli: |
+      (agents_with_drift / total_agents) * 100
+    alert_threshold: 10%
+    prometheus_query: |
+      sum(orca_drift_detected)
+      /
+      sum(orca_agents_total)
+
+  # Sync Freshness
+  - name: sync_freshness
+    description: Percentage of data within freshness SLA
+    objective: >= 90%
+    measurement_window: 1h
+    sli: |
+      (fresh_records / total_records) * 100
+    alert_threshold: 80%
+    prometheus_query: |
+      sum(orca_sync_fresh_records)
+      /
+      sum(orca_sync_total_records)
+
+  # Database Health
+  - name: database_connection_availability
+    description: Database connection success rate
+    objective: >= 99.9%
+    measurement_window: 5m
+    sli: |
+      (successful_db_connections / total_db_attempts) * 100
+    alert_threshold: 95%
+    prometheus_query: |
+      sum(rate(pg_connections_success[5m]))
+      /
+      sum(rate(pg_connections_total[5m]))
+
+  # Self-Healing Success Rate
+  - name: self_healing_success
+    description: Percentage of issues auto-resolved
+    objective: >= 70%
+    measurement_window: 1h
+    sli: |
+      (auto_resolved_issues / total_issues) * 100
+    alert_threshold: 50%
+    prometheus_query: |
+      sum(rate(orca_self_healing_success[1h]))
+      /
+      sum(rate(orca_self_healing_attempts[1h]))
+
+  # Adapter Availability
+  - name: adapter_availability
+    description: Percentage of adapter webhooks successfully processed
+    objective: >= 95%
+    measurement_window: 5m
+    sli: |
+      (successful_webhook_deliveries / total_webhooks) * 100
+    alert_threshold: 90%
+    prometheus_query: |
+      sum(rate(orca_adapter_webhooks_success[5m]))
+      /
+      sum(rate(orca_adapter_webhooks_total[5m]))
+
+# Component-specific SLOs
+components:
+  - name: registry
+    description: Agent Registry Service
+    slos:
+      - name: registry_read_latency
+        objective: <= 100ms
+        measurement: p95
+        
+      - name: registry_write_latency
+        objective: <= 200ms
+        measurement: p95
+
+  - name: uadsi
+    description: Discovery and Trust Scoring
+    slos:
+      - name: discovery_completion_time
+        objective: <= 5m
+        measurement: max
+        
+      - name: trust_score_calculation_time
+        objective: <= 1s
+        measurement: p95
+
+  - name: policy
+    description: Policy Enforcement
+    slos:
+      - name: policy_evaluation_latency
+        objective: <= 50ms
+        measurement: p95
+        
+      - name: policy_violation_detection
+        objective: >= 99%
+        measurement: accuracy
+
+# Alert routing
+alerts:
+  critical:
+    - system_availability
+    - database_connection_availability
+    - error_rate
+    channels:
+      - pagerduty
+      - slack_critical
+    
+  warning:
+    - api_latency_p95
+    - trust_score_threshold
+    - drift_rate
+    - sync_freshness
+    channels:
+      - slack_alerts
+      - email
+      
+  info:
+    - api_latency_p99
+    - self_healing_success
+    channels:
+      - slack_info
+
+# Error Budget Policy
+error_budget:
+  calculation: monthly
+  policies:
+    - remaining: "> 50%"
+      action: Continue regular deployments
+      
+    - remaining: "25-50%"
+      action: Reduce deployment frequency, increase testing
+      
+    - remaining: "10-25%"
+      action: Freeze feature releases, focus on stability
+      
+    - remaining: "< 10%"
+      action: Full deployment freeze, incident response mode
+
+# Review Schedule
+review:
+  frequency: quarterly
+  next_review: "2026-01-31"
+  stakeholders:
+    - Platform Team
+    - Engineering Management
+    - Product Management
+    - Customer Success
+
+# Documentation
+documentation:
+  runbook: docs/OPERATIONS.md
+  playbook: docs/INCIDENT_RESPONSE.md
+  disaster_recovery: docs/DISASTER_RECOVERY.md
