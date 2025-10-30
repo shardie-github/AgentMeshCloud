@@ -1,0 +1,490 @@
+# BPMN: Financial Workflow with SAGA Pattern
+**Process:** Multi-Step Financial Transaction  
+**Conformance:** Critical Issues (Missing: SAGA, Idempotency, Circuit Breaker)
+
+---
+
+## BPMN 2.0 - Financial Analysis Workflow
+
+### Current State (Without SAGA) - ❌ BROKEN
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│            Financial Analysis Workflow (CURRENT - BROKEN)           │
+└─────────────────────────────────────────────────────────────────────┘
+
+  ○ Schedule
+    Trigger
+    (Mon-Fri 9AM)
+       │
+       ▼
+  ┌──────────────────┐
+  │  Fetch Financial │
+  │  Data from       │
+  │  PostgreSQL      │
+  └────────┬─────────┘
+           │
+           ▼
+  ┌──────────────────┐
+  │  Call Market     │
+  │  Data API        │
+  │  (External)      │
+  └────────┬─────────┘
+           │
+           ▼           ◄──── ⚠️ IF THIS FAILS, NO ROLLBACK!
+  ┌──────────────────┐
+  │  Charge Payment  │
+  │  (Stripe API)    │
+  └────────┬─────────┘
+           │
+           ▼           ◄──── ⚠️ IF THIS FAILS AFTER CHARGE, DUPLICATE!
+  ┌──────────────────┐
+  │  Record          │
+  │  Transaction     │
+  │  in Database     │
+  └────────┬─────────┘
+           │
+           ▼           ◄──── ⚠️ RETRY ENTIRE FLOW → DOUBLE CHARGE!
+  ┌──────────────────┐
+  │  Generate Report │
+  │  and Send Email  │
+  └────────┬─────────┘
+           │
+           ▼
+        ● Success
+       (But risky!)
+
+CRITICAL ISSUES:
+1. No idempotency tracking
+2. No compensation on failure
+3. Retry entire flow → duplicate charges
+4. SOX violation risk
+```
+
+---
+
+### Target State (With SAGA Pattern) - ✅ HARDENED
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://agentmesh.cloud/bpmn"
+             id="financial-saga-workflow">
+
+  <process id="financial-saga" name="Financial SAGA Workflow" isExecutable="true">
+    
+    <!-- Start Event -->
+    <startEvent id="start" name="Schedule Trigger">
+      <outgoing>flow1</outgoing>
+    </startEvent>
+    
+    <!-- Task: Initialize SAGA -->
+    <serviceTask id="init-saga" name="Initialize SAGA Coordinator">
+      <incoming>flow1</incoming>
+      <outgoing>flow2</outgoing>
+      <ioSpecification>
+        <dataOutput name="saga_id" />
+        <dataOutput name="correlation_id" />
+      </ioSpecification>
+    </serviceTask>
+    
+    <!-- Task: Check Idempotency -->
+    <serviceTask id="check-idempotency" name="Check Idempotency (Redis)">
+      <incoming>flow2</incoming>
+      <outgoing>flow3</outgoing>
+    </serviceTask>
+    
+    <!-- Gateway: Already Processed? -->
+    <exclusiveGateway id="check-processed" name="Processed?">
+      <incoming>flow3</incoming>
+      <outgoing>flow4-yes</outgoing>
+      <outgoing>flow4-no</outgoing>
+    </exclusiveGateway>
+    
+    <!-- End: Return Cached -->
+    <endEvent id="end-cached" name="Return Cached Result">
+      <incoming>flow4-yes</incoming>
+    </endEvent>
+    
+    <!-- SAGA STEP 1: Fetch Financial Data -->
+    <serviceTask id="saga-step1" name="SAGA Step 1: Fetch Financial Data">
+      <incoming>flow4-no</incoming>
+      <outgoing>flow5</outgoing>
+      <extensionElements>
+        <compensation id="comp1" name="No compensation needed (read-only)" />
+      </extensionElements>
+    </serviceTask>
+    
+    <!-- Boundary: Step 1 Error -->
+    <boundaryEvent id="error1" attachedToRef="saga-step1">
+      <errorEventDefinition />
+      <outgoing>flow-error1</outgoing>
+    </boundaryEvent>
+    
+    <!-- SAGA STEP 2: Reserve Funds -->
+    <serviceTask id="saga-step2" name="SAGA Step 2: Reserve Funds (Stripe)">
+      <incoming>flow5</incoming>
+      <outgoing>flow6</outgoing>
+      <extensionElements>
+        <compensation id="comp2" name="Release reservation" />
+      </extensionElements>
+    </serviceTask>
+    
+    <!-- Boundary: Step 2 Error -->
+    <boundaryEvent id="error2" attachedToRef="saga-step2">
+      <errorEventDefinition />
+      <outgoing>flow-error2</outgoing>
+    </boundaryEvent>
+    
+    <!-- SAGA STEP 3: Charge Payment -->
+    <serviceTask id="saga-step3" name="SAGA Step 3: Charge Payment (Stripe)">
+      <incoming>flow6</incoming>
+      <outgoing>flow7</outgoing>
+      <extensionElements>
+        <compensation id="comp3" name="Refund payment" />
+      </extensionElements>
+    </serviceTask>
+    
+    <!-- Boundary: Step 3 Error -->
+    <boundaryEvent id="error3" attachedToRef="saga-step3">
+      <errorEventDefinition />
+      <outgoing>flow-error3</outgoing>
+    </boundaryEvent>
+    
+    <!-- SAGA STEP 4: Record Transaction -->
+    <serviceTask id="saga-step4" name="SAGA Step 4: Record Transaction (DB)">
+      <incoming>flow7</incoming>
+      <outgoing>flow8</outgoing>
+      <extensionElements>
+        <compensation id="comp4" name="Delete transaction record" />
+      </extensionElements>
+    </serviceTask>
+    
+    <!-- Boundary: Step 4 Error -->
+    <boundaryEvent id="error4" attachedToRef="saga-step4">
+      <errorEventDefinition />
+      <outgoing>flow-error4</outgoing>
+    </boundaryEvent>
+    
+    <!-- SAGA STEP 5: Generate Report -->
+    <serviceTask id="saga-step5" name="SAGA Step 5: Generate Report">
+      <incoming>flow8</incoming>
+      <outgoing>flow9</outgoing>
+      <extensionElements>
+        <compensation id="comp5" name="No compensation (idempotent)" />
+      </extensionElements>
+    </serviceTask>
+    
+    <!-- Task: Mark SAGA Complete -->
+    <serviceTask id="complete-saga" name="Mark SAGA Complete">
+      <incoming>flow9</incoming>
+      <outgoing>flow10</outgoing>
+    </serviceTask>
+    
+    <!-- Task: Cache Result -->
+    <serviceTask id="cache-result" name="Cache Result (24h TTL)">
+      <incoming>flow10</incoming>
+      <outgoing>flow11</outgoing>
+    </serviceTask>
+    
+    <!-- End: Success -->
+    <endEvent id="end-success" name="Transaction Complete">
+      <incoming>flow11</incoming>
+    </endEvent>
+    
+    <!-- COMPENSATION SUBPROCESS (SAGA Rollback) -->
+    <subProcess id="rollback-saga" name="SAGA Rollback" triggeredByEvent="true">
+      <startEvent id="rollback-start" name="Error Triggered">
+        <incoming>flow-error1</incoming>
+        <incoming>flow-error2</incoming>
+        <incoming>flow-error3</incoming>
+        <incoming>flow-error4</incoming>
+        <outgoing>flow-rollback1</outgoing>
+      </startEvent>
+      
+      <!-- Compensate Step 4 -->
+      <serviceTask id="compensate4" name="Delete Transaction (DB)">
+        <incoming>flow-rollback1</incoming>
+        <outgoing>flow-rollback2</outgoing>
+      </serviceTask>
+      
+      <!-- Compensate Step 3 -->
+      <serviceTask id="compensate3" name="Refund Payment (Stripe)">
+        <incoming>flow-rollback2</incoming>
+        <outgoing>flow-rollback3</outgoing>
+      </serviceTask>
+      
+      <!-- Compensate Step 2 -->
+      <serviceTask id="compensate2" name="Release Reservation (Stripe)">
+        <incoming>flow-rollback3</incoming>
+        <outgoing>flow-rollback4</outgoing>
+      </serviceTask>
+      
+      <!-- Log to DLQ -->
+      <serviceTask id="log-dlq" name="Send to DLQ for Manual Review">
+        <incoming>flow-rollback4</incoming>
+        <outgoing>flow-rollback5</outgoing>
+      </serviceTask>
+      
+      <!-- Alert -->
+      <serviceTask id="alert-ops" name="Alert Ops Team (PagerDuty)">
+        <incoming>flow-rollback5</incoming>
+        <outgoing>flow-rollback6</outgoing>
+      </serviceTask>
+      
+      <!-- End: Rollback Complete -->
+      <endEvent id="end-rollback" name="Rollback Complete">
+        <incoming>flow-rollback6</incoming>
+      </endEvent>
+    </subProcess>
+    
+    <!-- Sequence Flows -->
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="init-saga" />
+    <sequenceFlow id="flow2" sourceRef="init-saga" targetRef="check-idempotency" />
+    <sequenceFlow id="flow3" sourceRef="check-idempotency" targetRef="check-processed" />
+    <sequenceFlow id="flow4-yes" sourceRef="check-processed" targetRef="end-cached" name="Yes" />
+    <sequenceFlow id="flow4-no" sourceRef="check-processed" targetRef="saga-step1" name="No" />
+    <sequenceFlow id="flow5" sourceRef="saga-step1" targetRef="saga-step2" />
+    <sequenceFlow id="flow6" sourceRef="saga-step2" targetRef="saga-step3" />
+    <sequenceFlow id="flow7" sourceRef="saga-step3" targetRef="saga-step4" />
+    <sequenceFlow id="flow8" sourceRef="saga-step4" targetRef="saga-step5" />
+    <sequenceFlow id="flow9" sourceRef="saga-step5" targetRef="complete-saga" />
+    <sequenceFlow id="flow10" sourceRef="complete-saga" targetRef="cache-result" />
+    <sequenceFlow id="flow11" sourceRef="cache-result" targetRef="end-success" />
+    
+    <!-- Error Flows -->
+    <sequenceFlow id="flow-error1" sourceRef="error1" targetRef="rollback-start" />
+    <sequenceFlow id="flow-error2" sourceRef="error2" targetRef="rollback-start" />
+    <sequenceFlow id="flow-error3" sourceRef="error3" targetRef="rollback-start" />
+    <sequenceFlow id="flow-error4" sourceRef="error4" targetRef="rollback-start" />
+    
+    <!-- Rollback Flows -->
+    <sequenceFlow id="flow-rollback1" sourceRef="rollback-start" targetRef="compensate4" />
+    <sequenceFlow id="flow-rollback2" sourceRef="compensate4" targetRef="compensate3" />
+    <sequenceFlow id="flow-rollback3" sourceRef="compensate3" targetRef="compensate2" />
+    <sequenceFlow id="flow-rollback4" sourceRef="compensate2" targetRef="log-dlq" />
+    <sequenceFlow id="flow-rollback5" sourceRef="log-dlq" targetRef="alert-ops" />
+    <sequenceFlow id="flow-rollback6" sourceRef="alert-ops" targetRef="end-rollback" />
+    
+  </process>
+</definitions>
+```
+
+---
+
+## Visual BPMN Diagram (ASCII) - With SAGA
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│          Financial Workflow with SAGA Pattern (TARGET STATE)              │
+└───────────────────────────────────────────────────────────────────────────┘
+
+  ○ Schedule
+    Trigger
+       │
+       ▼
+  ┌──────────────┐
+  │ Initialize   │
+  │ SAGA         │
+  │ Coordinator  │
+  └──────┬───────┘
+         │
+         ▼
+  ┌──────────────┐
+  │ Check        │
+  │ Idempotency  │
+  └──────┬───────┘
+         │
+         ▼
+    ◇ Processed?
+         │
+    ┌────┴────┐
+    │ Yes │No │
+    ▼    ▼
+   ●    ┌─────────────────────────────────────┐
+ Return │  SAGA Transaction                   │
+ Cached │                                     │
+        │  Step 1: Fetch Data                 │◄──┐
+        │  ↓                                  │   │
+        │  Step 2: Reserve Funds              │   │ On Error:
+        │  ↓        [Compensate: Release]     │   │ Trigger
+        │  Step 3: Charge Payment             │   │ Rollback
+        │  ↓        [Compensate: Refund]      │   │
+        │  Step 4: Record Transaction         │   │
+        │  ↓        [Compensate: Delete]      │   │
+        │  Step 5: Generate Report            │   │
+        │                                     │   │
+        └─────────────┬───────────────────────┘   │
+                      │                           │
+                      ▼                           │
+                 ┌────────┐                       │
+                 │ Mark   │                       │
+                 │ SAGA   │                       │
+                 │Complete│                       │
+                 └───┬────┘                       │
+                     │                            │
+                     ▼                            │
+                 ┌────────┐                       │
+                 │ Cache  │                       │
+                 │ Result │                       │
+                 └───┬────┘                       │
+                     │                            │
+                     ▼                            │
+                  ● Success                       │
+                                                  │
+                                                  │
+┌─────────────────────────────────────────────────┼──────────────────────────┐
+│                SAGA ROLLBACK (On Error)         │                          │
+│                                                 │                          │
+│  ○ Error     ←──────────────────────────────────┘                          │
+│  Triggered                                                                 │
+│     │                                                                      │
+│     ▼                                                                      │
+│  ┌──────────────┐     Compensation Sequence (Reverse Order):              │
+│  │ Compensate 4 │     ────────────────────────────────────                │
+│  │ Delete Txn   │                                                         │
+│  └──────┬───────┘                                                         │
+│         │                                                                  │
+│         ▼                                                                  │
+│  ┌──────────────┐                                                         │
+│  │ Compensate 3 │                                                         │
+│  │ Refund       │                                                         │
+│  └──────┬───────┘                                                         │
+│         │                                                                  │
+│         ▼                                                                  │
+│  ┌──────────────┐                                                         │
+│  │ Compensate 2 │                                                         │
+│  │ Release      │                                                         │
+│  │ Reservation  │                                                         │
+│  └──────┬───────┘                                                         │
+│         │                                                                  │
+│         ▼                                                                  │
+│  ┌──────────────┐                                                         │
+│  │ Send to DLQ  │                                                         │
+│  │ (Manual      │                                                         │
+│  │  Review)     │                                                         │
+│  └──────┬───────┘                                                         │
+│         │                                                                  │
+│         ▼                                                                  │
+│  ┌──────────────┐                                                         │
+│  │ Alert Ops    │                                                         │
+│  │ Team         │                                                         │
+│  │ (PagerDuty)  │                                                         │
+│  └──────┬───────┘                                                         │
+│         │                                                                  │
+│         ▼                                                                  │
+│      ● Rollback                                                           │
+│       Complete                                                            │
+│                                                                            │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Conformance Comparison
+
+### Current State vs. Target State
+
+| Feature | Current | Target | Impact |
+|---------|---------|--------|--------|
+| **Idempotency Check** | ❌ No | ✅ Yes | Prevent duplicate charges |
+| **SAGA Coordinator** | ❌ No | ✅ Yes | Automatic rollback on failure |
+| **Compensation Steps** | ❌ No | ✅ Yes (4 steps) | Data integrity |
+| **DLQ Integration** | ❌ No | ✅ Yes | Manual review of failures |
+| **Circuit Breaker** | ❌ No | ⏳ Recommended | Prevent cascading failures |
+| **SOX Compliance** | ❌ At Risk | ✅ Compliant | Audit trail + rollback |
+
+---
+
+## SAGA Compensation Matrix
+
+| Step | Action | Compensation | Idempotent? |
+|------|--------|--------------|-------------|
+| 1 | Fetch Financial Data | None (read-only) | Yes |
+| 2 | Reserve Funds | Release reservation | Yes |
+| 3 | Charge Payment | Refund payment | Yes |
+| 4 | Record Transaction | Delete DB record | Yes |
+| 5 | Generate Report | None (idempotent) | Yes |
+
+---
+
+## Example Scenarios
+
+### Scenario 1: Happy Path ✅
+
+```
+1. Initialize SAGA (correlation_id: abc123)
+2. Check idempotency → Not processed
+3. Fetch data → Success
+4. Reserve funds → Success (reservation_id: res456)
+5. Charge payment → Success (charge_id: ch789)
+6. Record transaction → Success (txn_id: txn012)
+7. Generate report → Success
+8. Mark SAGA complete
+9. Cache result (24h TTL)
+→ ● Transaction Complete
+```
+
+### Scenario 2: Failure at Step 4 (Record Transaction) ❌ → ✅ Rollback
+
+```
+1. Initialize SAGA (correlation_id: xyz789)
+2. Check idempotency → Not processed
+3. Fetch data → Success
+4. Reserve funds → Success (reservation_id: res999)
+5. Charge payment → Success (charge_id: ch888)
+6. Record transaction → ❌ DATABASE ERROR
+   ↓
+   TRIGGER SAGA ROLLBACK:
+   ──────────────────────
+   7. Compensate Step 4 → (No DB record to delete)
+   8. Compensate Step 3 → Refund ch888 ✅
+   9. Compensate Step 2 → Release res999 ✅
+   10. Send to DLQ → Manual review queued
+   11. Alert Ops Team → PagerDuty notification sent
+   ↓
+→ ● Rollback Complete (Customer NOT charged)
+```
+
+### Scenario 3: Retry After Rollback ✅
+
+```
+1. Customer retries with same idempotency key
+2. Check idempotency → Found in cache (status: rolled_back)
+3. Return error: "Transaction failed. Please contact support."
+→ ● No duplicate charge (idempotency prevented)
+```
+
+---
+
+## Implementation Checklist
+
+- [ ] Deploy SAGA coordinator service
+- [ ] Implement compensation functions for each step
+- [ ] Add idempotency key generation and check
+- [ ] Integrate with DLQ service
+- [ ] Add PagerDuty alerting
+- [ ] Test rollback scenarios in staging
+- [ ] Validate SOX compliance with audit
+- [ ] Deploy to production with feature flag
+- [ ] Monitor SAGA metrics (success rate, rollback rate)
+
+---
+
+## Metrics to Monitor
+
+| Metric | Description | Target |
+|--------|-------------|--------|
+| `saga_success_rate` | % of SAGAs completing successfully | > 99% |
+| `saga_rollback_rate` | % of SAGAs requiring rollback | < 1% |
+| `compensation_success_rate` | % of compensations succeeding | 100% |
+| `duplicate_charge_rate` | % of duplicate charges | 0% |
+| `dlq_manual_review_count` | Number of failed SAGAs in DLQ | < 5/month |
+
+---
+
+**BPMN Version:** 1.0.0  
+**Standard:** BPMN 2.0 with SAGA Extension  
+**Priority:** P0 - CRITICAL (SOX Compliance Risk)  
+**Estimated Implementation:** 10 days  
+**Risk Avoided:** $50K/year (SOX violations, duplicate charges)
