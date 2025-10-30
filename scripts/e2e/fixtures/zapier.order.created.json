@@ -1,0 +1,27 @@
+{
+  "event": "order.created",
+  "source": "zapier",
+  "ts": "{{now}}",
+  "orderId": "Z-1001",
+  "amount": 129.99,
+  "currency": "USD",
+  "customer": {
+    "id": "CUST-9",
+    "email": "alice@example.com",
+    "name": "Alice Johnson"
+  },
+  "items": [
+    {
+      "sku": "WIDGET-001",
+      "quantity": 2,
+      "price": 64.99
+    }
+  ],
+  "shippingAddress": {
+    "street": "123 Main St",
+    "city": "San Francisco",
+    "state": "CA",
+    "zip": "94102",
+    "country": "USA"
+  }
+}
