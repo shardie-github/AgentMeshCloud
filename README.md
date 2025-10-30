@@ -329,17 +329,28 @@ See [SECURITY.md](./SECURITY.md) for vulnerability reporting.
 ```
 /workspace
 ├── src/                    # ORCA Core source
-│   ├── common/             # Shared utilities
+│   ├── common/             # Shared utilities (cache, circuit-breaker, job-queue)
 │   ├── registry/           # Agent registry
-│   ├── telemetry/          # OpenTelemetry
+│   ├── telemetry/          # OpenTelemetry (tracing, metrics, correlation)
 │   ├── policy/             # Policy enforcer
 │   ├── uadsi/              # Discovery, trust, sync
-│   ├── api/                # REST API
+│   ├── api/                # REST API with health probes
 │   ├── adapters/           # Integration adapters
-│   └── security/           # Security utilities
+│   ├── security/           # Security (rate-limiting, auth)
+│   └── alerts/             # Alert manager
 ├── docs/                   # Documentation
+│   ├── DEVELOPER_GUIDE.md  # Full development guide
+│   ├── RELEASE_GUIDE.md    # Release procedures
+│   ├── DISASTER_RECOVERY.md# DR procedures
+│   └── slo_manifest.yaml   # SLO definitions
 ├── scripts/                # Utility scripts
-├── .github/workflows/      # CI/CD
+│   ├── doctor.ts           # Health check
+│   ├── deps_audit.ts       # Dependency audit
+│   ├── resilience_test.ts  # Chaos testing
+│   └── restore_latest_backup.ts
+├── dashboards/             # Grafana dashboards
+├── metrics/                # Performance & security reports
+├── .github/workflows/      # CI/CD pipelines
 └── docker-compose.yml      # Local infrastructure
 ```
 
@@ -347,8 +358,8 @@ See [SECURITY.md](./SECURITY.md) for vulnerability reporting.
 
 ```bash
 pnpm run test              # Run all tests
-pnpm run test:watch        # Watch mode
-pnpm run test:coverage     # Coverage report
+pnpm run test:e2e          # End-to-end tests
+pnpm run test:resilience   # Resilience/chaos tests
 ```
 
 ### Linting & Formatting
@@ -356,8 +367,8 @@ pnpm run test:coverage     # Coverage report
 ```bash
 pnpm run lint              # ESLint
 pnpm run format            # Prettier
-pnpm run type-check        # TypeScript
-pnpm run doctor            # Health check
+pnpm run typecheck         # TypeScript
+pnpm run doctor            # System health check
 ```
 
 ### Contributing
@@ -366,14 +377,138 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ---
 
+## Runbook
+
+### Environment Matrix
+
+| Environment | URL | Database | Telemetry | Purpose |
+|-------------|-----|----------|-----------|---------|
+| **Local** | http://localhost:3000 | PostgreSQL (Docker) | OTEL Collector | Development |
+| **Staging** | https://staging.orca-mesh.io | RDS (PostgreSQL) | Datadog | Integration testing |
+| **Production** | https://api.orca-mesh.io | RDS (PostgreSQL) | Datadog | Live traffic |
+
+### Common Operations
+
+#### Start Development Environment
+
+```bash
+# Full setup
+docker-compose up -d
+pnpm install
+pnpm run doctor
+pnpm run orca:dev
+```
+
+#### Health Check
+
+```bash
+# System health
+pnpm run doctor
+
+# API health
+curl http://localhost:3000/health
+curl http://localhost:3000/status/readiness
+```
+
+#### Database Operations
+
+```bash
+# Apply migrations
+pnpm run db:migrate
+
+# Seed data
+pnpm run db:seed
+
+# Backup database
+./scripts/backup_database.sh
+
+# Restore from backup
+tsx scripts/restore_latest_backup.ts --yes
+```
+
+#### Debugging
+
+```bash
+# View logs
+docker-compose logs -f orca-api
+
+# View traces
+open http://localhost:16686  # Jaeger
+
+# View metrics
+open http://localhost:9090  # Prometheus
+open http://localhost:3001  # Grafana
+```
+
+#### Testing
+
+```bash
+# Run resilience tests
+pnpm run test:resilience
+
+# Run E2E tests
+pnpm run e2e
+
+# Dependency audit
+tsx scripts/deps_audit.ts
+```
+
+#### Troubleshooting
+
+**Port already in use**:
+```bash
+lsof -i :3000
+kill -9 <PID>
+```
+
+**Database connection failed**:
+```bash
+docker-compose restart postgres
+docker-compose logs postgres
+```
+
+**Type errors after pull**:
+```bash
+pnpm install
+pnpm run db:generate
+pnpm run build
+```
+
+### Monitoring Dashboards
+
+- **Grafana**: http://localhost:3001 (admin/admin)
+- **Prometheus**: http://localhost:9090
+- **Jaeger**: http://localhost:16686
+
+### SLOs & Alerts
+
+See [docs/slo_manifest.yaml](./docs/slo_manifest.yaml) for:
+- Uptime target: ≥ 99.5%
+- Latency p95: ≤ 500ms
+- Trust Score: ≥ 80
+- Error rate: ≤ 1%
+
+Alerts configured via Slack webhook (set `ALERT_WEBHOOK_URL`)
+
+---
+
 ## Documentation
 
+- **[DEVELOPER_GUIDE.md](./docs/DEVELOPER_GUIDE.md)**: Complete development guide
+- **[RELEASE_GUIDE.md](./docs/RELEASE_GUIDE.md)**: Release procedures & versioning
+- **[DISASTER_RECOVERY.md](./docs/DISASTER_RECOVERY.md)**: Backup & recovery procedures
 - **[ASSUMPTIONS.md](./docs/ASSUMPTIONS.md)**: Decisions & tradeoffs
 - **[OPERATIONS.md](./docs/OPERATIONS.md)**: Runbooks & on-call procedures
 - **[UADSI_SPEC.md](./docs/UADSI_SPEC.md)**: Algorithms, scoring formulae, KPIs
 - **[MCP_ALIGNMENT.md](./docs/MCP_ALIGNMENT.md)**: MCP compliance details
 - **[SECURITY.md](./SECURITY.md)**: Security policy
 - **[CHANGELOG.md](./CHANGELOG.md)**: Version history
+
+### Reports
+
+- **[metrics/perf_report.md](./metrics/perf_report.md)**: Performance analysis
+- **[metrics/security_audit_report.md](./metrics/security_audit_report.md)**: Security audit
+- **[ci_report.md](./ci_report.md)**: CI/CD pipeline status
 
 ---
 

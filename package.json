@@ -20,7 +20,10 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "typecheck": "tsc --noEmit",
     "test": "echo \"Tests not yet implemented\" && exit 0",
-    "doctor": "tsx scripts/suite_doctor.ts",
+    "test:e2e": "pnpm run e2e",
+    "test:resilience": "tsx scripts/resilience_test.ts",
+    "doctor": "tsx scripts/doctor.ts",
+    "prepare": "husky install",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "turbo:dev": "turbo run dev",
@@ -101,7 +104,9 @@
     "turbo": "^1.11.0",
     "typescript": "^5.3.0",
     "playwright": "^1.40.0",
-    "k6": "^0.0.0"
+    "k6": "^0.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
   },
   "engines": {
     "node": ">=18.18.0",

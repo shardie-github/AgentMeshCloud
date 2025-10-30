@@ -38,14 +38,55 @@ if (telemetryEnabled) {
   });
 }
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+// Security Middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN?.split(',') || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Correlation-ID'],
+}));
+
+app.use(express.json({ limit: '10mb' }));
+
+// Rate limiting
+import { createRateLimiter, ipThrottle } from '../security/rate-limiter.js';
+
+app.use(ipThrottle);
+app.use(createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 1000,
+  keyPrefix: 'global',
+}));
+
+// Correlation ID middleware
+import { correlationMiddleware } from '../telemetry/correlation.js';
+app.use(correlationMiddleware);
 
 // Request logging
+import { createLogger } from '../common/logger.js';
+const logger = createLogger('api-server');
 app.use((req, _res, next) => {
-  console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
+  logger.info(`${req.method} ${req.path}`, { 
+    method: req.method, 
+    path: req.path,
+    ip: req.ip,
+  });
   next();
 });
 
@@ -105,13 +146,49 @@ app.post('/adapters/n8n/webhook', async (req, res) => {
   await n8nAdapter.handleWebhook(req, res);
 });
 
-// Health check
+// Health check endpoints
 app.get('/health', async (_req, res) => {
   const dbHealthy = await contextBus.healthCheck();
   res.status(dbHealthy ? 200 : 503).json({
     status: dbHealthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
   });
+});
+
+// Liveness probe (lightweight - just checks if server is running)
+app.get('/status/liveness', (_req, res) => {
+  res.status(200).json({
+    status: 'alive',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
+// Readiness probe (full stack check)
+app.get('/status/readiness', async (_req, res) => {
+  try {
+    const dbHealthy = await contextBus.healthCheck();
+    
+    const checks = {
+      database: dbHealthy,
+      telemetry: telemetryEnabled,
+      selfHealing: process.env.ENABLE_SELF_HEALING === 'true',
+    };
+
+    const allHealthy = Object.values(checks).every(v => v === true);
+
+    res.status(allHealthy ? 200 : 503).json({
+      status: allHealthy ? 'ready' : 'not_ready',
+      timestamp: new Date().toISOString(),
+      checks,
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'not_ready',
+      timestamp: new Date().toISOString(),
+      error: (error as Error).message,
+    });
+  }
 });
 
 // 404 handler
