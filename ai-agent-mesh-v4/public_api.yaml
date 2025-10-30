@@ -1,0 +1,575 @@
+openapi: 3.1.0
+info:
+  title: AI-Agent Mesh Network Public API
+  version: 1.0.0
+  description: |
+    Public API for accessing global mesh network metrics, trust scores, and ecosystem analytics.
+    
+    **Base URL:** https://api.mesh.global/v1
+    
+    **Rate Limits:**
+    - Public: 100 requests/minute
+    - Authenticated: 1,000 requests/minute
+    - Enterprise: 10,000 requests/minute
+    
+    **Authentication:** API Key (header: `X-API-Key`)
+  
+  contact:
+    name: API Support
+    email: api-support@mesh.global
+    url: https://docs.mesh.global/api
+  
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://api.mesh.global/v1
+    description: Production
+  - url: https://api-staging.mesh.global/v1
+    description: Staging
+  - url: http://localhost:3000/v1
+    description: Local Development
+
+tags:
+  - name: Network
+    description: Global network statistics
+  - name: Trust
+    description: Trust scores and reputation
+  - name: Economic
+    description: Token economics and transactions
+  - name: Environmental
+    description: Carbon footprint and sustainability
+  - name: Nodes
+    description: Individual mesh node information
+
+paths:
+  /network/overview:
+    get:
+      summary: Get global network overview
+      description: Returns aggregated statistics about the entire mesh network
+      tags: [Network]
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Network overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetworkOverview'
+        '429':
+          description: Rate limit exceeded
+          
+  /network/regions:
+    get:
+      summary: Get regional statistics
+      description: Returns network statistics broken down by region
+      tags: [Network]
+      responses:
+        '200':
+          description: Regional statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegionalStats'
+                  
+  /network/regions/{region}:
+    get:
+      summary: Get specific region statistics
+      tags: [Network]
+      parameters:
+        - name: region
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [us-east-1, us-west-1, eu-central-1, eu-west-1, apac, global]
+      responses:
+        '200':
+          description: Regional statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionalStats'
+                
+  /trust/distribution:
+    get:
+      summary: Get trust score distribution
+      description: Returns the distribution of trust scores across the network
+      tags: [Trust]
+      responses:
+        '200':
+          description: Trust distribution
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustDistribution'
+                
+  /trust/top-nodes:
+    get:
+      summary: Get top trusted nodes
+      description: Returns the highest-scoring nodes by trust score
+      tags: [Trust]
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Top trusted nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrustedNode'
+                  
+  /trust/score/{meshId}:
+    get:
+      summary: Get trust score for specific mesh
+      tags: [Trust]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: meshId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^did:mesh:[a-z]+:[a-z0-9-]+$'
+      responses:
+        '200':
+          description: Trust score details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustScore'
+        '404':
+          description: Mesh ID not found
+          
+  /economic/overview:
+    get:
+      summary: Get economic dashboard
+      description: Returns token economics, transactions, and staking metrics
+      tags: [Economic]
+      responses:
+        '200':
+          description: Economic metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EconomicOverview'
+                
+  /economic/token:
+    get:
+      summary: Get MESH token metrics
+      description: Returns supply, price, and market data for MESH token
+      tags: [Economic]
+      responses:
+        '200':
+          description: Token metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenMetrics'
+                
+  /environmental/carbon:
+    get:
+      summary: Get carbon footprint report
+      description: Returns carbon emissions, offsets, and sustainability metrics
+      tags: [Environmental]
+      responses:
+        '200':
+          description: Carbon impact data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarbonImpact'
+                
+  /nodes:
+    get:
+      summary: List all mesh nodes
+      description: Returns paginated list of all registered mesh nodes
+      tags: [Nodes]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: region
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [enterprise, academic, public-good, infrastructure, startup]
+      responses:
+        '200':
+          description: List of nodes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MeshNode'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                    
+  /nodes/{meshId}:
+    get:
+      summary: Get specific mesh node details
+      tags: [Nodes]
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: meshId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Node details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeshNodeDetails'
+                
+  /stream/metrics:
+    get:
+      summary: WebSocket stream for real-time metrics
+      description: Subscribe to real-time metric updates via WebSocket
+      tags: [Network]
+      parameters:
+        - name: Upgrade
+          in: header
+          required: true
+          schema:
+            type: string
+            enum: [websocket]
+      responses:
+        '101':
+          description: Switching Protocols to WebSocket
+        '426':
+          description: Upgrade Required
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      
+  schemas:
+    NetworkOverview:
+      type: object
+      properties:
+        totalNodes:
+          type: integer
+          example: 247
+        activeNodes:
+          type: integer
+          example: 234
+        totalAgents:
+          type: integer
+          example: 12847
+        activeFederations:
+          type: integer
+          example: 1843
+        avgLatency:
+          type: number
+          format: float
+          example: 47.3
+        uptimePercentage:
+          type: number
+          format: float
+          example: 99.97
+        timestamp:
+          type: integer
+          format: int64
+          example: 1730246400000
+          
+    RegionalStats:
+      type: object
+      properties:
+        region:
+          type: string
+          example: "us-east-1"
+        nodes:
+          type: integer
+          example: 67
+        agents:
+          type: integer
+          example: 3421
+        avgUptime:
+          type: number
+          format: float
+          example: 99.95
+        renewablePercentage:
+          type: number
+          format: float
+          example: 87.3
+          
+    TrustDistribution:
+      type: object
+      properties:
+        distribution:
+          type: object
+          properties:
+            unverified:
+              type: integer
+              example: 3
+            basic:
+              type: integer
+              example: 45
+            validated:
+              type: integer
+              example: 127
+            certified:
+              type: integer
+              example: 60
+            audited:
+              type: integer
+              example: 12
+        avgScore:
+          type: number
+          format: float
+          example: 72.4
+        violationRate:
+          type: number
+          format: float
+          example: 0.003
+        timestamp:
+          type: integer
+          format: int64
+          
+    TrustedNode:
+      type: object
+      properties:
+        meshId:
+          type: string
+          example: "did:mesh:hub:eu-central-001"
+        trustScore:
+          type: number
+          format: float
+          example: 100
+        organization:
+          type: string
+          example: "European Mesh Federation Hub"
+        interactions:
+          type: integer
+          example: 523847
+          
+    TrustScore:
+      type: object
+      properties:
+        meshId:
+          type: string
+        score:
+          type: number
+          format: float
+          example: 85
+        level:
+          type: string
+          enum: [unverified, basic, validated, certified, audited]
+        components:
+          type: object
+          properties:
+            credentials:
+              type: number
+            history:
+              type: number
+            attestations:
+              type: number
+            compliance:
+              type: number
+            uptime:
+              type: number
+        lastUpdated:
+          type: integer
+          format: int64
+          
+    EconomicOverview:
+      type: object
+      properties:
+        token:
+          $ref: '#/components/schemas/TokenMetrics'
+        transactions:
+          type: object
+          properties:
+            count24h:
+              type: integer
+            volume24h:
+              type: number
+            fees24h:
+              type: number
+            avgFee:
+              type: number
+        staking:
+          type: object
+          properties:
+            totalStaked:
+              type: number
+            uniqueStakers:
+              type: integer
+            avgStake:
+              type: number
+            rewards24h:
+              type: number
+            apr:
+              type: number
+        timestamp:
+          type: integer
+          format: int64
+          
+    TokenMetrics:
+      type: object
+      properties:
+        totalSupply:
+          type: number
+          example: 1000000000
+        circulatingSupply:
+          type: number
+          example: 400000000
+        burned:
+          type: number
+          example: 18250000
+        staked:
+          type: number
+          example: 75000000
+        price:
+          type: number
+          format: float
+          example: 0.50
+        marketCap:
+          type: number
+          example: 500000000
+        volume24h:
+          type: number
+          example: 12500000
+          
+    CarbonImpact:
+      type: object
+      properties:
+        footprint:
+          type: object
+          properties:
+            total:
+              type: number
+              description: Total carbon emissions in kg CO2
+              example: 523700
+            offsetAchieved:
+              type: number
+              example: 600000
+            netFootprint:
+              type: number
+              example: -76300
+            offsetPercentage:
+              type: number
+              example: 114.6
+        renewable:
+          type: object
+          properties:
+            percentage:
+              type: number
+              example: 87.3
+        targets:
+          type: object
+          properties:
+            carbonNeutral:
+              type: object
+              properties:
+                target:
+                  type: string
+                  format: date
+                  example: "2027-01-01"
+                progress:
+                  type: number
+                  example: 114.6
+        timestamp:
+          type: integer
+          format: int64
+          
+    MeshNode:
+      type: object
+      properties:
+        meshId:
+          type: string
+        organization:
+          type: string
+        type:
+          type: string
+          enum: [enterprise, academic, public-good, infrastructure, startup]
+        region:
+          type: string
+        trustScore:
+          type: number
+        activeAgents:
+          type: integer
+        joinedAt:
+          type: string
+          format: date-time
+          
+    MeshNodeDetails:
+      allOf:
+        - $ref: '#/components/schemas/MeshNode'
+        - type: object
+          properties:
+            capabilities:
+              type: array
+              items:
+                type: string
+            certifications:
+              type: array
+              items:
+                type: string
+            uptimePercentage:
+              type: number
+            totalInteractions:
+              type: integer
+            successRate:
+              type: number
+              
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+  examples:
+    NetworkOverviewExample:
+      value:
+        totalNodes: 247
+        activeNodes: 234
+        totalAgents: 12847
+        activeFederations: 1843
+        avgLatency: 47.3
+        uptimePercentage: 99.97
+        timestamp: 1730246400000

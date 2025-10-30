@@ -1,0 +1,356 @@
+# ═══════════════════════════════════════════════════════════════
+# Decentralized Identity Registry
+# Standard: W3C DID Core, Verifiable Credentials Data Model 2.0
+# ═══════════════════════════════════════════════════════════════
+
+version: "1.0.0"
+registry_type: "decentralized"
+consensus_mechanism: "proof-of-authority"
+supported_did_methods:
+  - "did:mesh"      # Native mesh identity
+  - "did:web"       # Web-based DIDs
+  - "did:key"       # Cryptographic key DIDs
+  - "did:ethr"      # Ethereum-based DIDs
+  - "did:ion"       # ION (Bitcoin-anchored)
+
+# ═══════════════════════════════════════════════════════════════
+# IDENTITY SCHEMA
+# ═══════════════════════════════════════════════════════════════
+
+identity_schema:
+  required_fields:
+    - did                    # Decentralized Identifier
+    - publicKey             # Public key for verification
+    - controller            # Entity controlling the DID
+    - created               # Creation timestamp
+    
+  optional_fields:
+    - organization          # Organization name
+    - region                # Geographic region
+    - capabilities          # Supported capabilities
+    - endpoints             # Service endpoints
+    - trustScore            # Current trust score
+    - reputation            # Historical reputation data
+    - compliance            # Compliance certifications
+    - metadata              # Additional metadata
+
+# ═══════════════════════════════════════════════════════════════
+# REGISTERED IDENTITIES (Examples)
+# ═══════════════════════════════════════════════════════════════
+
+identities:
+  
+  # Enterprise Mesh Node
+  - did: "did:mesh:enterprise:acme-corp-001"
+    publicKey: 
+      type: "Ed25519VerificationKey2020"
+      publicKeyMultibase: "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+    controller: "did:web:acme.com"
+    organization: "ACME Corporation"
+    region: "us-east-1"
+    created: "2025-01-15T00:00:00Z"
+    
+    capabilities:
+      - "agent.orchestration"
+      - "data.processing"
+      - "ml.inference"
+      - "compliance.gdpr"
+      - "compliance.soc2"
+    
+    endpoints:
+      federation: "wss://mesh.acme.com/federation"
+      api: "https://api.mesh.acme.com"
+      metrics: "https://metrics.mesh.acme.com"
+    
+    trustScore: 85
+    certifications:
+      - "ISO27001"
+      - "SOC2-Type2"
+      - "GDPR-Compliant"
+    
+    metadata:
+      tier: "enterprise"
+      sla: "99.99"
+      supportLevel: "premium"
+
+  # Academic Research Mesh
+  - did: "did:mesh:academic:mit-csail-001"
+    publicKey:
+      type: "Ed25519VerificationKey2020"
+      publicKeyMultibase: "z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
+    controller: "did:web:csail.mit.edu"
+    organization: "MIT CSAIL"
+    region: "us-east-1"
+    created: "2025-01-20T00:00:00Z"
+    
+    capabilities:
+      - "research.collaboration"
+      - "ml.training"
+      - "data.anonymization"
+      - "ethics.review"
+    
+    endpoints:
+      federation: "wss://mesh.csail.mit.edu/federation"
+      api: "https://api.mesh.csail.mit.edu"
+      research: "https://research.csail.mit.edu/mesh"
+    
+    trustScore: 92
+    certifications:
+      - "IRB-Approved"
+      - "FERPA-Compliant"
+    
+    metadata:
+      tier: "academic"
+      researchFocus: "multi-agent-systems"
+      publicDatasets: true
+
+  # Public Good Mesh Node
+  - did: "did:mesh:public:un-sdg-001"
+    publicKey:
+      type: "Ed25519VerificationKey2020"
+      publicKeyMultibase: "z6MkuH5Y3MyhC7YKGcHqGdJZ8Kj9zGX7h2M3qEpw8Tn4R5vZ"
+    controller: "did:web:un.org"
+    organization: "UN Sustainable Development Goals Initiative"
+    region: "global"
+    created: "2025-02-01T00:00:00Z"
+    
+    capabilities:
+      - "humanitarian.coordination"
+      - "climate.monitoring"
+      - "disaster.response"
+      - "multilingual.translation"
+    
+    endpoints:
+      federation: "wss://mesh.un.org/sdg/federation"
+      api: "https://api.mesh.un.org/sdg"
+      public: "https://sdg.mesh.un.org"
+    
+    trustScore: 95
+    certifications:
+      - "UN-Verified"
+      - "OpenData-Certified"
+    
+    metadata:
+      tier: "public-good"
+      openAccess: true
+      supportedLanguages: 193
+
+  # Regional Mesh Hub
+  - did: "did:mesh:hub:eu-central-001"
+    publicKey:
+      type: "Ed25519VerificationKey2020"
+      publicKeyMultibase: "z6MkrHKzgsahxBLyNAbLQyB1pcWNYC9GmywiWPgkrvntAZcj"
+    controller: "did:web:mesh-hub.eu"
+    organization: "European Mesh Federation Hub"
+    region: "eu-central-1"
+    created: "2025-01-10T00:00:00Z"
+    
+    capabilities:
+      - "federation.relay"
+      - "identity.resolution"
+      - "compliance.gdpr"
+      - "compliance.ai-act"
+      - "trust.scoring"
+    
+    endpoints:
+      federation: "wss://eu-central-001.mesh.global/federation"
+      discovery: "https://discovery.eu-central-001.mesh.global"
+      trust: "https://trust.eu-central-001.mesh.global"
+    
+    trustScore: 100
+    certifications:
+      - "EU-AI-Act-Compliant"
+      - "GDPR-Certified"
+      - "ISO27001"
+      - "SOC2-Type2"
+    
+    metadata:
+      tier: "infrastructure"
+      hubType: "regional"
+      connectedMeshes: 247
+
+# ═══════════════════════════════════════════════════════════════
+# TRUST AUTHORITIES
+# ═══════════════════════════════════════════════════════════════
+
+trust_authorities:
+  
+  - name: "Mesh Foundation Trust Authority"
+    did: "did:mesh:authority:foundation"
+    publicKey:
+      type: "Ed25519VerificationKey2020"
+      publicKeyMultibase: "z6MkvZsQWwFJbsKvnHFjhTXGBzFV3XCE8v4pzG9j2K5R7wXd"
+    role: "root-authority"
+    capabilities:
+      - "identity.certification"
+      - "trust.scoring"
+      - "compliance.verification"
+      - "dispute.resolution"
+    created: "2025-01-01T00:00:00Z"
+    
+  - name: "Enterprise Certification Authority"
+    did: "did:mesh:authority:enterprise-ca"
+    publicKey:
+      type: "Ed25519VerificationKey2020"
+      publicKeyMultibase: "z6MkjRagNiMu91DduvCvgEsqLZDVHrDDubEAmHHx99YT4jqi"
+    role: "enterprise-certifier"
+    capabilities:
+      - "enterprise.certification"
+      - "sla.verification"
+      - "security.audit"
+    created: "2025-01-05T00:00:00Z"
+    
+  - name: "Academic Verification Board"
+    did: "did:mesh:authority:academic-board"
+    publicKey:
+      type: "Ed25519VerificationKey2020"
+      publicKeyMultibase: "z6MknGijzhZScZyoLkvkJAb5F9wHXzXvJqZ8MnRvYmD2X5Pc"
+    role: "academic-certifier"
+    capabilities:
+      - "research.verification"
+      - "ethics.certification"
+      - "publication.attestation"
+    created: "2025-01-05T00:00:00Z"
+
+# ═══════════════════════════════════════════════════════════════
+# VERIFICATION METHODS
+# ═══════════════════════════════════════════════════════════════
+
+verification_methods:
+  
+  signature_verification:
+    algorithm: "EdDSA"
+    curve: "Ed25519"
+    encoding: "base58-btc"
+  
+  credential_verification:
+    format: "VC-JWT"
+    standard: "W3C-VC-2.0"
+    required_proofs:
+      - "controller-signature"
+      - "timestamp-valid"
+      - "not-revoked"
+  
+  trust_verification:
+    minimum_score: 25          # Basic trust level
+    scoring_factors:
+      - "credential_validity"   # Weight: 30%
+      - "historical_behavior"   # Weight: 25%
+      - "peer_attestations"     # Weight: 20%
+      - "compliance_status"     # Weight: 15%
+      - "uptime_reliability"    # Weight: 10%
+    
+    refresh_interval: 3600     # 1 hour
+
+# ═══════════════════════════════════════════════════════════════
+# REVOCATION REGISTRY
+# ═══════════════════════════════════════════════════════════════
+
+revocation:
+  
+  registry_type: "accumulator-based"
+  update_frequency: "real-time"
+  
+  revocation_reasons:
+    - code: "compromised"
+      description: "Private key compromised"
+      severity: "critical"
+    
+    - code: "policy-violation"
+      description: "Trust policy violation"
+      severity: "high"
+    
+    - code: "expired"
+      description: "Credential expired"
+      severity: "medium"
+    
+    - code: "superseded"
+      description: "Replaced by newer credential"
+      severity: "low"
+  
+  revoked_identities: []      # Populated at runtime
+
+# ═══════════════════════════════════════════════════════════════
+# GOVERNANCE
+# ═══════════════════════════════════════════════════════════════
+
+governance:
+  
+  identity_lifecycle:
+    registration:
+      requires_sponsor: false
+      requires_proof_of_identity: true
+      requires_compliance_check: true
+      approval_required: true
+      approval_authority: "did:mesh:authority:foundation"
+    
+    renewal:
+      interval_days: 365
+      grace_period_days: 30
+      requires_revalidation: true
+    
+    revocation:
+      can_revoke:
+        - "controller"
+        - "trust_authority"
+        - "governance_dao"
+      requires_justification: true
+      appeals_process: true
+  
+  dispute_resolution:
+    arbitration_council: "did:mesh:governance:arbitration"
+    appeal_window_days: 30
+    final_authority: "did:mesh:governance:dao"
+
+# ═══════════════════════════════════════════════════════════════
+# METRICS & MONITORING
+# ═══════════════════════════════════════════════════════════════
+
+monitoring:
+  
+  health_check_interval: 300   # 5 minutes
+  
+  tracked_metrics:
+    - "total_registered_identities"
+    - "active_identities_24h"
+    - "trust_score_distribution"
+    - "verification_success_rate"
+    - "revocation_rate"
+    - "federation_handshake_count"
+  
+  alerts:
+    - condition: "trust_score < 50"
+      action: "flag_for_review"
+    
+    - condition: "verification_failures > 3"
+      action: "suspend_identity"
+    
+    - condition: "revocation_rate > 0.05"
+      action: "notify_governance"
+
+# ═══════════════════════════════════════════════════════════════
+# INTEROPERABILITY
+# ═══════════════════════════════════════════════════════════════
+
+interoperability:
+  
+  external_registries:
+    - name: "Ethereum Name Service"
+      type: "did:ethr"
+      resolver: "https://resolver.ens.domains"
+      trusted: true
+    
+    - name: "Sovrin Network"
+      type: "did:sov"
+      resolver: "https://resolver.sovrin.org"
+      trusted: true
+    
+    - name: "Universal Resolver"
+      type: "multi-method"
+      resolver: "https://dev.uniresolver.io"
+      trusted: true
+  
+  bridge_protocols:
+    - "DIDComm v2"
+    - "OpenID Connect Federation"
+    - "SIOP (Self-Issued OpenID Provider)"

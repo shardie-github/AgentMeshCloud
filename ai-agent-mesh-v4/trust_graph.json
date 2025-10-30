@@ -1,0 +1,407 @@
+{
+  "$schema": "https://mesh.global/schemas/trust-graph/v1.0",
+  "version": "1.0.0",
+  "generatedAt": "2025-10-30T00:00:00Z",
+  "network": "ai-agent-mesh",
+  "totalNodes": 247,
+  "totalEdges": 1843,
+  "avgTrustScore": 72.4,
+  "description": "Global trust graph representing verified relationships between mesh participants",
+  
+  "nodes": [
+    {
+      "meshId": "did:mesh:enterprise:acme-001",
+      "type": "enterprise",
+      "trustScore": 85,
+      "trustLevel": "certified",
+      "region": "us-east-1",
+      "activeConnections": 34,
+      "totalInteractions": 12847,
+      "successRate": 0.987,
+      "violations": 2,
+      "uptimePercentage": 99.94,
+      "stake": "5000 MESH",
+      "certifications": ["GDPR", "SOC2", "ISO27001"],
+      "joinedAt": "2025-01-15T00:00:00Z",
+      "lastActive": "2025-10-29T23:45:00Z"
+    },
+    {
+      "meshId": "did:mesh:academic:mit-csail-001",
+      "type": "academic",
+      "trustScore": 92,
+      "trustLevel": "audited",
+      "region": "us-east-1",
+      "activeConnections": 58,
+      "totalInteractions": 34521,
+      "successRate": 0.995,
+      "violations": 0,
+      "uptimePercentage": 99.97,
+      "stake": "2000 MESH",
+      "certifications": ["IRB-Approved", "FERPA"],
+      "joinedAt": "2025-01-20T00:00:00Z",
+      "lastActive": "2025-10-29T23:50:00Z"
+    },
+    {
+      "meshId": "did:mesh:public:un-sdg-001",
+      "type": "public-good",
+      "trustScore": 95,
+      "trustLevel": "audited",
+      "region": "global",
+      "activeConnections": 127,
+      "totalInteractions": 89234,
+      "successRate": 0.998,
+      "violations": 0,
+      "uptimePercentage": 99.99,
+      "stake": "10000 MESH",
+      "certifications": ["UN-Verified", "OpenData"],
+      "joinedAt": "2025-02-01T00:00:00Z",
+      "lastActive": "2025-10-29T23:55:00Z"
+    },
+    {
+      "meshId": "did:mesh:hub:eu-central-001",
+      "type": "infrastructure",
+      "trustScore": 100,
+      "trustLevel": "audited",
+      "region": "eu-central-1",
+      "activeConnections": 247,
+      "totalInteractions": 523847,
+      "successRate": 0.9995,
+      "violations": 0,
+      "uptimePercentage": 99.998,
+      "stake": "50000 MESH",
+      "certifications": ["EU-AI-Act", "GDPR", "ISO27001", "SOC2"],
+      "joinedAt": "2025-01-10T00:00:00Z",
+      "lastActive": "2025-10-30T00:00:00Z"
+    },
+    {
+      "meshId": "did:mesh:enterprise:healthcare-global-001",
+      "type": "enterprise",
+      "trustScore": 88,
+      "trustLevel": "certified",
+      "region": "us-west-2",
+      "activeConnections": 23,
+      "totalInteractions": 8934,
+      "successRate": 0.992,
+      "violations": 1,
+      "uptimePercentage": 99.89,
+      "stake": "8000 MESH",
+      "certifications": ["HIPAA", "SOC2", "GDPR"],
+      "joinedAt": "2025-02-15T00:00:00Z",
+      "lastActive": "2025-10-29T22:30:00Z"
+    },
+    {
+      "meshId": "did:mesh:research:cern-atlas-001",
+      "type": "academic",
+      "trustScore": 94,
+      "trustLevel": "audited",
+      "region": "eu-west-1",
+      "activeConnections": 45,
+      "totalInteractions": 45672,
+      "successRate": 0.997,
+      "violations": 0,
+      "uptimePercentage": 99.95,
+      "stake": "3000 MESH",
+      "certifications": ["EU-Research-Certified", "ISO27001"],
+      "joinedAt": "2025-02-20T00:00:00Z",
+      "lastActive": "2025-10-29T23:20:00Z"
+    },
+    {
+      "meshId": "did:mesh:startup:ai-innovate-001",
+      "type": "startup",
+      "trustScore": 62,
+      "trustLevel": "validated",
+      "region": "us-west-1",
+      "activeConnections": 8,
+      "totalInteractions": 1247,
+      "successRate": 0.956,
+      "violations": 3,
+      "uptimePercentage": 98.2,
+      "stake": "500 MESH",
+      "certifications": ["SOC2"],
+      "joinedAt": "2025-09-01T00:00:00Z",
+      "lastActive": "2025-10-29T20:15:00Z"
+    },
+    {
+      "meshId": "did:mesh:government:nist-ai-001",
+      "type": "government",
+      "trustScore": 97,
+      "trustLevel": "audited",
+      "region": "us-east-1",
+      "activeConnections": 67,
+      "totalInteractions": 23456,
+      "successRate": 0.999,
+      "violations": 0,
+      "uptimePercentage": 99.99,
+      "stake": "15000 MESH",
+      "certifications": ["FedRAMP", "NIST-RMF", "ISO42001"],
+      "joinedAt": "2025-03-01T00:00:00Z",
+      "lastActive": "2025-10-29T23:40:00Z"
+    }
+  ],
+  
+  "edges": [
+    {
+      "from": "did:mesh:enterprise:acme-001",
+      "to": "did:mesh:academic:mit-csail-001",
+      "weight": 0.92,
+      "trustType": "bidirectional",
+      "interactions": 1247,
+      "successfulInteractions": 1232,
+      "violations": 0,
+      "lastInteraction": "2025-10-29T14:32:00Z",
+      "establishedAt": "2025-03-15T00:00:00Z",
+      "stake": "1000 MESH",
+      "purpose": "research-collaboration",
+      "metadata": {
+        "primaryUseCase": "ml-model-training",
+        "dataSharing": "anonymized",
+        "complianceFramework": "GDPR"
+      }
+    },
+    {
+      "from": "did:mesh:enterprise:acme-001",
+      "to": "did:mesh:hub:eu-central-001",
+      "weight": 0.98,
+      "trustType": "infrastructure",
+      "interactions": 8934,
+      "successfulInteractions": 8921,
+      "violations": 1,
+      "lastInteraction": "2025-10-29T23:45:00Z",
+      "establishedAt": "2025-01-15T00:00:00Z",
+      "stake": "2000 MESH",
+      "purpose": "federation-relay",
+      "metadata": {
+        "latencyAvg": "23ms",
+        "throughput": "1200 msg/s",
+        "reliability": 0.998
+      }
+    },
+    {
+      "from": "did:mesh:academic:mit-csail-001",
+      "to": "did:mesh:research:cern-atlas-001",
+      "weight": 0.95,
+      "trustType": "bidirectional",
+      "interactions": 3421,
+      "successfulInteractions": 3408,
+      "violations": 0,
+      "lastInteraction": "2025-10-29T18:22:00Z",
+      "establishedAt": "2025-04-01T00:00:00Z",
+      "stake": "500 MESH",
+      "purpose": "academic-collaboration",
+      "metadata": {
+        "primaryUseCase": "physics-simulation",
+        "publicationsCo authored": 7,
+        "datasetSharing": true
+      }
+    },
+    {
+      "from": "did:mesh:public:un-sdg-001",
+      "to": "did:mesh:hub:eu-central-001",
+      "weight": 0.99,
+      "trustType": "infrastructure",
+      "interactions": 45672,
+      "successfulInteractions": 45649,
+      "violations": 0,
+      "lastInteraction": "2025-10-29T23:55:00Z",
+      "establishedAt": "2025-02-01T00:00:00Z",
+      "stake": "5000 MESH",
+      "purpose": "humanitarian-coordination",
+      "metadata": {
+        "beneficiaryCountries": 127,
+        "disasterResponseEvents": 34,
+        "carbonOffset": "12.5 tons CO2"
+      }
+    },
+    {
+      "from": "did:mesh:enterprise:healthcare-global-001",
+      "to": "did:mesh:government:nist-ai-001",
+      "weight": 0.89,
+      "trustType": "compliance-verification",
+      "interactions": 567,
+      "successfulInteractions": 562,
+      "violations": 1,
+      "lastInteraction": "2025-10-29T16:45:00Z",
+      "establishedAt": "2025-06-01T00:00:00Z",
+      "stake": "3000 MESH",
+      "purpose": "regulatory-compliance",
+      "metadata": {
+        "complianceAudits": 4,
+        "certificationStatus": "active",
+        "nextReview": "2025-12-01T00:00:00Z"
+      }
+    },
+    {
+      "from": "did:mesh:startup:ai-innovate-001",
+      "to": "did:mesh:enterprise:acme-001",
+      "weight": 0.67,
+      "trustType": "vendor-client",
+      "interactions": 234,
+      "successfulInteractions": 218,
+      "violations": 2,
+      "lastInteraction": "2025-10-28T11:20:00Z",
+      "establishedAt": "2025-09-15T00:00:00Z",
+      "stake": "200 MESH",
+      "purpose": "service-integration",
+      "metadata": {
+        "contractValue": "$50,000",
+        "servicesProvided": ["ml-inference", "data-pipeline"],
+        "performanceIssues": 2
+      }
+    },
+    {
+      "from": "did:mesh:hub:eu-central-001",
+      "to": "did:mesh:government:nist-ai-001",
+      "weight": 0.97,
+      "trustType": "cross-jurisdiction",
+      "interactions": 12456,
+      "successfulInteractions": 12434,
+      "violations": 0,
+      "lastInteraction": "2025-10-29T23:30:00Z",
+      "establishedAt": "2025-03-10T00:00:00Z",
+      "stake": "10000 MESH",
+      "purpose": "standards-coordination",
+      "metadata": {
+        "standardsAligned": ["IEEE-P7009", "ISO42001", "NIST-RMF"],
+        "jointWorkingGroups": 5,
+        "policySyncEvents": 34
+      }
+    }
+  ],
+  
+  "aggregateMetrics": {
+    "trustScoreDistribution": {
+      "unverified": 3,
+      "basic": 12,
+      "validated": 45,
+      "certified": 127,
+      "audited": 60
+    },
+    "nodeTypeDistribution": {
+      "enterprise": 98,
+      "academic": 45,
+      "public-good": 23,
+      "infrastructure": 12,
+      "government": 34,
+      "startup": 35
+    },
+    "regionalDistribution": {
+      "us-east-1": 67,
+      "us-west-1": 34,
+      "eu-central-1": 56,
+      "eu-west-1": 28,
+      "apac": 45,
+      "global": 17
+    },
+    "violationRate": 0.003,
+    "avgSuccessRate": 0.984,
+    "totalStaked": "247,500 MESH",
+    "avgInteractionsPerNode": 2123,
+    "networkDensity": 0.15,
+    "clusteringCoefficient": 0.42
+  },
+  
+  "reputationRankings": {
+    "topTrustedNodes": [
+      {
+        "rank": 1,
+        "meshId": "did:mesh:hub:eu-central-001",
+        "trustScore": 100,
+        "interactions": 523847
+      },
+      {
+        "rank": 2,
+        "meshId": "did:mesh:government:nist-ai-001",
+        "trustScore": 97,
+        "interactions": 23456
+      },
+      {
+        "rank": 3,
+        "meshId": "did:mesh:public:un-sdg-001",
+        "trustScore": 95,
+        "interactions": 89234
+      },
+      {
+        "rank": 4,
+        "meshId": "did:mesh:research:cern-atlas-001",
+        "trustScore": 94,
+        "interactions": 45672
+      },
+      {
+        "rank": 5,
+        "meshId": "did:mesh:academic:mit-csail-001",
+        "trustScore": 92,
+        "interactions": 34521
+      }
+    ],
+    "mostActiveNodes": [
+      {
+        "rank": 1,
+        "meshId": "did:mesh:hub:eu-central-001",
+        "interactions": 523847,
+        "activeConnections": 247
+      },
+      {
+        "rank": 2,
+        "meshId": "did:mesh:public:un-sdg-001",
+        "interactions": 89234,
+        "activeConnections": 127
+      },
+      {
+        "rank": 3,
+        "meshId": "did:mesh:research:cern-atlas-001",
+        "interactions": 45672,
+        "activeConnections": 45
+      }
+    ]
+  },
+  
+  "riskAnalysis": {
+    "highRiskEdges": [
+      {
+        "from": "did:mesh:startup:ai-innovate-001",
+        "to": "did:mesh:enterprise:acme-001",
+        "riskScore": 0.33,
+        "reason": "Multiple violations and low trust score",
+        "recommendation": "Increase monitoring frequency"
+      }
+    ],
+    "suspendedNodes": [],
+    "pendingReview": [
+      {
+        "meshId": "did:mesh:startup:ai-innovate-001",
+        "reason": "Trust score below 65 threshold",
+        "reviewScheduled": "2025-11-15T00:00:00Z"
+      }
+    ]
+  },
+  
+  "governanceActions": {
+    "recentActions": [
+      {
+        "actionId": "ga-001",
+        "type": "trust-upgrade",
+        "meshId": "did:mesh:government:nist-ai-001",
+        "from": "certified",
+        "to": "audited",
+        "approvedBy": "did:mesh:authority:foundation",
+        "timestamp": "2025-10-15T00:00:00Z"
+      },
+      {
+        "actionId": "ga-002",
+        "type": "violation-penalty",
+        "meshId": "did:mesh:startup:ai-innovate-001",
+        "penaltyAmount": "50 MESH",
+        "reason": "Uptime SLA breach",
+        "timestamp": "2025-10-20T00:00:00Z"
+      }
+    ],
+    "pendingProposals": []
+  },
+  
+  "carbonImpact": {
+    "totalNetworkCarbonOffset": "523.7 tons CO2",
+    "renewableEnergyPercentage": 87.3,
+    "carbonCreditsIssued": 1247,
+    "sustainabilityScore": 92
+  }
+}

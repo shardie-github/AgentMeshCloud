@@ -1,0 +1,482 @@
+{
+  "$schema": "https://mesh.global/schemas/autonomy-rules/v1.0",
+  "version": "1.0.0",
+  "description": "Loopback feedback rules for autonomous mesh network self-management",
+  "lastUpdated": "2025-10-30T00:00:00Z",
+  
+  "autonomyLevel": {
+    "current": "supervised",
+    "options": ["manual", "supervised", "semi-autonomous", "fully-autonomous"],
+    "description": "supervised = Human approval for critical actions; fully-autonomous = Complete self-governance"
+  },
+  
+  "feedbackLoops": [
+    {
+      "id": "performance-optimization-loop",
+      "description": "Continuously monitor and optimize network performance",
+      "enabled": true,
+      "frequency": "5 minutes",
+      
+      "inputs": [
+        "telemetry.latency",
+        "telemetry.throughput",
+        "telemetry.error_rate",
+        "telemetry.resource_utilization"
+      ],
+      
+      "conditions": [
+        {
+          "if": "avg(latency) > 100ms",
+          "then": "trigger_optimization",
+          "action": "geo_route_optimization"
+        },
+        {
+          "if": "error_rate > 0.01",
+          "then": "trigger_investigation",
+          "action": "fault_analysis"
+        },
+        {
+          "if": "cpu_usage > 80%",
+          "then": "trigger_scaling",
+          "action": "scale_up"
+        }
+      ],
+      
+      "outputs": [
+        "optimization_decision",
+        "routing_update",
+        "scaling_command"
+      ],
+      
+      "constraints": {
+        "max_changes_per_hour": 10,
+        "require_confidence": 0.8,
+        "human_approval_required": false
+      }
+    },
+    
+    {
+      "id": "cost-control-loop",
+      "description": "Monitor and control operational costs",
+      "enabled": true,
+      "frequency": "10 minutes",
+      
+      "inputs": [
+        "billing.cost_per_hour",
+        "billing.cost_trends",
+        "usage.compute_hours",
+        "usage.api_calls"
+      ],
+      
+      "conditions": [
+        {
+          "if": "hourly_cost > budget.max_hourly_cost",
+          "then": "trigger_cost_reduction",
+          "action": "scale_down_non_critical"
+        },
+        {
+          "if": "cost_increase_rate > 0.30",
+          "then": "trigger_alert",
+          "action": "notify_and_analyze"
+        },
+        {
+          "if": "idle_resources > 0.20",
+          "then": "trigger_optimization",
+          "action": "consolidate_workload"
+        }
+      ],
+      
+      "outputs": [
+        "cost_optimization_decision",
+        "resource_allocation_change",
+        "budget_alert"
+      ],
+      
+      "constraints": {
+        "max_cost_reduction_percent": 40,
+        "preserve_min_capacity": true,
+        "human_approval_required": true
+      }
+    },
+    
+    {
+      "id": "trust-maintenance-loop",
+      "description": "Maintain and improve trust scores across network",
+      "enabled": true,
+      "frequency": "1 hour",
+      
+      "inputs": [
+        "trust.scores",
+        "trust.violations",
+        "trust.attestations",
+        "trust.graph_metrics"
+      ],
+      
+      "conditions": [
+        {
+          "if": "trust_score < 50",
+          "then": "trigger_review",
+          "action": "audit_and_improve"
+        },
+        {
+          "if": "violation_rate > 0.005",
+          "then": "trigger_investigation",
+          "action": "identify_root_cause"
+        },
+        {
+          "if": "attestation_coverage < 0.80",
+          "then": "trigger_campaign",
+          "action": "request_peer_attestations"
+        }
+      ],
+      
+      "outputs": [
+        "trust_improvement_plan",
+        "audit_request",
+        "attestation_campaign"
+      ],
+      
+      "constraints": {
+        "require_evidence": true,
+        "preserve_audit_trail": true,
+        "human_approval_required": true
+      }
+    },
+    
+    {
+      "id": "compliance-monitoring-loop",
+      "description": "Ensure continuous compliance with regulations",
+      "enabled": true,
+      "frequency": "15 minutes",
+      
+      "inputs": [
+        "compliance.policy_status",
+        "compliance.violations",
+        "compliance.jurisdictions",
+        "compliance.certifications"
+      ],
+      
+      "conditions": [
+        {
+          "if": "policy_violation_detected",
+          "then": "trigger_remediation",
+          "action": "enforce_policy"
+        },
+        {
+          "if": "certification_expires_in < 30 days",
+          "then": "trigger_renewal",
+          "action": "initiate_renewal_process"
+        },
+        {
+          "if": "new_regulation_detected",
+          "then": "trigger_adaptation",
+          "action": "update_compliance_framework"
+        }
+      ],
+      
+      "outputs": [
+        "compliance_action",
+        "policy_update",
+        "certification_renewal"
+      ],
+      
+      "constraints": {
+        "zero_tolerance_violations": ["GDPR-right-to-erasure", "HIPAA-breach"],
+        "immediate_action_required": true,
+        "human_approval_required": false
+      }
+    },
+    
+    {
+      "id": "security-defense-loop",
+      "description": "Detect and respond to security threats",
+      "enabled": true,
+      "frequency": "1 minute",
+      
+      "inputs": [
+        "security.anomalies",
+        "security.threat_intelligence",
+        "security.access_logs",
+        "security.vulnerability_scans"
+      ],
+      
+      "conditions": [
+        {
+          "if": "anomaly_score > 0.8",
+          "then": "trigger_investigation",
+          "action": "analyze_threat"
+        },
+        {
+          "if": "credential_compromise_detected",
+          "then": "trigger_lockdown",
+          "action": "revoke_and_isolate"
+        },
+        {
+          "if": "vulnerability_severity == 'critical'",
+          "then": "trigger_patching",
+          "action": "emergency_patch"
+        }
+      ],
+      
+      "outputs": [
+        "security_action",
+        "threat_report",
+        "incident_response"
+      ],
+      
+      "constraints": {
+        "auto_quarantine_enabled": true,
+        "max_false_positive_rate": 0.01,
+        "human_approval_required": false
+      }
+    },
+    
+    {
+      "id": "learning-improvement-loop",
+      "description": "Continuously learn from operations and improve policies",
+      "enabled": true,
+      "frequency": "24 hours",
+      
+      "inputs": [
+        "optimization.history",
+        "policy.performance",
+        "feedback.user_satisfaction",
+        "metrics.all"
+      ],
+      
+      "conditions": [
+        {
+          "if": "policy_performance < 0.75",
+          "then": "trigger_retraining",
+          "action": "retrain_ml_model"
+        },
+        {
+          "if": "optimization_success_rate < 0.80",
+          "then": "trigger_tuning",
+          "action": "tune_parameters"
+        },
+        {
+          "if": "user_satisfaction < 0.85",
+          "then": "trigger_analysis",
+          "action": "analyze_pain_points"
+        }
+      ],
+      
+      "outputs": [
+        "model_update",
+        "parameter_adjustment",
+        "improvement_plan"
+      ],
+      
+      "constraints": {
+        "require_validation": true,
+        "staged_rollout": true,
+        "human_approval_required": true
+      }
+    },
+    
+    {
+      "id": "carbon-optimization-loop",
+      "description": "Minimize carbon footprint through intelligent scheduling",
+      "enabled": true,
+      "frequency": "30 minutes",
+      
+      "inputs": [
+        "carbon.regional_intensity",
+        "carbon.renewable_availability",
+        "workload.urgency",
+        "workload.flexibility"
+      ],
+      
+      "conditions": [
+        {
+          "if": "carbon_intensity > 300 AND workload_urgency < 0.7",
+          "then": "trigger_delay",
+          "action": "schedule_for_greener_window"
+        },
+        {
+          "if": "renewable_energy_available",
+          "then": "trigger_shift",
+          "action": "route_to_green_region"
+        },
+        {
+          "if": "daily_carbon_budget_exceeded",
+          "then": "trigger_throttle",
+          "action": "reduce_non_essential_load"
+        }
+      ],
+      
+      "outputs": [
+        "scheduling_decision",
+        "routing_preference",
+        "throttle_command"
+      ],
+      
+      "constraints": {
+        "max_delay_hours": 24,
+        "preserve_sla": true,
+        "human_approval_required": false
+      }
+    },
+    
+    {
+      "id": "drift-correction-loop",
+      "description": "Detect and correct model/policy drift",
+      "enabled": true,
+      "frequency": "1 hour",
+      
+      "inputs": [
+        "drift.performance_metrics",
+        "drift.distribution_shift",
+        "drift.concept_drift",
+        "drift.policy_adherence"
+      ],
+      
+      "conditions": [
+        {
+          "if": "performance_degradation > 0.20",
+          "then": "trigger_remediation",
+          "action": "rebalance_and_retune"
+        },
+        {
+          "if": "distribution_shift_detected",
+          "then": "trigger_retraining",
+          "action": "update_model"
+        },
+        {
+          "if": "policy_violations > 5",
+          "then": "trigger_rollback",
+          "action": "revert_to_stable_policy"
+        }
+      ],
+      
+      "outputs": [
+        "remediation_action",
+        "model_update",
+        "policy_rollback"
+      ],
+      
+      "constraints": {
+        "max_rollback_depth": 5,
+        "require_root_cause_analysis": true,
+        "human_approval_required": true
+      }
+    }
+  ],
+  
+  "governanceRules": {
+    "humanInTheLoop": {
+      "enabled": true,
+      "requiredFor": [
+        "large_scale_changes",
+        "policy_rollback",
+        "cost_increase > 30%",
+        "compliance_violations",
+        "security_incidents"
+      ],
+      "approvalTimeout": "30 minutes",
+      "escalationPath": ["team-lead", "manager", "director"]
+    },
+    
+    "safetyConstraints": {
+      "hardLimits": {
+        "max_cost_per_hour": 100,
+        "min_uptime_percentage": 99.0,
+        "max_latency_ms": 500,
+        "min_trust_score": 25,
+        "max_carbon_kg_per_day": 200
+      },
+      "emergencyStop": {
+        "enabled": true,
+        "triggers": [
+          "cost_runaway",
+          "security_breach",
+          "compliance_violation",
+          "human_override"
+        ]
+      }
+    },
+    
+    "auditRequirements": {
+      "logAllDecisions": true,
+      "immutableAuditTrail": true,
+      "retentionDays": 2555,
+      "explainabilityRequired": true
+    }
+  },
+  
+  "escalationPolicies": [
+    {
+      "condition": "optimization_failed >= 3 times",
+      "action": "notify_engineer",
+      "severity": "medium"
+    },
+    {
+      "condition": "cost_exceeded_budget",
+      "action": "notify_finance",
+      "severity": "high"
+    },
+    {
+      "condition": "compliance_violation",
+      "action": "notify_legal",
+      "severity": "critical"
+    },
+    {
+      "condition": "security_incident",
+      "action": "notify_security_team",
+      "severity": "critical"
+    },
+    {
+      "condition": "trust_score < 25",
+      "action": "notify_governance",
+      "severity": "high"
+    }
+  ],
+  
+  "performanceMetrics": {
+    "kpis": [
+      {
+        "name": "optimization_success_rate",
+        "target": 0.85,
+        "current": 0.92,
+        "trend": "improving"
+      },
+      {
+        "name": "avg_latency_reduction",
+        "target": 20,
+        "current": 27,
+        "unit": "percent"
+      },
+      {
+        "name": "cost_reduction",
+        "target": 15,
+        "current": 22,
+        "unit": "percent"
+      },
+      {
+        "name": "drift_detection_accuracy",
+        "target": 0.95,
+        "current": 0.97,
+        "trend": "stable"
+      },
+      {
+        "name": "human_intervention_rate",
+        "target": 0.05,
+        "current": 0.03,
+        "description": "Lower is better - indicates autonomy effectiveness"
+      }
+    ]
+  },
+  
+  "adaptationHistory": {
+    "trackChanges": true,
+    "compareBeforeAfter": true,
+    "automaticRollbackOn": [
+      "performance_degradation > 20%",
+      "cost_increase > 50%",
+      "compliance_failure"
+    ],
+    "learningEnabled": true,
+    "shareInsightsAcrossNetwork": true
+  }
+}

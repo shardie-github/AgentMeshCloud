@@ -1,0 +1,644 @@
+# ═══════════════════════════════════════════════════════════════
+# Global Compliance Registry
+# Purpose: Multi-jurisdictional AI compliance mapping and enforcement
+# Standards: GDPR, EU AI Act, PIPEDA, CCPA, ISO/IEC 42001, NIST RMF
+# ═══════════════════════════════════════════════════════════════
+
+version: "1.0.0"
+last_updated: "2025-10-30T00:00:00Z"
+registry_type: "multi-jurisdictional"
+auto_enforcement: true
+
+# ═══════════════════════════════════════════════════════════════
+# REGIONAL COMPLIANCE FRAMEWORKS
+# ═══════════════════════════════════════════════════════════════
+
+regions:
+  
+  european_union:
+    jurisdiction: "EU-27 Member States"
+    primary_regulations:
+      - name: "GDPR"
+        full_name: "General Data Protection Regulation"
+        effective_date: "2018-05-25"
+        authority: "European Data Protection Board"
+        version: "2016/679"
+        
+        requirements:
+          data_processing:
+            - legal_basis_required: true
+            - consent_explicit: true
+            - purpose_limitation: true
+            - data_minimization: true
+            - storage_limitation: true
+            - accuracy_requirement: true
+            - integrity_confidentiality: true
+            
+          rights:
+            - right_to_access: true
+            - right_to_rectification: true
+            - right_to_erasure: true
+            - right_to_data_portability: true
+            - right_to_object: true
+            - right_to_restrict_processing: true
+            
+          obligations:
+            - dpo_required_for_large_scale: true
+            - dpia_for_high_risk: true
+            - breach_notification_72h: true
+            - cross_border_transfers_restricted: true
+            - privacy_by_design: true
+            
+        penalties:
+          max_fine_tier1: "10M EUR or 2% global revenue"
+          max_fine_tier2: "20M EUR or 4% global revenue"
+          
+        mesh_adapter: "adapter_gdpr.mjs"
+        
+      - name: "EU AI Act"
+        full_name: "Artificial Intelligence Act"
+        effective_date: "2026-06-01"  # Expected
+        authority: "European Commission"
+        version: "2024/1689"
+        
+        requirements:
+          risk_classification:
+            unacceptable_risk:
+              - social_scoring: prohibited
+              - subliminal_manipulation: prohibited
+              - exploitation_of_vulnerabilities: prohibited
+              - biometric_categorization: prohibited
+              
+            high_risk:
+              - conformity_assessment: required
+              - risk_management_system: required
+              - data_governance: required
+              - transparency_obligations: required
+              - human_oversight: required
+              - accuracy_robustness: required
+              - cybersecurity_measures: required
+              
+            limited_risk:
+              - transparency_obligations: required
+              - explainability: required
+              
+            minimal_risk:
+              - voluntary_codes_of_conduct: recommended
+          
+          documentation:
+            - technical_documentation: required
+            - logs_retention: "10 years"
+            - conformity_assessment: required_for_high_risk
+            
+        penalties:
+          prohibited_ai: "35M EUR or 7% global revenue"
+          non_compliance: "15M EUR or 3% global revenue"
+          incorrect_info: "7.5M EUR or 1.5% global revenue"
+          
+        mesh_adapter: "adapter_eu_ai_act.mjs"
+    
+    data_residency:
+      allowed_regions: ["EU", "EEA", "approved_third_countries"]
+      adequacy_decisions:
+        - "Andorra"
+        - "Argentina"
+        - "Canada (commercial)"
+        - "Faroe Islands"
+        - "Guernsey"
+        - "Israel"
+        - "Isle of Man"
+        - "Japan"
+        - "Jersey"
+        - "New Zealand"
+        - "Switzerland"
+        - "United Kingdom"
+        - "Uruguay"
+        - "South Korea"
+      transfer_mechanisms:
+        - "Standard Contractual Clauses (SCCs)"
+        - "Binding Corporate Rules (BCRs)"
+        - "EU-US Data Privacy Framework"
+        
+  united_states:
+    jurisdiction: "United States of America"
+    primary_regulations:
+      - name: "CCPA"
+        full_name: "California Consumer Privacy Act"
+        effective_date: "2020-01-01"
+        authority: "California Privacy Protection Agency"
+        version: "amended by CPRA 2023"
+        
+        requirements:
+          applicability:
+            - revenue: ">25M USD annually"
+            - personal_info: ">100,000 consumers/year"
+            - revenue_from_selling: ">50% from selling personal info"
+            
+          rights:
+            - right_to_know: true
+            - right_to_delete: true
+            - right_to_opt_out_of_sale: true
+            - right_to_non_discrimination: true
+            - right_to_correct: true
+            - right_to_limit_sensitive_data: true
+            
+          obligations:
+            - privacy_policy: required
+            - data_inventory: required
+            - opt_out_link: required
+            - vendor_contracts: required
+            
+        penalties:
+          intentional_violations: "7,500 USD per violation"
+          unintentional_violations: "2,500 USD per violation"
+          
+        mesh_adapter: "adapter_ccpa.mjs"
+        
+      - name: "HIPAA"
+        full_name: "Health Insurance Portability and Accountability Act"
+        effective_date: "1996-08-21"
+        authority: "HHS Office for Civil Rights"
+        applicable_to: "healthcare_data_only"
+        
+        requirements:
+          technical_safeguards:
+            - access_control: required
+            - audit_controls: required
+            - integrity_controls: required
+            - transmission_security: required
+            - encryption: "strongly recommended"
+            
+          administrative_safeguards:
+            - security_management: required
+            - workforce_security: required
+            - information_access_management: required
+            - security_awareness_training: required
+            - contingency_planning: required
+            
+          physical_safeguards:
+            - facility_access_controls: required
+            - workstation_security: required
+            - device_and_media_controls: required
+            
+        penalties:
+          unknowing: "100-50,000 USD per violation"
+          reasonable_cause: "1,000-50,000 USD per violation"
+          willful_neglect_corrected: "10,000-50,000 USD per violation"
+          willful_neglect_uncorrected: "50,000 USD per violation"
+          annual_cap: "1.5M USD per violation type"
+          
+        mesh_adapter: "adapter_hipaa.mjs"
+        
+      - name: "NIST AI RMF"
+        full_name: "NIST AI Risk Management Framework"
+        effective_date: "2023-01-26"
+        authority: "National Institute of Standards and Technology"
+        mandatory: false
+        
+        requirements:
+          govern:
+            - organizational_policies: recommended
+            - risk_management_culture: recommended
+            - accountability: recommended
+            
+          map:
+            - context_identification: recommended
+            - risk_categorization: recommended
+            - impact_assessment: recommended
+            
+          measure:
+            - performance_metrics: recommended
+            - fairness_assessment: recommended
+            - security_evaluation: recommended
+            
+          manage:
+            - risk_treatment: recommended
+            - continuous_monitoring: recommended
+            - incident_response: recommended
+            
+        mesh_adapter: "adapter_nist_rmf.mjs"
+        
+  canada:
+    jurisdiction: "Canada"
+    primary_regulations:
+      - name: "PIPEDA"
+        full_name: "Personal Information Protection and Electronic Documents Act"
+        effective_date: "2001-01-01"
+        authority: "Office of the Privacy Commissioner"
+        
+        requirements:
+          fair_information_principles:
+            - accountability: true
+            - identifying_purposes: true
+            - consent: true
+            - limiting_collection: true
+            - limiting_use_disclosure_retention: true
+            - accuracy: true
+            - safeguards: true
+            - openness: true
+            - individual_access: true
+            - challenging_compliance: true
+            
+        penalties:
+          max_fine: "100,000 CAD per violation"
+          
+        mesh_adapter: "adapter_pipeda.mjs"
+        
+  global_standards:
+    jurisdiction: "International"
+    primary_standards:
+      - name: "ISO/IEC 27001"
+        full_name: "Information Security Management System"
+        version: "2022"
+        authority: "ISO/IEC JTC 1"
+        certification_required: false
+        
+        requirements:
+          isms:
+            - risk_assessment: required
+            - risk_treatment: required
+            - security_controls: 93_controls
+            - internal_audit: annual
+            - management_review: annual
+            
+        mesh_adapter: "adapter_iso27001.mjs"
+        
+      - name: "ISO/IEC 42001"
+        full_name: "AI Management System"
+        version: "2023"
+        authority: "ISO/IEC JTC 1/SC 42"
+        certification_required: false
+        
+        requirements:
+          ai_governance:
+            - ai_policy: required
+            - risk_management: required
+            - impact_assessment: required
+            - transparency: required
+            - accountability: required
+            - continuous_improvement: required
+            
+        mesh_adapter: "adapter_iso42001.mjs"
+        
+      - name: "SOC2 Type II"
+        full_name: "Service Organization Control 2"
+        authority: "AICPA"
+        certification_required: false
+        
+        trust_service_criteria:
+          - security: required
+          - availability: optional
+          - processing_integrity: optional
+          - confidentiality: optional
+          - privacy: optional
+          
+        mesh_adapter: "adapter_soc2.mjs"
+
+# ═══════════════════════════════════════════════════════════════
+# AUTOMATED COMPLIANCE MAPPING
+# ═══════════════════════════════════════════════════════════════
+
+automatic_enforcement:
+  
+  data_classification:
+    enabled: true
+    categories:
+      - name: "personal_identifiable_information"
+        abbrev: "PII"
+        examples: ["name", "email", "phone", "address"]
+        regulations: ["GDPR", "CCPA", "PIPEDA"]
+        encryption_required: true
+        retention_limit_days: 2555  # 7 years
+        
+      - name: "protected_health_information"
+        abbrev: "PHI"
+        examples: ["medical_records", "diagnoses", "treatments"]
+        regulations: ["HIPAA"]
+        encryption_required: true
+        retention_limit_days: 2555
+        access_log_required: true
+        
+      - name: "sensitive_personal_data"
+        abbrev: "SPD"
+        examples: ["race", "religion", "sexual_orientation", "biometric"]
+        regulations: ["GDPR", "EU AI Act"]
+        explicit_consent_required: true
+        processing_justification_required: true
+        
+      - name: "financial_information"
+        abbrev: "FIN"
+        examples: ["credit_card", "bank_account", "ssn"]
+        regulations: ["PCI-DSS", "CCPA"]
+        encryption_required: true
+        tokenization_recommended: true
+        
+  geofencing:
+    enabled: true
+    rules:
+      - source_region: "EU"
+        allowed_destinations: ["EU", "EEA", "approved_adequacy_decisions"]
+        fallback: "reject_transfer"
+        
+      - source_region: "US"
+        data_type: "PHI"
+        allowed_destinations: ["US"]
+        fallback: "reject_transfer"
+        
+      - source_region: "CA"
+        allowed_destinations: ["CA", "US", "EU"]
+        sccs_required: true
+        
+  consent_management:
+    enabled: true
+    default_consent: false
+    granular_consent: true
+    consent_expiry_days: 730  # 2 years
+    withdraw_mechanism: "immediate"
+    
+  retention_policies:
+    enabled: true
+    auto_deletion: true
+    grace_period_days: 30
+    backup_retention_days: 90
+    
+  access_controls:
+    role_based_access: true
+    least_privilege: true
+    multi_factor_authentication: required_for_admin
+    session_timeout_minutes: 30
+    
+  audit_logging:
+    enabled: true
+    immutable_logs: true
+    retention_years: 7
+    real_time_alerting: true
+
+# ═══════════════════════════════════════════════════════════════
+# RISK ASSESSMENT MATRIX
+# ═══════════════════════════════════════════════════════════════
+
+risk_assessment:
+  
+  ai_risk_levels:
+    unacceptable:
+      prohibited: true
+      examples:
+        - "Social credit scoring for general population"
+        - "Subliminal manipulation techniques"
+        - "Real-time biometric identification in public spaces (EU)"
+      
+    high:
+      conformity_required: true
+      human_oversight: required
+      examples:
+        - "Credit scoring algorithms"
+        - "Healthcare diagnostic AI"
+        - "Employment screening"
+        - "Law enforcement predictive policing"
+        - "Educational scoring systems"
+        
+    limited:
+      transparency_required: true
+      examples:
+        - "Chatbots and virtual assistants"
+        - "Emotion recognition systems"
+        - "Deepfake generation"
+        
+    minimal:
+      self_regulation: recommended
+      examples:
+        - "Spam filters"
+        - "Recommendation systems"
+        - "Game AI"
+        
+  data_risk_levels:
+    critical:
+      encryption: "AES-256"
+      access_control: "multi_factor + justification"
+      audit_log: "real_time"
+      examples: ["PHI", "financial_credentials"]
+      
+    high:
+      encryption: "AES-256"
+      access_control: "multi_factor"
+      audit_log: "daily_review"
+      examples: ["PII", "biometric_data"]
+      
+    medium:
+      encryption: "AES-128"
+      access_control: "role_based"
+      audit_log: "weekly_review"
+      examples: ["user_preferences", "usage_analytics"]
+      
+    low:
+      encryption: "optional"
+      access_control: "authenticated"
+      audit_log: "monthly_review"
+      examples: ["public_data", "aggregated_statistics"]
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE MONITORING
+# ═══════════════════════════════════════════════════════════════
+
+monitoring:
+  
+  real_time_checks:
+    - check: "gdpr_consent_present"
+      frequency: "per_request"
+      auto_block: true
+      
+    - check: "data_residency_compliance"
+      frequency: "per_transfer"
+      auto_block: true
+      
+    - check: "retention_policy_adherence"
+      frequency: "daily"
+      auto_delete: true
+      
+    - check: "access_authorization"
+      frequency: "per_access"
+      auto_deny: true
+      
+  periodic_audits:
+    - audit: "dpia_review"
+      frequency: "quarterly"
+      responsible: "compliance_auditor"
+      
+    - audit: "vendor_compliance"
+      frequency: "annually"
+      responsible: "procurement_team"
+      
+    - audit: "policy_update_check"
+      frequency: "monthly"
+      responsible: "legal_team"
+      
+  alerts:
+    - condition: "consent_expired"
+      severity: "medium"
+      action: "notify_user"
+      
+    - condition: "unauthorized_transfer_attempt"
+      severity: "critical"
+      action: "block_and_alert_admin"
+      
+    - condition: "retention_limit_exceeded"
+      severity: "high"
+      action: "auto_delete_with_notification"
+      
+    - condition: "access_anomaly_detected"
+      severity: "critical"
+      action: "suspend_access_and_investigate"
+
+# ═══════════════════════════════════════════════════════════════
+# COMPLIANCE CERTIFICATIONS
+# ═══════════════════════════════════════════════════════════════
+
+certifications:
+  
+  - name: "SOC2 Type II"
+    issued_by: "Deloitte"
+    issue_date: "2025-06-01"
+    expiry_date: "2026-06-01"
+    scope: "Security, Availability, Confidentiality"
+    certificate_url: "https://certs.mesh.global/soc2-2025.pdf"
+    
+  - name: "ISO/IEC 27001:2022"
+    issued_by: "BSI Group"
+    issue_date: "2025-07-15"
+    expiry_date: "2028-07-15"
+    scope: "Information Security Management"
+    certificate_url: "https://certs.mesh.global/iso27001-2025.pdf"
+    
+  - name: "ISO/IEC 42001:2023"
+    issued_by: "TÜV SÜD"
+    issue_date: "2025-09-01"
+    expiry_date: "2028-09-01"
+    scope: "AI Management System"
+    certificate_url: "https://certs.mesh.global/iso42001-2025.pdf"
+    
+  - name: "EU-US Data Privacy Framework"
+    issued_by: "US Department of Commerce"
+    issue_date: "2025-03-01"
+    expiry_date: "2026-03-01"  # Annual renewal
+    scope: "Transatlantic Data Transfers"
+    certificate_url: "https://certs.mesh.global/dpf-2025.pdf"
+
+# ═══════════════════════════════════════════════════════════════
+# INCIDENT RESPONSE
+# ═══════════════════════════════════════════════════════════════
+
+incident_response:
+  
+  breach_notification:
+    gdpr_timeline: "72 hours to authority, without undue delay to individuals"
+    ccpa_timeline: "Without unreasonable delay"
+    hipaa_timeline: "60 days"
+    
+    notification_templates:
+      - type: "data_breach"
+        recipients: ["affected_individuals", "supervisory_authority", "media_if_high_risk"]
+        content_required:
+          - nature_of_breach
+          - categories_of_data
+          - approximate_number_affected
+          - likely_consequences
+          - measures_taken
+          - contact_point
+          
+  escalation_path:
+    - level: "L1"
+      role: "compliance_officer"
+      response_time: "1 hour"
+      
+    - level: "L2"
+      role: "legal_counsel"
+      response_time: "4 hours"
+      
+    - level: "L3"
+      role: "executive_team"
+      response_time: "12 hours"
+      
+    - level: "L4"
+      role: "board_of_directors"
+      response_time: "24 hours"
+      
+  remediation_actions:
+    - action: "contain_breach"
+      priority: 1
+      
+    - action: "assess_impact"
+      priority: 2
+      
+    - action: "notify_authorities"
+      priority: 3
+      
+    - action: "notify_individuals"
+      priority: 4
+      
+    - action: "implement_fixes"
+      priority: 5
+      
+    - action: "post_incident_review"
+      priority: 6
+
+# ═══════════════════════════════════════════════════════════════
+# EXTERNAL INTEGRATIONS
+# ═══════════════════════════════════════════════════════════════
+
+external_systems:
+  
+  - system: "OneTrust"
+    purpose: "Privacy management platform"
+    integration_type: "API"
+    data_sync: "real_time"
+    
+  - system: "Vanta"
+    purpose: "Automated compliance monitoring"
+    integration_type: "API"
+    data_sync: "daily"
+    
+  - system: "Drata"
+    purpose: "SOC2 automation"
+    integration_type: "API"
+    data_sync: "continuous"
+    
+  - system: "GDPR Representative Service"
+    provider: "DataRep"
+    regions: ["EU"]
+    contact: "representative@datarep.com"
+
+# ═══════════════════════════════════════════════════════════════
+# GOVERNANCE
+# ═══════════════════════════════════════════════════════════════
+
+governance:
+  
+  compliance_committee:
+    members:
+      - role: "Chief Compliance Officer"
+      - role: "Data Protection Officer"
+      - role: "Legal Counsel"
+      - role: "Chief Information Security Officer"
+      - role: "Chief Technology Officer"
+      
+    meeting_frequency: "monthly"
+    responsibilities:
+      - "Review compliance metrics"
+      - "Approve policy changes"
+      - "Investigate incidents"
+      - "Liaise with regulators"
+      
+  policy_review:
+    frequency: "quarterly"
+    next_review: "2026-01-30"
+    responsible: "compliance_committee"
+    
+  training:
+    mandatory_for: "all_employees"
+    frequency: "annually"
+    topics:
+      - "Data privacy fundamentals"
+      - "GDPR compliance"
+      - "AI ethics and responsible AI"
+      - "Incident response procedures"
+      - "Secure coding practices"
