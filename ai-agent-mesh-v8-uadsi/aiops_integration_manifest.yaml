@@ -1,0 +1,376 @@
+# AI-Ops Integration Manifest for UADSI
+# Comprehensive integration configuration for all supported platforms
+
+version: "1.0.0"
+description: "UADSI integrations with leading AI-Ops and workflow automation platforms"
+
+# ===== SERVICENOW INTEGRATION =====
+
+servicenow:
+  name: "ServiceNow ITSM Integration"
+  version: "1.0"
+  status: "production"
+  
+  capabilities:
+    - "Incident creation from drift events"
+    - "Trust telemetry as custom metrics"
+    - "Agent health status sync"
+    - "Compliance violation tracking"
+    - "Automated incident assignment"
+  
+  configuration:
+    instance: "${SERVICENOW_INSTANCE}"
+    username: "${SERVICENOW_USER}"
+    password: "${SERVICENOW_PASS}"
+    api_version: "v1"
+    
+  event_mappings:
+    trust_score_critical:
+      table: "incident"
+      urgency: "1"
+      impact: "1"
+      category: "Agent Management"
+      assignment_group: "AI Ops Team"
+      
+    drift_incident:
+      table: "incident"
+      urgency: "2"
+      impact: "2"
+      category: "Synchronization"
+      
+    compliance_violation:
+      table: "incident"
+      urgency: "1"
+      impact: "1"
+      category: "Compliance"
+  
+  custom_tables:
+    - name: "u_uadsi_metrics"
+      fields:
+        - { name: "u_metric_name", type: "string" }
+        - { name: "u_entity_id", type: "string" }
+        - { name: "u_trust_score", type: "decimal" }
+        - { name: "u_risk_avoided_usd", type: "decimal" }
+        - { name: "u_timestamp", type: "datetime" }
+
+# ===== DATADOG INTEGRATION =====
+
+datadog:
+  name: "Datadog Monitoring Integration"
+  version: "1.0"
+  status: "production"
+  
+  capabilities:
+    - "Trust score as custom metrics"
+    - "Real-time event streaming"
+    - "Log aggregation"
+    - "Custom dashboards"
+    - "Automated monitors and alerts"
+  
+  configuration:
+    api_key: "${DATADOG_API_KEY}"
+    app_key: "${DATADOG_APP_KEY}"
+    site: "datadoghq.com"
+    
+  metrics:
+    - name: "uadsi.trust_score"
+      type: "gauge"
+      unit: "percent"
+      tags: ["entity_id", "entity_type"]
+      
+    - name: "uadsi.risk_avoided_usd"
+      type: "gauge"
+      unit: "dollar"
+      tags: ["entity_id"]
+      
+    - name: "uadsi.compliance_sla"
+      type: "gauge"
+      unit: "percent"
+      tags: ["entity_id"]
+      
+    - name: "uadsi.agent_drift_rate"
+      type: "gauge"
+      unit: "percent"
+      tags: ["workflow_id"]
+      
+    - name: "uadsi.sync_freshness"
+      type: "gauge"
+      unit: "percent"
+      tags: ["workflow_id"]
+  
+  monitors:
+    - name: "UADSI Trust Score Critical"
+      type: "metric alert"
+      query: "avg(last_5m):avg:uadsi.trust_score{*} < 60"
+      thresholds:
+        critical: 60
+        warning: 75
+        
+    - name: "UADSI Drift Incidents High"
+      type: "metric alert"
+      query: "sum(last_10m):sum:uadsi.drift_incidents{severity:high} > 5"
+      thresholds:
+        critical: 10
+        warning: 5
+
+# ===== ZAPIER INTEGRATION =====
+
+zapier:
+  name: "Zapier Workflow Automation"
+  version: "1.0"
+  status: "production"
+  
+  capabilities:
+    - "Webhook triggers for trust events"
+    - "Real-time drift alerts"
+    - "Compliance violation notifications"
+    - "ROI milestone celebrations"
+    - "Custom workflow automation"
+  
+  configuration:
+    webhook_url: "${ZAPIER_WEBHOOK_URL}"
+    webhook_secret: "${ZAPIER_WEBHOOK_SECRET}"
+    
+  triggers:
+    - name: "Trust Score Updated"
+      event: "trust_score_updated"
+      description: "Fires when any entity's trust score changes"
+      fields:
+        - { name: "entity_id", type: "string" }
+        - { name: "trust_score", type: "number" }
+        - { name: "risk_avoided_usd", type: "number" }
+        
+    - name: "Drift Incident Detected"
+      event: "drift_incident_detected"
+      description: "Fires when synchronization drift is detected"
+      fields:
+        - { name: "incident_id", type: "string" }
+        - { name: "severity", type: "string" }
+        - { name: "workflow_id", type: "string" }
+        
+    - name: "Agent Health Changed"
+      event: "agent_health_changed"
+      description: "Fires when agent health status changes"
+      fields:
+        - { name: "agent_id", type: "string" }
+        - { name: "old_status", type: "string" }
+        - { name: "new_status", type: "string" }
+        
+    - name: "Compliance Violation"
+      event: "compliance_violation"
+      description: "Fires when a policy violation is detected"
+      fields:
+        - { name: "violation_id", type: "string" }
+        - { name: "severity", type: "string" }
+        - { name: "agent_id", type: "string" }
+        
+    - name: "ROI Milestone Reached"
+      event: "roi_milestone_reached"
+      description: "Fires when significant ROI milestone is achieved"
+      fields:
+        - { name: "milestone_type", type: "string" }
+        - { name: "risk_avoided_usd", type: "number" }
+
+# ===== MINDSTUDIO INTEGRATION =====
+
+mindstudio:
+  name: "MindStudio AI Workflow Integration"
+  version: "1.0"
+  status: "production"
+  
+  capabilities:
+    - "AI assistant with UADSI context"
+    - "Trust intelligence in AI workflows"
+    - "Real-time data streaming"
+    - "Custom AI agents"
+    - "Conversational analytics"
+  
+  configuration:
+    api_key: "${MINDSTUDIO_API_KEY}"
+    workspace_id: "${MINDSTUDIO_WORKSPACE_ID}"
+    base_url: "https://api.mindstudio.ai"
+    
+  ai_tools:
+    - name: "get_trust_score"
+      description: "Retrieve current trust score for an entity"
+      parameters:
+        - { name: "entity_id", type: "string", required: true }
+        - { name: "entity_type", type: "string", enum: ["agent", "workflow"] }
+        
+    - name: "get_drift_incidents"
+      description: "List active synchronization drift incidents"
+      parameters:
+        - { name: "severity", type: "string", enum: ["critical", "high", "medium", "low"] }
+        
+    - name: "get_recommendations"
+      description: "Get actionable recommendations"
+      parameters: []
+      
+    - name: "analyze_trust_trend"
+      description: "Analyze trust score trends over time"
+      parameters:
+        - { name: "time_range", type: "integer", default: 7 }
+
+# ===== AIRFLOW INTEGRATION =====
+
+airflow:
+  name: "Apache Airflow DAG Integration"
+  version: "1.0"
+  status: "production"
+  
+  capabilities:
+    - "Trust-based DAG triggering"
+    - "Automated remediation workflows"
+    - "Compliance audit scheduling"
+    - "Periodic reporting DAGs"
+    - "Custom UADSI sensors"
+  
+  configuration:
+    base_url: "${AIRFLOW_BASE_URL}"
+    username: "${AIRFLOW_USER}"
+    password: "${AIRFLOW_PASS}"
+    
+  dags:
+    - id: "uadsi_trust_score_handler"
+      description: "Handles trust score threshold breaches"
+      schedule: null  # Event-driven
+      trigger_rules:
+        - condition: "trust_score < 75"
+          action: "trigger"
+          
+    - id: "uadsi_drift_remediation"
+      description: "Automated drift incident remediation"
+      schedule: null  # Event-driven
+      trigger_rules:
+        - condition: "drift_severity == 'critical'"
+          action: "trigger"
+          
+    - id: "uadsi_compliance_audit"
+      description: "Periodic compliance auditing"
+      schedule: "0 9 1 * *"  # Monthly on 1st at 9 AM
+      
+    - id: "uadsi_trust_reporting"
+      description: "Generate and distribute trust reports"
+      schedule: "0 8 * * 1"  # Weekly on Monday at 8 AM
+      
+  sensors:
+    - name: "UADSITrustScoreSensor"
+      type: "custom"
+      description: "Monitors trust score and triggers when threshold breached"
+      polling_interval: 60
+      
+    - name: "UADSIDriftSensor"
+      type: "custom"
+      description: "Monitors for drift incidents"
+      polling_interval: 30
+
+# ===== N8N INTEGRATION =====
+
+n8n:
+  name: "n8n Workflow Automation"
+  version: "1.0"
+  status: "beta"
+  
+  capabilities:
+    - "Custom UADSI nodes"
+    - "Webhook triggers"
+    - "REST API access"
+    - "Visual workflow builder"
+  
+  nodes:
+    - name: "UADSI Trust Score"
+      type: "action"
+      description: "Get trust score for an entity"
+      
+    - name: "UADSI Drift Incidents"
+      type: "action"
+      description: "Query drift incidents"
+      
+    - name: "UADSI Webhook"
+      type: "trigger"
+      description: "Receive UADSI events"
+
+# ===== INTEGRATION PRIORITIES =====
+
+priorities:
+  tier_1_essential:
+    - servicenow
+    - datadog
+    - zapier
+    
+  tier_2_recommended:
+    - airflow
+    - mindstudio
+    
+  tier_3_emerging:
+    - n8n
+    - make
+    - workato
+
+# ===== COMMON PATTERNS =====
+
+integration_patterns:
+  event_driven:
+    description: "UADSI events trigger external workflows"
+    platforms: [zapier, airflow, n8n]
+    use_cases:
+      - "Trust score breach → PagerDuty alert"
+      - "Drift incident → Auto-remediation workflow"
+      - "Compliance violation → ServiceNow ticket"
+      
+  metric_streaming:
+    description: "Continuous trust metrics to monitoring platforms"
+    platforms: [datadog, prometheus, grafana]
+    use_cases:
+      - "Real-time dashboards"
+      - "Historical trend analysis"
+      - "Alerting and notifications"
+      
+  ai_augmented:
+    description: "AI assistants with UADSI intelligence"
+    platforms: [mindstudio, openai, anthropic]
+    use_cases:
+      - "Conversational trust analytics"
+      - "Automated root cause analysis"
+      - "Intelligent recommendations"
+
+# ===== AUTHENTICATION =====
+
+authentication:
+  methods:
+    - type: "api_key"
+      platforms: [datadog, mindstudio]
+      
+    - type: "basic_auth"
+      platforms: [servicenow, airflow]
+      
+    - type: "webhook_signature"
+      platforms: [zapier]
+      
+    - type: "oauth2"
+      platforms: [planned]
+
+# ===== RATE LIMITS =====
+
+rate_limits:
+  servicenow:
+    requests_per_minute: 100
+    
+  datadog:
+    metrics_per_minute: 1000
+    events_per_minute: 100
+    
+  zapier:
+    webhooks_per_minute: 100
+    
+  airflow:
+    dag_triggers_per_minute: 10
+
+# ===== SUPPORT & DOCUMENTATION =====
+
+support:
+  documentation_url: "https://docs.uadsi.ai/integrations"
+  api_reference: "https://api-docs.uadsi.ai"
+  examples_repo: "https://github.com/uadsi/integration-examples"
+  community_forum: "https://community.uadsi.ai"
+  support_email: "integrations@uadsi.ai"

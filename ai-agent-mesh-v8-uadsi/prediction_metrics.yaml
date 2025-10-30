@@ -1,0 +1,320 @@
+# UADSI Prediction & Root Cause Analysis Metrics
+
+version: "1.0.0"
+
+# ===== PREDICTION METRICS =====
+
+prediction_metrics:
+  accuracy:
+    name: "Prediction Accuracy"
+    description: "Percentage of correct predictions"
+    target: 85
+    formula: "correct_predictions / total_predictions * 100"
+    
+  precision:
+    name: "Prediction Precision"
+    description: "True positives / (True positives + False positives)"
+    target: 90
+    formula: "TP / (TP + FP)"
+    
+  recall:
+    name: "Prediction Recall"
+    description: "True positives / (True positives + False negatives)"
+    target: 80
+    formula: "TP / (TP + FN)"
+    
+  f1_score:
+    name: "F1 Score"
+    description: "Harmonic mean of precision and recall"
+    target: 85
+    formula: "2 * (precision * recall) / (precision + recall)"
+    
+  lead_time:
+    name: "Prediction Lead Time"
+    description: "Average hours before event that prediction was made"
+    target: 6
+    unit: "hours"
+    
+  false_positive_rate:
+    name: "False Positive Rate"
+    description: "Percentage of incorrect positive predictions"
+    target: 10
+    formula: "FP / (FP + TN) * 100"
+
+# ===== PREDICTION TYPES =====
+
+prediction_types:
+  failure_prediction:
+    description: "Predicts agent failures before they occur"
+    time_horizons: [1, 6, 24]  # hours
+    target_accuracy: 85
+    features_count: 10
+    model_type: "binary_classifier"
+    
+  drift_prediction:
+    description: "Predicts synchronization drift incidents"
+    time_horizons: [1, 3, 6]
+    target_accuracy: 80
+    features_count: 15
+    model_type: "binary_classifier"
+    
+  anomaly_detection:
+    description: "Detects abnormal patterns in agent behavior"
+    time_horizons: [0]  # real-time
+    target_accuracy: 90
+    features_count: 20
+    model_type: "autoencoder"
+    
+  policy_breach_prediction:
+    description: "Predicts potential compliance violations"
+    time_horizons: [6, 12, 24]
+    target_accuracy: 75
+    features_count: 12
+    model_type: "binary_classifier"
+
+# ===== ROOT CAUSE ANALYSIS =====
+
+root_cause_types:
+  configuration_drift:
+    name: "Configuration Drift"
+    description: "Agents have divergent configurations"
+    indicators:
+      - "Multiple context hash values"
+      - "Version mismatches"
+      - "Different capability sets"
+    recommendations:
+      - "Standardize configurations"
+      - "Implement config management"
+      - "Deploy versioning system"
+      
+  resource_contention:
+    name: "Resource Contention"
+    description: "Insufficient resources causing degradation"
+    indicators:
+      - "High CPU/memory usage"
+      - "Multiple unhealthy agents"
+      - "Execution timeouts"
+    recommendations:
+      - "Scale resources"
+      - "Implement quotas"
+      - "Review scheduling"
+      
+  network_latency:
+    name: "Network Latency"
+    description: "Network issues causing sync delays"
+    indicators:
+      - "High drift duration"
+      - "Timeout errors"
+      - "Packet loss indicators"
+    recommendations:
+      - "Optimize network topology"
+      - "Implement caching"
+      - "Review routing"
+      
+  version_mismatch:
+    name: "Version Mismatch"
+    description: "Incompatible agent versions"
+    indicators:
+      - "Multiple version numbers"
+      - "API incompatibilities"
+      - "Protocol errors"
+    recommendations:
+      - "Synchronize versions"
+      - "Rolling upgrades"
+      - "Compatibility matrix"
+      
+  data_corruption:
+    name: "Data Corruption"
+    description: "Invalid or corrupted data in workflows"
+    indicators:
+      - "Validation errors"
+      - "Checksum failures"
+      - "Parse exceptions"
+    recommendations:
+      - "Implement data validation"
+      - "Add checksums"
+      - "Review data pipelines"
+      
+  dependency_failure:
+    name: "Dependency Failure"
+    description: "External dependency unavailable or degraded"
+    indicators:
+      - "Connection errors"
+      - "Timeout patterns"
+      - "Service unavailable responses"
+    recommendations:
+      - "Implement circuit breakers"
+      - "Add retries with backoff"
+      - "Review dependency SLAs"
+
+# ===== CONFIDENCE SCORING =====
+
+confidence_factors:
+  data_volume:
+    weight: 0.30
+    description: "Amount of historical data available"
+    calculation: "min(sample_count / target_samples, 1.0)"
+    
+  feature_quality:
+    weight: 0.25
+    description: "Quality and variance of input features"
+    calculation: "1 - normalized_variance"
+    
+  prediction_clarity:
+    weight: 0.25
+    description: "How definitive the prediction is"
+    calculation: "abs(probability - 0.5) * 2"
+    
+  model_performance:
+    weight: 0.20
+    description: "Historical model accuracy"
+    calculation: "recent_accuracy / 100"
+
+# ===== FEATURE ENGINEERING =====
+
+feature_categories:
+  temporal:
+    description: "Time-based features"
+    features:
+      - execution_frequency
+      - time_since_last_failure
+      - time_of_day
+      - day_of_week
+      
+  performance:
+    description: "Performance metrics"
+    features:
+      - avg_duration
+      - duration_std_dev
+      - p95_duration
+      - throughput
+      
+  reliability:
+    description: "Reliability metrics"
+    features:
+      - failure_rate
+      - success_rate
+      - uptime_percentage
+      - mtbf
+      
+  trust:
+    description: "Trust score features"
+    features:
+      - current_trust_score
+      - trust_trend
+      - trust_volatility
+      - trust_percentile
+
+# ===== MODEL VERSIONING =====
+
+model_versions:
+  current:
+    version: "1.0.0"
+    trained_date: "2025-01-15"
+    training_samples: 100000
+    validation_accuracy: 87.5
+    
+  previous:
+    version: "0.9.0"
+    trained_date: "2024-12-01"
+    training_samples: 50000
+    validation_accuracy: 82.3
+    
+  training_schedule:
+    frequency: "weekly"
+    minimum_new_samples: 10000
+    validation_split: 0.2
+    test_split: 0.1
+
+# ===== PREDICTION THRESHOLDS =====
+
+prediction_thresholds:
+  high_risk:
+    probability: 0.75
+    action: "immediate_alert"
+    notification_channels: ["pagerduty", "slack"]
+    
+  medium_risk:
+    probability: 0.50
+    action: "warning"
+    notification_channels: ["slack", "email"]
+    
+  low_risk:
+    probability: 0.30
+    action: "log"
+    notification_channels: []
+
+# ===== RCA METRICS =====
+
+rca_metrics:
+  time_to_analyze:
+    name: "Time to Analyze"
+    description: "Time from incident detection to RCA completion"
+    target: 300
+    unit: "seconds"
+    
+  analysis_depth:
+    name: "Analysis Depth"
+    description: "Number of contributing factors identified"
+    target: 3
+    
+  recommendation_quality:
+    name: "Recommendation Quality"
+    description: "Percentage of recommendations that resolve issues"
+    target: 80
+    unit: "percent"
+    
+  confidence_score:
+    name: "Confidence Score"
+    description: "Confidence in root cause identification"
+    target: 0.85
+    range: [0, 1]
+
+# ===== CONTINUOUS IMPROVEMENT =====
+
+improvement_tracking:
+  prediction_validation:
+    description: "Track predictions vs actual outcomes"
+    retention_days: 90
+    metrics:
+      - accuracy_by_type
+      - false_positive_rate
+      - false_negative_rate
+      - calibration_error
+      
+  model_drift_detection:
+    description: "Monitor for model performance degradation"
+    check_interval_hours: 24
+    thresholds:
+      accuracy_drop: 0.05
+      prediction_shift: 0.10
+      
+  feedback_loop:
+    description: "Incorporate outcomes to improve models"
+    retraining_trigger:
+      accuracy_drop: 0.10
+      new_samples_threshold: 10000
+      days_since_last_training: 30
+
+# ===== BENCHMARKS =====
+
+industry_benchmarks:
+  failure_prediction_accuracy:
+    uadsi_target: 85
+    industry_average: 70
+    best_in_class: 90
+    
+  prediction_lead_time:
+    uadsi_target: 6  # hours
+    industry_average: 2
+    best_in_class: 12
+    
+  false_positive_rate:
+    uadsi_target: 10  # percent
+    industry_average: 25
+    best_in_class: 5
+    
+  rca_time:
+    uadsi_target: 5  # minutes
+    industry_average: 60
+    best_in_class: 2
