@@ -1,0 +1,481 @@
+# Data Classification Matrix
+# Defines classification levels and handling requirements for ORCA Platform
+
+version: '1.0'
+last_updated: '2025-10-30'
+
+# Classification levels (highest to lowest sensitivity)
+levels:
+  
+  restricted:
+    level: 4
+    color: red
+    description: >
+      Highly sensitive data that if disclosed could cause severe damage
+      to individuals, the organization, or partners. Requires maximum protection.
+    
+    examples:
+      - Authentication credentials (passwords, private keys)
+      - Payment card data (PAN, CVV)
+      - Biometric data
+      - Health records
+      - Social security numbers
+      - Cryptographic secrets
+      
+    requirements:
+      encryption_at_rest: required (AES-256+)
+      encryption_in_transit: required (TLS 1.3+)
+      access_control: role_based + mfa_required
+      storage_location: encrypted_vault_only
+      logging: access_audit_required
+      retention: minimal_necessary
+      transmission: encrypted_channels_only
+      disposal: secure_overwrite
+      labeling: required
+      
+    access_roles:
+      - system_admin (with MFA)
+      - security_team (break_glass)
+      
+    incident_severity: critical
+    breach_notification: immediate (<24h)
+    
+  confidential:
+    level: 3
+    color: orange
+    description: >
+      Sensitive business or personal information that requires protection
+      from unauthorized access. Disclosure could cause significant harm.
+    
+    examples:
+      - User email addresses
+      - API keys
+      - Workflow configurations
+      - Business logic and algorithms
+      - Customer contracts
+      - Financial reports
+      - Audit logs
+      - PII (names, addresses, phone numbers)
+      
+    requirements:
+      encryption_at_rest: required (AES-256)
+      encryption_in_transit: required (TLS 1.2+)
+      access_control: role_based
+      storage_location: secured_database
+      logging: access_logged
+      retention: as_per_policy
+      transmission: encrypted_preferred
+      disposal: standard_deletion
+      labeling: recommended
+      
+    access_roles:
+      - owner
+      - admin
+      - specific_roles (context-dependent)
+      
+    incident_severity: high
+    breach_notification: within_72h
+    
+  internal:
+    level: 2
+    color: yellow
+    description: >
+      Information for internal use that should not be publicly disclosed
+      but disclosure would not cause significant harm.
+    
+    examples:
+      - Usage metrics (anonymized)
+      - System performance data
+      - Internal documentation
+      - Process workflows (non-sensitive)
+      - Employee directory
+      - Internal communications
+      
+    requirements:
+      encryption_at_rest: recommended
+      encryption_in_transit: required
+      access_control: authenticated_users
+      storage_location: standard_database
+      logging: aggregated_metrics
+      retention: standard
+      transmission: authenticated_channels
+      disposal: standard_deletion
+      labeling: optional
+      
+    access_roles:
+      - all_authenticated_users
+      - employees
+      
+    incident_severity: medium
+    breach_notification: as_required_by_volume
+    
+  public:
+    level: 1
+    color: green
+    description: >
+      Information intended for public disclosure or already public.
+      No confidentiality concerns.
+    
+    examples:
+      - Marketing materials
+      - Public documentation
+      - Open source code
+      - Public API schemas
+      - Press releases
+      - Published blog posts
+      
+    requirements:
+      encryption_at_rest: optional
+      encryption_in_transit: optional
+      access_control: none
+      storage_location: any
+      logging: optional
+      retention: indefinite
+      transmission: any_channel
+      disposal: standard_deletion
+      labeling: not_required
+      
+    access_roles:
+      - public
+      - anonymous
+      
+    incident_severity: low
+    breach_notification: not_required
+
+# Data type mappings (ORCA-specific)
+data_types:
+  
+  authentication:
+    - data: passwords
+      classification: restricted
+      handling: never_store_plaintext, hash_with_argon2
+      
+    - data: api_keys
+      classification: confidential
+      handling: hmac_only, rotate_90d
+      
+    - data: session_tokens
+      classification: confidential
+      handling: short_lived, secure_random
+      
+    - data: oauth_tokens
+      classification: confidential
+      handling: encrypted_storage, auto_expire
+      
+  personal_identifiable_info:
+    - data: email
+      classification: confidential
+      pii: true
+      handling: gdpr_compliant, erasable
+      
+    - data: name
+      classification: confidential
+      pii: true
+      handling: gdpr_compliant, erasable
+      
+    - data: phone
+      classification: confidential
+      pii: true
+      handling: gdpr_compliant, erasable
+      
+    - data: ip_address
+      classification: confidential
+      pii: may_be
+      handling: log_rotation_90d, anonymize_after_30d
+      
+  operational:
+    - data: workflow_definitions
+      classification: confidential
+      handling: tenant_isolation, versioned
+      
+    - data: agent_configurations
+      classification: confidential
+      handling: tenant_isolation, audit_changes
+      
+    - data: execution_logs
+      classification: internal
+      handling: pii_redaction, rolling_delete_90d
+      
+    - data: error_traces
+      classification: internal
+      handling: pii_redaction, rolling_delete_30d
+      
+  analytics:
+    - data: usage_metrics
+      classification: internal
+      handling: anonymized, aggregated
+      
+    - data: performance_metrics
+      classification: internal
+      handling: no_pii, aggregated
+      
+  financial:
+    - data: payment_card_numbers
+      classification: restricted
+      handling: never_store, stripe_tokenization
+      
+    - data: billing_records
+      classification: confidential
+      handling: immutable, 7y_retention
+      
+    - data: invoices
+      classification: confidential
+      handling: immutable, 7y_retention
+      
+  compliance:
+    - data: audit_logs
+      classification: confidential
+      handling: immutable, 7y_retention, tamper_proof
+      
+    - data: access_logs
+      classification: confidential
+      handling: retention_1y, pii_redaction_after_90d
+      
+    - data: security_events
+      classification: confidential
+      handling: retention_2y, immutable
+
+# Handling procedures by classification
+procedures:
+  
+  creation:
+    restricted:
+      - Classify immediately upon creation
+      - Apply encryption before storage
+      - Log creation event with accessor identity
+      - Validate encryption keys are rotated
+      
+    confidential:
+      - Apply appropriate access controls
+      - Enable audit logging
+      - Encrypt if storing PII
+      
+    internal:
+      - Apply standard access controls
+      - Log access if required
+      
+    public:
+      - No special requirements
+      
+  storage:
+    restricted:
+      - Encrypted vault (Supabase Vault, AWS Secrets Manager)
+      - Access via secrets bridge only
+      - No caching allowed
+      - Rotate keys every 90 days
+      
+    confidential:
+      - Encrypted database (AES-256)
+      - RBAC enforcement
+      - Tenant isolation in multi-tenant tables
+      - Backup encryption enabled
+      
+    internal:
+      - Standard database
+      - Authentication required
+      - Tenant isolation where applicable
+      
+    public:
+      - Any storage
+      - CDN-friendly
+      
+  transmission:
+    restricted:
+      - TLS 1.3+ mandatory
+      - Certificate pinning recommended
+      - No transmission over email
+      - Use signed URLs for downloads
+      
+    confidential:
+      - TLS 1.2+ mandatory
+      - Authenticated channels
+      - Signed URLs for external sharing
+      
+    internal:
+      - TLS 1.2+ mandatory
+      - Authenticated channels
+      
+    public:
+      - TLS optional
+      - CDN delivery acceptable
+      
+  access:
+    restricted:
+      - MFA required
+      - Break-glass procedures documented
+      - All access logged and alerted
+      - Quarterly access reviews
+      
+    confidential:
+      - RBAC enforcement
+      - All access logged
+      - Annual access reviews
+      
+    internal:
+      - Authentication required
+      - Logged for security events
+      
+    public:
+      - No restrictions
+      
+  disposal:
+    restricted:
+      - Secure overwrite (1 pass minimum)
+      - Cryptographic erasure (delete encryption key)
+      - Verify deletion completed
+      - Document disposal
+      
+    confidential:
+      - Standard deletion
+      - Verify not in backups after retention
+      - Document if subject access request
+      
+    internal:
+      - Standard deletion
+      
+    public:
+      - Standard deletion
+
+# Classification workflows
+workflows:
+  
+  data_creation:
+    1. Creator identifies data sensitivity
+    2. System applies classification label
+    3. Appropriate controls auto-applied
+    4. Audit log entry created
+    
+  reclassification:
+    trigger: Data sensitivity changes
+    steps:
+      1. Request reclassification (requires justification)
+      2. Security team reviews
+      3. Approval required for downgrade
+      4. Controls updated
+      5. Affected users notified
+    
+  access_request:
+    1. User requests access to classified data
+    2. System checks role permissions
+    3. If restricted, requires approval + MFA
+    4. Access granted with expiration
+    5. Access logged
+    
+  breach_response:
+    restricted:
+      1. Immediate incident declared (SEV-1)
+      2. Security team notified
+      3. Access logs pulled
+      4. Legal/DPO notified within 1 hour
+      5. Affected users notified <24h
+      
+    confidential:
+      1. Incident declared (SEV-2)
+      2. Security team notified
+      3. Impact assessment within 24h
+      4. Legal/DPO notified within 72h if PII
+      5. Affected users notified per GDPR
+      
+    internal:
+      1. Incident logged (SEV-3)
+      2. Impact assessment
+      3. Remediation as needed
+      
+    public:
+      1. No breach (already public)
+
+# Automated classification (ML-assisted)
+auto_classification:
+  enabled: true
+  confidence_threshold: 0.95
+  
+  patterns:
+    restricted:
+      - regex: '\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'
+        type: credit_card
+      - regex: '\b\d{3}-\d{2}-\d{4}\b'
+        type: ssn
+      - keyword: ['password', 'secret', 'private_key']
+        
+    confidential:
+      - regex: '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+        type: email
+      - regex: 'orca_[a-zA-Z0-9_-]{24,}'
+        type: api_key
+      - keyword: ['api_key', 'token', 'auth']
+      
+  review_required: If confidence < threshold
+
+# Compliance mapping
+compliance_frameworks:
+  gdpr:
+    restricted: Special categories (Article 9)
+    confidential: Personal data (Article 4)
+    internal: Organizational data
+    public: Non-personal
+    
+  ccpa:
+    restricted: Sensitive personal information
+    confidential: Personal information
+    internal: Business records
+    public: Publicly available
+    
+  pci_dss:
+    restricted: Cardholder data (PAN, CVV)
+    confidential: Sensitive authentication data
+    internal: Transaction logs
+    public: Merchant information
+    
+  sox:
+    restricted: Authentication credentials
+    confidential: Financial records
+    internal: Business processes
+    public: Public filings
+    
+  hipaa:
+    restricted: PHI (Protected Health Information)
+    confidential: Health records
+    internal: Administrative data
+    public: Public health data
+
+# Training and awareness
+training:
+  frequency: annual
+  required_for: all_employees
+  
+  modules:
+    - Data classification overview
+    - Handling restricted data
+    - Incident reporting procedures
+    - Data subject rights
+    
+  certification: required
+  retrain_triggers:
+    - Policy update
+    - Incident involvement
+    - Role change to higher access
+
+# Monitoring and auditing
+monitoring:
+  classification_compliance:
+    - Unclassified data detection
+    - Misclassification alerts
+    - Access pattern anomalies
+    - Unauthorized access attempts
+    
+  audit_frequency:
+    restricted: quarterly
+    confidential: annually
+    internal: as_needed
+    public: not_required
+    
+  reports:
+    - Classification distribution
+    - Reclassification requests
+    - Access violations
+    - Disposal verification
+
+# Contact
+owner: Chief Information Security Officer (CISO)
+dpo: dpo@orca-platform.example
+security: security@orca-platform.example

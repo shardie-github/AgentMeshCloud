@@ -1,0 +1,327 @@
+# Data Retention Policy
+# Defines retention periods for all data categories in ORCA Platform
+# Compliance: GDPR Article 5(1)(e) - Storage limitation principle
+
+version: '1.0'
+last_updated: '2025-10-30'
+next_review: '2026-04-30'
+
+# Global defaults
+defaults:
+  active_retention: 90d  # While account active
+  post_deletion_grace: 30d  # After user-initiated deletion
+  backup_retention: 90d  # Backups older than this are purged
+  audit_retention: 7y  # Legal requirement for audit trails
+
+# Data categories and specific retention rules
+categories:
+  
+  # Identity and Authentication
+  authentication:
+    - data: user_email
+      retention: account_lifetime + 30d
+      legal_basis: Contract / Consent
+      deletion_method: hard_delete
+      exceptions:
+        - reason: Legal hold (dispute)
+          retention: dispute_resolution + 1y
+      
+    - data: user_password_hash
+      retention: account_lifetime + 7d
+      legal_basis: Consent
+      deletion_method: overwrite_zeros
+      notes: Minimal retention for SSO migration support
+      
+    - data: session_tokens
+      retention: 1h (access) / 30d (refresh)
+      legal_basis: Legitimate Interest
+      deletion_method: auto_expire
+      
+    - data: api_keys
+      retention: until_revoked + 90d
+      legal_basis: Contract
+      deletion_method: hard_delete
+      notes: 90d retention for audit trail
+      
+    - data: oauth_tokens
+      retention: until_revoked
+      legal_basis: Consent
+      deletion_method: revoke_and_delete
+  
+  # Operational Data
+  operational:
+    - data: workflow_definitions
+      retention: 3y_after_deletion
+      legal_basis: Contract
+      deletion_method: soft_delete_then_hard
+      soft_delete_period: 30d
+      notes: Allow recovery from accidental deletion
+      
+    - data: workflow_execution_logs
+      retention: 90d
+      legal_basis: Contract
+      deletion_method: rolling_deletion
+      exceptions:
+        - reason: Error logs
+          retention: 1y
+      
+    - data: agent_registry_entries
+      retention: 3y_after_deletion
+      legal_basis: Contract
+      deletion_method: soft_delete_then_hard
+      soft_delete_period: 30d
+      
+    - data: uadsi_reports
+      retention: 7y
+      legal_basis: Contract / Legal Obligation
+      deletion_method: archive_then_delete
+      archive_after: 1y
+      notes: Audit and compliance requirement
+      
+    - data: webhooks_payloads
+      retention: 30d
+      legal_basis: Contract
+      deletion_method: rolling_deletion
+      notes: Debugging and retry support
+      
+  # Audit and Compliance
+  audit:
+    - data: audit_logs
+      retention: 7y
+      legal_basis: Legal Obligation
+      deletion_method: archive_then_delete
+      archive_after: 2y
+      immutable: true
+      notes: Compliance with SOX, GDPR Article 30
+      
+    - data: access_logs
+      retention: 1y
+      legal_basis: Legitimate Interest (security)
+      deletion_method: rolling_deletion
+      pii_redaction: after_90d
+      
+    - data: security_events
+      retention: 2y
+      legal_basis: Legal Obligation
+      deletion_method: archive_then_delete
+      archive_after: 6mo
+      
+  # Analytics and Telemetry
+  analytics:
+    - data: usage_metrics
+      retention: 2y
+      legal_basis: Legitimate Interest
+      deletion_method: aggregation_then_delete
+      aggregation_period: 30d
+      notes: Raw data aggregated to hourly/daily summaries
+      
+    - data: error_traces
+      retention: 30d
+      legal_basis: Legitimate Interest
+      deletion_method: rolling_deletion
+      pii_redaction: on_collection
+      
+    - data: performance_metrics
+      retention: 90d
+      legal_basis: Legitimate Interest
+      deletion_method: rolling_deletion
+      downsampling: 7d → hourly
+      
+  # Financial
+  financial:
+    - data: billing_records
+      retention: 7y
+      legal_basis: Legal Obligation (tax)
+      deletion_method: archive_only
+      immutable: true
+      notes: Cannot delete - tax law requirement
+      
+    - data: payment_card_data
+      retention: not_stored
+      legal_basis: Contract
+      notes: Tokenized by Stripe (PCI DSS)
+      
+    - data: invoices
+      retention: 7y
+      legal_basis: Legal Obligation
+      deletion_method: archive_only
+      
+  # Support and Communications
+  support:
+    - data: support_tickets
+      retention: 3y_after_resolution
+      legal_basis: Contract
+      deletion_method: soft_delete_then_hard
+      soft_delete_period: 90d
+      
+    - data: email_communications
+      retention: 90d_after_send
+      legal_basis: Contract / Consent
+      deletion_method: rolling_deletion
+      exceptions:
+        - reason: Contractual emails
+          retention: 3y
+      
+    - data: chat_transcripts
+      retention: 1y
+      legal_basis: Contract
+      deletion_method: archive_then_delete
+      archive_after: 6mo
+      
+  # Technical and System
+  technical:
+    - data: ip_addresses
+      retention: 90d
+      legal_basis: Legitimate Interest (security)
+      deletion_method: rolling_deletion
+      pii_status: may_be_pii
+      
+    - data: system_logs
+      retention: 30d
+      legal_basis: Legitimate Interest
+      deletion_method: rolling_deletion
+      pii_redaction: on_collection
+      
+    - data: database_backups
+      retention: 90d
+      legal_basis: Legitimate Interest (DR)
+      deletion_method: automated_purge
+      encryption: required
+      
+    - data: disaster_recovery_snapshots
+      retention: 30d
+      legal_basis: Legitimate Interest
+      deletion_method: automated_purge
+
+# Deletion methods explained
+deletion_methods:
+  hard_delete:
+    description: Immediate permanent deletion from all systems
+    overwrite: false
+    
+  overwrite_zeros:
+    description: Overwrite data with zeros before deletion
+    passes: 1
+    
+  soft_delete_then_hard:
+    description: Mark as deleted (user recoverable), then permanent delete
+    grace_period: 30d
+    
+  rolling_deletion:
+    description: Automated deletion on schedule (e.g., daily for >90d data)
+    check_frequency: daily
+    
+  archive_then_delete:
+    description: Move to cold storage, then delete after period
+    archive_storage: s3_glacier
+    
+  archive_only:
+    description: Archive indefinitely (legal requirement)
+    cannot_delete: true
+    
+  auto_expire:
+    description: TTL-based expiration (e.g., Redis, session stores)
+    mechanism: ttl
+    
+  aggregation_then_delete:
+    description: Aggregate to summary statistics, delete raw data
+    retain_summaries: true
+    
+  revoke_and_delete:
+    description: Revoke access token, then delete
+    revoke_first: true
+
+# Data subject rights impact
+data_subject_rights:
+  right_to_erasure:
+    scope: All personal data except legal obligations
+    response_time: 30d
+    exceptions:
+      - Legal obligation (billing, audit logs)
+      - Defense of legal claims
+      - Archived backups (deleted in normal course)
+    
+  right_to_data_portability:
+    scope: User-provided data in structured format
+    format: JSON
+    delivery: Signed download URL
+    
+  right_to_rectification:
+    scope: All mutable personal data
+    method: Self-service UI + API
+    
+  right_to_restriction:
+    scope: Processing paused pending verification
+    implementation: soft_delete flag
+
+# Automated enforcement
+automation:
+  enabled: true
+  
+  scheduled_jobs:
+    - name: purge_expired_sessions
+      schedule: '0 * * * *'  # Hourly
+      target: session_tokens
+      
+    - name: delete_old_workflow_logs
+      schedule: '0 2 * * *'  # Daily at 2 AM
+      target: workflow_execution_logs
+      retention: 90d
+      
+    - name: archive_old_reports
+      schedule: '0 3 * * 0'  # Weekly Sunday 3 AM
+      target: uadsi_reports
+      archive_after: 1y
+      
+    - name: purge_old_backups
+      schedule: '0 4 * * *'  # Daily at 4 AM
+      target: database_backups
+      retention: 90d
+      
+    - name: aggregate_usage_metrics
+      schedule: '0 5 * * *'  # Daily at 5 AM
+      target: usage_metrics
+      aggregate_older_than: 30d
+      
+  compliance_checks:
+    - name: verify_audit_log_retention
+      schedule: '0 0 1 * *'  # Monthly
+      ensure_minimum: 7y
+      
+    - name: verify_no_overdue_deletions
+      schedule: '0 6 * * *'  # Daily at 6 AM
+      alert_if_overdue: 7d
+
+# Exceptions and legal holds
+legal_holds:
+  process:
+    1. Legal team creates hold in system
+    2. Automated deletion suspended for affected data
+    3. Data flagged with hold_id
+    4. Hold released when litigation resolved
+    5. Normal retention resumes
+    
+  override_retention: true
+  require_approval: legal_team
+
+# Monitoring and reporting
+monitoring:
+  metrics:
+    - data_deleted_volume_gb
+    - deletion_jobs_success_rate
+    - overdue_deletions_count
+    - legal_holds_active_count
+    
+  reports:
+    - name: Monthly Retention Compliance Report
+      frequency: monthly
+      recipients: [dpo, legal, security]
+      
+    - name: Quarterly Data Inventory Review
+      frequency: quarterly
+      recipients: [dpo, ciso, cto]
+
+# Contact
+dpo:
+  email: dpo@orca-platform.example
+  escalation: legal@orca-platform.example

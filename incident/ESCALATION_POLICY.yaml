@@ -1,0 +1,325 @@
+# Incident Escalation Policy
+# Defines escalation paths and response times for different severities
+
+version: '1.0'
+last_updated: '2025-10-30'
+next_review: '2026-04-30'
+
+# Severity levels
+severities:
+  SEV1:
+    name: Critical
+    description: Service completely down, data loss, or security breach
+    examples:
+      - Complete platform outage
+      - Database corruption or data loss
+      - Active security breach or ransomware
+      - Payment processing down (revenue impact)
+    response_time: 15m # Must acknowledge within 15 minutes
+    update_frequency: 30m # Status updates every 30 minutes
+    stakeholder_notification: immediate
+    escalation_delay: 30m # Escalate if not resolved in 30 minutes
+    
+  SEV2:
+    name: High
+    description: Major functionality impaired, significant user impact
+    examples:
+      - API degraded performance (>5s latency)
+      - Workflow execution failures (>10% error rate)
+      - Authentication issues affecting subset of users
+      - Critical integration down (n8n, Zapier)
+    response_time: 1h
+    update_frequency: 2h
+    stakeholder_notification: within_1h
+    escalation_delay: 2h
+    
+  SEV3:
+    name: Medium
+    description: Non-critical functionality impaired, workaround available
+    examples:
+      - Report generation delays
+      - Non-critical UI bugs
+      - Minor performance degradation
+      - Single tenant issues
+    response_time: 4h
+    update_frequency: daily
+    stakeholder_notification: next_business_day
+    escalation_delay: 8h
+    
+  SEV4:
+    name: Low
+    description: Minor issues, cosmetic bugs, feature requests
+    examples:
+      - UI/UX improvements
+      - Documentation gaps
+      - Nice-to-have features
+    response_time: 1d
+    update_frequency: weekly
+    stakeholder_notification: not_required
+    escalation_delay: none
+
+# On-call rotation
+on_call:
+  primary:
+    role: SRE Engineer
+    contact:
+      slack: '@oncall-sre'
+      email: oncall-sre@orca-platform.example
+      phone: '+1-XXX-XXX-XXXX'
+      pagerduty: https://orca.pagerduty.com/schedules/SRE
+    
+  secondary:
+    role: Senior Engineer
+    contact:
+      slack: '@oncall-secondary'
+      email: oncall-secondary@orca-platform.example
+      phone: '+1-XXX-XXX-XXXX'
+      pagerduty: https://orca.pagerduty.com/schedules/SECONDARY
+    
+  manager:
+    role: Engineering Manager
+    contact:
+      slack: '@engineering-manager'
+      email: em@orca-platform.example
+      phone: '+1-XXX-XXX-XXXX'
+    
+  executive:
+    role: CTO
+    contact:
+      slack: '@cto'
+      email: cto@orca-platform.example
+      phone: '+1-XXX-XXX-XXXX'
+
+# Escalation paths by severity
+escalation_paths:
+  SEV1:
+    level_0: # Immediate
+      - Primary on-call
+    level_1: # +30 minutes if not acknowledged
+      - Secondary on-call
+      - Engineering Manager
+    level_2: # +1 hour if not resolved
+      - CTO
+      - Customer Success Lead
+    level_3: # +2 hours if not resolved
+      - CEO
+      - All hands (emergency)
+    
+  SEV2:
+    level_0: # Immediate
+      - Primary on-call
+    level_1: # +2 hours if not resolved
+      - Secondary on-call
+    level_2: # +4 hours if not resolved
+      - Engineering Manager
+    
+  SEV3:
+    level_0: # Within 4 hours
+      - Primary on-call
+    level_1: # Next business day if not resolved
+      - Team lead
+    
+  SEV4:
+    level_0: # Best effort
+      - Team backlog
+
+# Communication channels
+communication:
+  slack:
+    incidents_channel: '#incidents'
+    on_call_channel: '#on-call'
+    status_channel: '#status-updates'
+    customer_success: '#customer-success'
+    
+  status_page:
+    url: https://status.orca.example
+    update_required:
+      - SEV1 (within 15 minutes)
+      - SEV2 (within 1 hour)
+    
+  email:
+    internal_list: engineering@orca-platform.example
+    leadership_list: leadership@orca-platform.example
+    customer_list: customers@orca-platform.example # Via support system
+    
+  pagerduty:
+    integration_key: ${PAGERDUTY_INTEGRATION_KEY}
+    auto_escalate: true
+    escalation_rules: # Define in PagerDuty UI
+      - Wait 30 minutes, escalate to level 1
+      - Wait 1 hour, escalate to level 2
+
+# Incident response workflow
+workflow:
+  declaration:
+    trigger:
+      - Alert from monitoring system
+      - Customer report (via support)
+      - Manual declaration by team member
+    
+    steps:
+      1:
+        action: Acknowledge incident
+        responsible: On-call engineer
+        sla: Response time per severity
+        
+      2:
+        action: Assess severity
+        responsible: On-call engineer
+        criteria:
+          - User impact (how many affected?)
+          - Revenue impact (is billing working?)
+          - Data risk (potential data loss?)
+          - Security risk (breach or vulnerability?)
+        
+      3:
+        action: Create incident channel
+        responsible: On-call engineer
+        format: '#incident-YYYY-MM-DD-description'
+        
+      4:
+        action: Notify stakeholders
+        responsible: On-call engineer
+        channels: Per severity level
+        
+      5:
+        action: Begin investigation
+        responsible: On-call engineer + team
+        
+  mitigation:
+    priority: Stop the bleeding first
+    options:
+      - Rollback deployment
+      - Failover to backup
+      - Disable problematic feature (feature flag)
+      - Scale up resources
+      - Apply hotfix
+    
+    documentation:
+      - Timeline of events
+      - Actions taken
+      - Impact assessment
+      
+  resolution:
+    criteria:
+      - Service restored to normal
+      - Root cause identified
+      - Permanent fix deployed OR workaround documented
+      - No customer impact
+      
+    closing:
+      1: Mark incident as resolved
+      2: Update status page
+      3: Notify stakeholders
+      4: Schedule post-mortem (SEV1/SEV2 only)
+      
+  post_mortem:
+    required_for:
+      - SEV1 (always)
+      - SEV2 (if customer-facing)
+      - SEV3 (at discretion of EM)
+      
+    timeline:
+      - Schedule within 48 hours of resolution
+      - Complete within 1 week
+      
+    attendees:
+      - Incident responders
+      - Engineering Manager
+      - Product Owner (if feature-related)
+      - Customer Success (if customer-impacting)
+      
+    deliverable:
+      - Post-mortem document (see POST_MORTEM_TEMPLATE.md)
+      - Action items with owners and deadlines
+      - Share with team (non-blameful culture)
+
+# Runbook index
+runbooks:
+  - name: Database Failure
+    file: RUNBOOKS/database_failure.md
+    triggers:
+      - Database connection errors
+      - Replication lag alerts
+      - Data corruption detected
+    
+  - name: High Error Rate
+    file: RUNBOOKS/high_error_rate.md
+    triggers:
+      - Error rate >5%
+      - 5xx responses spiking
+      
+  - name: Slow API Performance
+    file: RUNBOOKS/slow_api.md
+    triggers:
+      - P95 latency >1s
+      - Timeout alerts
+      
+  - name: Adapter Outage
+    file: RUNBOOKS/adapter_outage.md
+    triggers:
+      - n8n/Zapier connection failures
+      - Webhook delivery failures
+      
+  - name: Deployment Failure
+    file: RUNBOOKS/deployment_failure.md
+    triggers:
+      - Failed smoke tests
+      - Post-deployment errors
+      
+  - name: Security Breach
+    file: RUNBOOKS/security_breach.md
+    triggers:
+      - Unusual authentication activity
+      - Data exfiltration alerts
+      - Vulnerability disclosure
+
+# Metrics and reporting
+metrics:
+  tracked:
+    - Mean Time To Acknowledge (MTTA)
+    - Mean Time To Resolve (MTTR)
+    - Incidents by severity (monthly)
+    - False positive rate
+    - Escalation frequency
+    
+  targets:
+    MTTA_SEV1: <15m
+    MTTA_SEV2: <1h
+    MTTR_SEV1: <4h
+    MTTR_SEV2: <8h
+    false_positive_rate: <10%
+    
+  reports:
+    frequency: monthly
+    distribution:
+      - Engineering team
+      - Leadership
+      - Board (quarterly summary)
+
+# Training and drills
+training:
+  onboarding:
+    - Review escalation policy
+    - Shadow on-call shift
+    - Practice incident response
+    
+  ongoing:
+    - Quarterly incident response drill
+    - Review post-mortems
+    - Update runbooks after incidents
+    
+  gameday:
+    frequency: quarterly
+    scenarios:
+      - Database failure
+      - Region outage
+      - DDoS attack
+      - Ransomware
+    participants: All engineering + leadership
+
+# Contact
+policy_owner: Engineering Manager
+dpo: dpo@orca-platform.example
+security_team: security@orca-platform.example
+support_team: support@orca-platform.example

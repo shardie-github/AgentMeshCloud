@@ -1,0 +1,18 @@
+Data Element,Category,Purpose,Legal Basis,Retention Period,Location,Access Control,Encryption
+User Email,PII,Authentication & Communication,Consent / Legitimate Interest,Account lifetime + 30 days,Supabase (US),RBAC - Owner/Admin only,AES-256 at rest
+User Name,PII,Identification,Consent,Account lifetime + 30 days,Supabase (US),RBAC - Owner/Admin only,AES-256 at rest
+User Password Hash,Sensitive,Authentication,Consent,Account lifetime + 7 days,Supabase (US),System only,Argon2 + AES-256
+API Keys,Credentials,Machine Authentication,Legitimate Interest,Until revoked + 90 days,Supabase (US),RBAC - Owner/Admin only,HMAC-SHA256 + AES-256
+Workflow Definitions,Operational,Service Delivery,Contract,3 years after deletion,Supabase (US),Tenant-scoped RBAC,AES-256 at rest
+Agent Registry Entries,Operational,Service Delivery,Contract,3 years after deletion,Supabase (US),Tenant-scoped RBAC,AES-256 at rest
+UADSI Reports,Operational,Service Delivery,Contract,7 years (audit),S3 + Supabase,Tenant-scoped RBAC,AES-256 + S3 SSE
+Audit Logs,Compliance,Security & Audit,Legal Obligation,7 years,CloudWatch / Supabase,Admin only,AES-256 at rest
+Session Tokens,Credentials,Session Management,Legitimate Interest,1 hour (access) / 30 days (refresh),Redis / In-memory,System only,TLS in transit
+Webhook URLs,Integration,Service Delivery,Contract,Until integration removed,Supabase (US),Tenant-scoped RBAC,AES-256 at rest
+IP Addresses,Technical,Security & Analytics,Legitimate Interest,90 days,CloudWatch,Admin only,AES-256 at rest
+Usage Metrics,Analytics,Service Improvement,Legitimate Interest,2 years,Prometheus / TimescaleDB,Admin only,AES-256 at rest
+Billing Information,Financial,Payment Processing,Contract,7 years (tax),Stripe (PCI-compliant),Owner only,Stripe encryption
+Payment Card Data,Financial,Payment Processing,Contract,Not stored (tokenized),Stripe (PCI-compliant),Not accessible,Stripe PCI DSS Level 1
+Tenant Metadata,Operational,Multi-tenancy,Contract,Account lifetime + 3 years,Supabase (US),Tenant-scoped RBAC,AES-256 at rest
+Error Traces,Technical,Debugging & Support,Legitimate Interest,30 days,Sentry / CloudWatch,Admin only,Redacted PII + AES-256
+Support Tickets,Support,Customer Service,Contract,3 years after resolution,Zendesk / Supabase,Support + Admin,AES-256 at rest
