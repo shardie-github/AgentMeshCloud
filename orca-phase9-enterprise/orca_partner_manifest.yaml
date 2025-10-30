@@ -1,0 +1,542 @@
+# ORCA Partner Ecosystem Manifest
+# Strategic partnerships, integrations, and go-to-market alliances
+# Version 1.0 | October 30, 2025
+
+metadata:
+  version: "1.0"
+  last_updated: "2025-10-30"
+  partner_count: 23
+  integration_count: 47
+  co_sell_agreements: 8
+  joint_customers: 19
+
+# Strategic Partnership Tiers
+partnership_tiers:
+  platinum:
+    description: "Deep technical integration + co-sell + joint GTM"
+    requirements:
+      - technical_integration: "MCP-native connector"
+      - co_sell_agreement: true
+      - joint_customer_target: 10
+      - marketing_commitment: "$100K+ annually"
+    benefits:
+      - revenue_share: "20-30%"
+      - roadmap_influence: "Quarterly steering committee"
+      - co_marketing: "Joint webinars, case studies, events"
+      - support_sla: "Dedicated partner success manager"
+    
+  gold:
+    description: "Technical integration + co-marketing"
+    requirements:
+      - technical_integration: "API/SDK integration"
+      - joint_customer_target: 5
+      - marketing_commitment: "$50K+ annually"
+    benefits:
+      - revenue_share: "15-20%"
+      - roadmap_influence: "Bi-annual product reviews"
+      - co_marketing: "Joint case studies, blogs"
+      - support_sla: "Partner support tier 2"
+    
+  silver:
+    description: "Integration partner"
+    requirements:
+      - technical_integration: "Basic API integration"
+      - joint_customer_target: 2
+    benefits:
+      - revenue_share: "10-15%"
+      - co_marketing: "Listed in partner directory"
+      - support_sla: "Standard partner support"
+
+# Cloud Platform Partnerships
+cloud_platforms:
+  aws:
+    partner_name: "Amazon Web Services (AWS)"
+    tier: "PLATINUM"
+    relationship_type: "Strategic Technology Partner"
+    programs:
+      - "AWS ISV Accelerate Program"
+      - "AWS AI Ops Hub (Featured Partner)"
+      - "AWS Marketplace (Listed)"
+    integrations:
+      - service: "AWS CloudWatch"
+        type: "Telemetry ingestion"
+        status: "GA"
+      - service: "AWS Step Functions"
+        type: "Workflow orchestration"
+        status: "GA"
+      - service: "AWS Lambda"
+        type: "Serverless agent hosting"
+        status: "GA"
+      - service: "AWS Secrets Manager"
+        type: "Credential management"
+        status: "GA"
+      - service: "AWS GovCloud"
+        type: "FedRAMP deployment"
+        status: "IN_PROGRESS"
+    joint_customers: 28
+    co_sell_deals_closed: 12
+    revenue_2025_ytd: "$3.2M"
+    contact:
+      name: "AWS Partner Team"
+      email: "orca-partnership@amazon.com"
+    
+  azure:
+    partner_name: "Microsoft Azure"
+    tier: "GOLD"
+    relationship_type: "Technology Partner"
+    programs:
+      - "Microsoft AI Cloud Partner Program"
+      - "Azure Marketplace (Listed)"
+    integrations:
+      - service: "Azure Monitor"
+        type: "Telemetry ingestion"
+        status: "GA"
+      - service: "Azure AD (Entra ID)"
+        type: "SSO/RBAC"
+        status: "GA"
+      - service: "Azure Logic Apps"
+        type: "Workflow orchestration"
+        status: "BETA"
+      - service: "Azure Key Vault"
+        type: "Credential management"
+        status: "GA"
+    joint_customers: 14
+    co_sell_deals_closed: 5
+    revenue_2025_ytd: "$1.8M"
+    contact:
+      name: "Azure Partner Team"
+      email: "orca-partnership@microsoft.com"
+    
+  gcp:
+    partner_name: "Google Cloud Platform (GCP)"
+    tier: "GOLD"
+    relationship_type: "Technology Partner"
+    programs:
+      - "GCP AI Partner Program"
+      - "Google Cloud Marketplace (Listed)"
+    integrations:
+      - service: "Google Cloud Monitoring"
+        type: "Telemetry ingestion"
+        status: "GA"
+      - service: "Google Cloud IAM"
+        type: "Access control"
+        status: "GA"
+      - service: "Vertex AI"
+        type: "ML agent monitoring"
+        status: "BETA"
+    joint_customers: 9
+    co_sell_deals_closed: 3
+    revenue_2025_ytd: "$1.1M"
+    contact:
+      name: "GCP Partner Team"
+      email: "orca-partnership@google.com"
+
+# Observability & Monitoring Partners
+observability_partners:
+  datadog:
+    partner_name: "Datadog"
+    tier: "PLATINUM"
+    relationship_type: "Strategic Co-Sell Partner"
+    value_proposition: "Datadog monitors infrastructure; ORCA monitors agents. Together: complete observability."
+    integrations:
+      - type: "Bi-directional telemetry"
+        description: "ORCA ingests Datadog metrics; Datadog displays ORCA Trust Scores"
+        status: "GA"
+      - type: "Unified dashboards"
+        description: "Joint dashboard templates (infra + agents)"
+        status: "GA"
+      - type: "Alert correlation"
+        description: "Cross-platform incident correlation"
+        status: "BETA"
+    joint_customers: 18
+    co_sell_deals_closed: 9
+    co_marketing:
+      - "Joint webinar: 'Complete Observability: Infrastructure + Agents' (Q3 2025)"
+      - "Case study: Global Bank (infrastructure + agent governance)"
+      - "Co-branded solution brief"
+    revenue_2025_ytd: "$2.4M"
+    contact:
+      name: "Datadog Partnerships"
+      email: "orca-collab@datadoghq.com"
+    
+  splunk:
+    partner_name: "Splunk"
+    tier: "GOLD"
+    relationship_type: "Technology Partner"
+    integrations:
+      - type: "SIEM integration"
+        description: "ORCA forwards security events to Splunk"
+        status: "GA"
+      - type: "Audit log aggregation"
+        description: "Centralized compliance reporting"
+        status: "GA"
+    joint_customers: 11
+    co_sell_deals_closed: 4
+    revenue_2025_ytd: "$1.6M"
+    
+  grafana:
+    partner_name: "Grafana Labs"
+    tier: "SILVER"
+    relationship_type: "Integration Partner"
+    integrations:
+      - type: "Dashboard integration"
+        description: "ORCA metrics in Grafana dashboards"
+        status: "GA"
+    joint_customers: 7
+    revenue_2025_ytd: "$0.8M"
+
+# Workflow Orchestration Partners
+workflow_partners:
+  temporal:
+    partner_name: "Temporal Technologies"
+    tier: "PLATINUM"
+    relationship_type: "Strategic Technology Partner"
+    value_proposition: "Temporal executes workflows; ORCA governs the agents. Joint solution: governed orchestration."
+    integrations:
+      - type: "Workflow state sync"
+        description: "ORCA monitors Temporal workflows for agent governance"
+        status: "GA"
+      - type: "Policy enforcement hooks"
+        description: "ORCA Trust Score gates for workflow execution"
+        status: "GA"
+      - type: "Audit trail linkage"
+        description: "Unified audit trail (Temporal + ORCA)"
+        status: "BETA"
+    joint_customers: 13
+    co_sell_deals_closed: 7
+    co_marketing:
+      - "Joint whitepaper: 'Governed Workflow Orchestration for AI Agents'"
+      - "Co-branded solution brief"
+      - "Joint booth at re:Invent 2025"
+    revenue_2025_ytd: "$1.9M"
+    contact:
+      name: "Temporal Partnerships"
+      email: "orca-partnership@temporal.io"
+    
+  airflow:
+    partner_name: "Apache Airflow (via Astronomer)"
+    tier: "SILVER"
+    relationship_type: "Integration Partner"
+    integrations:
+      - type: "DAG monitoring"
+        description: "ORCA monitors Airflow DAGs for agent governance"
+        status: "GA"
+    joint_customers: 6
+    revenue_2025_ytd: "$0.7M"
+
+# Data & Analytics Partners
+data_partners:
+  snowflake:
+    partner_name: "Snowflake"
+    tier: "PLATINUM"
+    relationship_type: "Strategic Co-Sell Partner"
+    value_proposition: "Snowflake stores data; ORCA governs agents that query it. Joint solution: trusted data agents."
+    integrations:
+      - type: "Agent query monitoring"
+        description: "ORCA tracks agent queries to Snowflake (compliance)"
+        status: "GA"
+      - type: "Data lineage"
+        description: "Agent → Query → Data lineage tracking"
+        status: "BETA"
+      - type: "Trust Score for data agents"
+        description: "Snowflake agents must pass TS > 95% to query sensitive data"
+        status: "GA"
+    joint_customers: 14
+    co_sell_deals_closed: 8
+    co_marketing:
+      - "Joint solution brief: 'Trusted Data Agents with Snowflake + ORCA'"
+      - "Co-branded webinar: 'Data Governance for AI Agents' (Q4 2025)"
+    revenue_2025_ytd: "$2.1M"
+    contact:
+      name: "Snowflake Alliances"
+      email: "orca-partnership@snowflake.com"
+    
+  databricks:
+    partner_name: "Databricks"
+    tier: "GOLD"
+    relationship_type: "Technology Partner"
+    integrations:
+      - type: "ML agent monitoring"
+        description: "ORCA monitors Databricks ML agents"
+        status: "BETA"
+      - type: "Feature store governance"
+        description: "Track agent access to feature stores"
+        status: "PLANNED"
+    joint_customers: 8
+    revenue_2025_ytd: "$1.2M"
+
+# Incident Management Partners
+incident_partners:
+  pagerduty:
+    partner_name: "PagerDuty"
+    tier: "GOLD"
+    relationship_type: "Technology Partner"
+    integrations:
+      - type: "Alert routing"
+        description: "ORCA anomalies → PagerDuty incidents"
+        status: "GA"
+      - type: "On-call integration"
+        description: "Context-aware escalation (agent Trust Score)"
+        status: "GA"
+    joint_customers: 21
+    revenue_2025_ytd: "$0.9M"
+    
+  servicenow:
+    partner_name: "ServiceNow"
+    tier: "PLATINUM"
+    relationship_type: "Strategic Co-Sell Partner"
+    integrations:
+      - type: "Incident ticket creation"
+        description: "ORCA incidents auto-create ServiceNow tickets"
+        status: "GA"
+      - type: "CMDB integration"
+        description: "Agent inventory sync with ServiceNow CMDB"
+        status: "GA"
+      - type: "Agent governance module"
+        description: "ORCA embedded in ServiceNow platform (OEM)"
+        status: "IN_PROGRESS"
+    joint_customers: 16
+    co_sell_deals_closed: 10
+    revenue_2025_ytd: "$2.8M"
+    contact:
+      name: "ServiceNow Technology Partnerships"
+      email: "orca-partnership@servicenow.com"
+
+# AI Platform Partners
+ai_platform_partners:
+  mindstudio:
+    partner_name: "MindStudio"
+    tier: "GOLD"
+    relationship_type: "Technology Partner"
+    value_proposition: "MindStudio builds agents; ORCA governs them."
+    integrations:
+      - type: "Agent instrumentation"
+        description: "MindStudio agents auto-instrumented with ORCA SDK"
+        status: "GA"
+      - type: "Trust Score display"
+        description: "MindStudio UI shows ORCA Trust Scores"
+        status: "BETA"
+    joint_customers: 5
+    revenue_2025_ytd: "$0.6M"
+    
+  langchain:
+    partner_name: "LangChain (via Generative AI Initiative)"
+    tier: "SILVER"
+    relationship_type: "Integration Partner"
+    integrations:
+      - type: "LangChain agent monitoring"
+        description: "ORCA SDK for LangChain agents"
+        status: "GA"
+      - type: "LLM hallucination detection"
+        description: "ORCA detects LangChain agent hallucinations"
+        status: "BETA"
+    joint_customers: 9
+    revenue_2025_ytd: "$0.9M"
+    
+  crewai:
+    partner_name: "CrewAI"
+    tier: "SILVER"
+    relationship_type: "Integration Partner"
+    integrations:
+      - type: "Multi-agent coordination"
+        description: "ORCA synchronizes CrewAI agent crews"
+        status: "BETA"
+    joint_customers: 3
+    revenue_2025_ytd: "$0.3M"
+
+# Vertical SaaS Partners
+vertical_partners:
+  salesforce:
+    partner_name: "Salesforce (Einstein AI)"
+    tier: "GOLD"
+    relationship_type: "AppExchange Partner"
+    integrations:
+      - type: "Einstein agent monitoring"
+        description: "ORCA governs Salesforce Einstein agents"
+        status: "BETA"
+      - type: "AppExchange listing"
+        description: "ORCA available on Salesforce AppExchange"
+        status: "IN_PROGRESS"
+    joint_customers: 4
+    revenue_2025_ytd: "$0.7M"
+
+# Channel & Reseller Partners
+channel_partners:
+  global_system_integrators:
+    - partner_name: "Accenture"
+      tier: "PLATINUM"
+      regions: ["North America", "Europe", "Asia-Pacific"]
+      specializations: ["Financial Services", "Healthcare"]
+      joint_customer_count: 8
+      revenue_2025_ytd: "$4.2M"
+      
+    - partner_name: "Deloitte Digital"
+      tier: "GOLD"
+      regions: ["North America", "Europe"]
+      specializations: ["Public Sector", "Manufacturing"]
+      joint_customer_count: 5
+      revenue_2025_ytd: "$2.8M"
+      
+    - partner_name: "KPMG"
+      tier: "GOLD"
+      regions: ["North America"]
+      specializations: ["Risk & Compliance", "Financial Services"]
+      joint_customer_count: 3
+      revenue_2025_ytd: "$1.9M"
+  
+  regional_vars:
+    - partner_name: "Softchoice (North America)"
+      tier: "SILVER"
+      regions: ["US", "Canada"]
+      specializations: ["Mid-market", "Cloud migration"]
+      joint_customer_count: 6
+      revenue_2025_ytd: "$1.1M"
+
+# Partner Enablement Programs
+enablement:
+  technical_training:
+    - course: "ORCA Fundamentals"
+      duration: "4 hours"
+      format: "Self-paced online"
+      certification: "ORCA Certified Partner Associate"
+      
+    - course: "ORCA Solution Architect"
+      duration: "2 days"
+      format: "Instructor-led (virtual)"
+      certification: "ORCA Certified Solution Architect"
+      
+    - course: "ORCA Sales Bootcamp"
+      duration: "1 day"
+      format: "Instructor-led (virtual/in-person)"
+      certification: "ORCA Sales Certified"
+  
+  go_to_market_support:
+    - asset_type: "Solution briefs"
+      count: 12
+      languages: ["English", "Spanish", "German", "French"]
+      
+    - asset_type: "Demo scripts"
+      count: 6
+      verticals: ["Financial Services", "Healthcare", "Retail", "Manufacturing", "Public Sector"]
+      
+    - asset_type: "Case studies"
+      count: 8
+      anonymized: true
+      
+    - asset_type: "ROI calculator"
+      format: "Excel + JavaScript widget"
+      customizable: true
+  
+  marketing_development_funds:
+    platinum_tier: "$100K-$500K annually"
+    gold_tier: "$50K-$100K annually"
+    silver_tier: "$10K-$50K annually"
+    activities:
+      - "Joint webinars"
+      - "Co-branded events (booths, sponsorships)"
+      - "Content co-creation (whitepapers, blogs)"
+      - "Customer reference programs"
+  
+  partner_portal:
+    url: "partners.orcaplatform.ai"
+    features:
+      - "Deal registration"
+      - "Lead sharing (MDF-funded campaigns)"
+      - "Training & certification"
+      - "Asset library (co-brandable)"
+      - "Partner community forum"
+      - "Technical support (tier-based SLA)"
+
+# Co-Sell Playbooks
+co_sell_playbooks:
+  aws_ai_ops:
+    target_customer: "Enterprises on AWS with 20+ agents"
+    orca_value: "Agent governance layer"
+    aws_value: "Cloud infrastructure + managed services"
+    joint_pitch: "Complete AI Ops: AWS for infrastructure, ORCA for agents"
+    typical_deal_size: "$200K-$500K (ORCA), $1M-$5M (AWS)"
+    
+  datadog_complete_observability:
+    target_customer: "Datadog customers deploying AI agents"
+    orca_value: "Agent-specific governance + Trust Score"
+    datadog_value: "Infrastructure observability"
+    joint_pitch: "Complete observability: Datadog for infra, ORCA for agents"
+    typical_deal_size: "$150K-$300K (ORCA), $200K-$800K (Datadog)"
+    
+  snowflake_trusted_data_agents:
+    target_customer: "Snowflake customers with data agents (analytics, ML)"
+    orca_value: "Agent query governance + compliance automation"
+    snowflake_value: "Data warehouse + governance"
+    joint_pitch: "Trusted data agents: Snowflake for data, ORCA for agent governance"
+    typical_deal_size: "$180K-$400K (ORCA), $500K-$2M (Snowflake)"
+    
+  servicenow_enterprise_automation:
+    target_customer: "ServiceNow customers automating ITSM with agents"
+    orca_value: "Agent governance + CMDB integration"
+    servicenow_value: "ITSM platform + workflow automation"
+    joint_pitch: "Governed enterprise automation: ServiceNow for ITSM, ORCA for agent trust"
+    typical_deal_size: "$220K-$600K (ORCA), $800K-$3M (ServiceNow)"
+
+# Partner Success Metrics
+partner_kpis:
+  overall:
+    total_partner_sourced_revenue_2025: "$32.4M"
+    total_partner_influenced_revenue_2025: "$58.7M"
+    avg_deal_size_partner_sourced: "$380K"
+    avg_sales_cycle_partner_deals: "87 days"
+    partner_satisfaction_score_nps: 68
+    
+  by_tier:
+    platinum:
+      partners: 8
+      revenue_2025_ytd: "$24.1M"
+      avg_deal_size: "$480K"
+      
+    gold:
+      partners: 10
+      revenue_2025_ytd: "$7.2M"
+      avg_deal_size: "$320K"
+      
+    silver:
+      partners: 5
+      revenue_2025_ytd: "$1.1M"
+      avg_deal_size: "$180K"
+
+# Future Partner Targets (2026)
+future_targets:
+  - partner_name: "Microsoft 365 / Power Platform"
+    rationale: "Agent governance for Power Automate + Copilot agents"
+    target_tier: "PLATINUM"
+    target_date: "Q1 2026"
+    
+  - partner_name: "SAP (Business AI)"
+    rationale: "ERP agent governance (Joule AI)"
+    target_tier: "GOLD"
+    target_date: "Q2 2026"
+    
+  - partner_name: "Palantir (Foundry)"
+    rationale: "Data operations agent governance"
+    target_tier: "GOLD"
+    target_date: "Q3 2026"
+    
+  - partner_name: "UiPath (Automation)"
+    rationale: "RPA + AI agent unified governance"
+    target_tier: "GOLD"
+    target_date: "Q2 2026"
+
+# Contact & Governance
+partner_program_contact:
+  email: "partnerships@orcaplatform.ai"
+  phone: "+1 (415) 555-ORCA"
+  slack_channel: "#orca-partners (external)"
+  
+partner_advisory_board:
+  frequency: "Quarterly"
+  next_meeting: "2026-01-15"
+  members:
+    - "AWS (Sr. Partner Manager)"
+    - "Datadog (VP of Partnerships)"
+    - "Snowflake (Director, Technology Alliances)"
+    - "ServiceNow (Sr. Director, ISV Partnerships)"
+    - "Temporal (Co-Founder & CTO)"
+    - "Accenture (Managing Director, AI Practice)"

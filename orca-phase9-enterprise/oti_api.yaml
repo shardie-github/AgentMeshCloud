@@ -1,0 +1,639 @@
+openapi: 3.0.3
+info:
+  title: ORCA Trust Index (OTI) API
+  description: |
+    Public API for accessing ORCA Trust Index benchmarks and industry metrics.
+    
+    The ORCA Trust Index (OTI) provides standardized, independently-validated metrics
+    for enterprise agent governance performance. Use this API to:
+    - Compare your Trust Score against industry peers
+    - Access quarterly benchmark reports
+    - Integrate Trust Index data into dashboards and reports
+    
+    **Rate Limits:**
+    - Free Tier: 100 requests/day
+    - Pro Tier: 1,000 requests/day
+    - Enterprise Tier: Unlimited
+    
+    **Authentication:** API Key (header: `X-OTI-API-Key`)
+  version: 1.0.0
+  contact:
+    name: ORCA Trust Index Team
+    email: oti@orcaplatform.ai
+    url: https://orcaplatform.ai/trust-index
+  license:
+    name: Creative Commons BY 4.0
+    url: https://creativecommons.org/licenses/by/4.0/
+
+servers:
+  - url: https://api.orcaplatform.ai/oti/v1
+    description: Production API
+  - url: https://sandbox-api.orcaplatform.ai/oti/v1
+    description: Sandbox API (test data)
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Benchmarks
+    description: Industry benchmark data and aggregates
+  - name: Organizations
+    description: Organization-specific Trust Scores (authenticated)
+  - name: Reports
+    description: Quarterly reports and trend analysis
+  - name: Metrics
+    description: Real-time metric endpoints
+
+paths:
+  /benchmarks/industries:
+    get:
+      summary: Get industry benchmarks
+      description: Returns Trust Score and performance metrics by industry
+      tags:
+        - Benchmarks
+      parameters:
+        - name: quarter
+          in: query
+          description: Quarter in format YYYY-QN (e.g., 2025-Q4)
+          required: false
+          schema:
+            type: string
+            pattern: '^\d{4}-Q[1-4]$'
+            example: "2025-Q4"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndustryBenchmarks'
+              example:
+                quarter: "2025-Q4"
+                last_updated: "2025-10-30T18:00:00Z"
+                industries:
+                  - industry: "Financial Services"
+                    customer_count: 12
+                    agent_count: 1524
+                    avg_trust_score: 97.1
+                    market_avg_trust_score: 81.2
+                    delta: 15.9
+                    risk_avoided_usd: 3200000
+                    cost_saved_percent: 71
+                    compliance_uptime_percent: 99.8
+                    roi_multiple: 8.9
+                  - industry: "Healthcare"
+                    customer_count: 8
+                    agent_count: 512
+                    avg_trust_score: 98.3
+                    market_avg_trust_score: 76.4
+                    delta: 21.9
+                    risk_avoided_usd: 4700000
+                    cost_saved_percent: 68
+                    compliance_uptime_percent: 99.9
+                    roi_multiple: 9.7
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /benchmarks/metrics:
+    get:
+      summary: Get operational metrics benchmarks
+      description: Returns MTTR, self-healing rate, and other operational metrics
+      tags:
+        - Benchmarks
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationalMetrics'
+              example:
+                quarter: "2025-Q4"
+                metrics:
+                  - metric: "Mean Time to Resolution (MTTR)"
+                    orca_average: "4.2 min"
+                    market_average: "37 min"
+                    improvement_percent: 88
+                    unit: "minutes"
+                  - metric: "Self-Healing Success Rate"
+                    orca_average: "89%"
+                    market_average: "12%"
+                    improvement_points: 77
+                    unit: "percent"
+                  - metric: "Agent Uptime SLA"
+                    orca_average: "99.7%"
+                    market_average: "94.1%"
+                    improvement_points: 5.6
+                    unit: "percent"
+
+  /benchmarks/trust-score-distribution:
+    get:
+      summary: Get Trust Score distribution
+      description: Returns distribution of Trust Scores across all customers
+      tags:
+        - Benchmarks
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustScoreDistribution'
+              example:
+                quarter: "2025-Q4"
+                distribution:
+                  - range: "95-100"
+                    label: "Excellent"
+                    customer_percent: 68
+                    agent_percent: 71
+                    avg_risk_avoided_usd: 2800000
+                    avg_roi_multiple: 9.1
+                  - range: "90-94"
+                    label: "Good"
+                    customer_percent: 23
+                    agent_percent: 22
+                    avg_risk_avoided_usd: 2100000
+                    avg_roi_multiple: 7.4
+
+  /organizations/{org_id}/trust-score:
+    get:
+      summary: Get organization Trust Score
+      description: Returns current Trust Score for authenticated organization
+      tags:
+        - Organizations
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          description: Organization ID (provided after ORCA onboarding)
+          schema:
+            type: string
+            example: "org_a1b2c3d4"
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationTrustScore'
+              example:
+                org_id: "org_a1b2c3d4"
+                org_name: "Acme Corp"
+                current_trust_score: 96.8
+                target_trust_score: 95.0
+                status: "EXCEEDS_TARGET"
+                components:
+                  policy_alignment: 97.2
+                  workflow_conformance: 96.4
+                  anomaly_detection: 96.1
+                  sla_adherence: 98.7
+                  audit_readiness: 100.0
+                percentile_rank: 72
+                industry_comparison:
+                  industry: "Financial Services"
+                  industry_avg: 97.1
+                  delta: -0.3
+                last_updated: "2025-10-30T18:40:00Z"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /organizations/{org_id}/benchmark-comparison:
+    get:
+      summary: Compare organization against benchmarks
+      description: Returns detailed comparison of organization metrics vs. industry
+      tags:
+        - Organizations
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: industry
+          in: query
+          description: Industry for comparison (auto-detected if not provided)
+          required: false
+          schema:
+            type: string
+            enum:
+              - financial_services
+              - healthcare
+              - retail_ecommerce
+              - manufacturing
+              - public_sector
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BenchmarkComparison'
+
+  /reports/quarterly/{quarter}:
+    get:
+      summary: Get quarterly report
+      description: Returns full quarterly Trust Index report (PDF or JSON)
+      tags:
+        - Reports
+      parameters:
+        - name: quarter
+          in: path
+          required: true
+          description: Quarter in format YYYY-QN
+          schema:
+            type: string
+            example: "2025-Q4"
+        - name: format
+          in: query
+          description: Response format
+          required: false
+          schema:
+            type: string
+            enum:
+              - json
+              - pdf
+            default: json
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarterlyReport'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /reports/trends:
+    get:
+      summary: Get trend analysis
+      description: Returns Trust Score trends over time (YoY, QoQ)
+      tags:
+        - Reports
+      parameters:
+        - name: metric
+          in: query
+          description: Metric to analyze
+          required: false
+          schema:
+            type: string
+            enum:
+              - trust_score
+              - mttr
+              - roi
+              - compliance_uptime
+            default: trust_score
+        - name: periods
+          in: query
+          description: Number of periods to include
+          required: false
+          schema:
+            type: integer
+            minimum: 2
+            maximum: 12
+            default: 4
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendAnalysis'
+
+  /metrics/live/trust-score-average:
+    get:
+      summary: Get live Trust Score average
+      description: Returns current rolling average Trust Score (all customers)
+      tags:
+        - Metrics
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_average:
+                    type: number
+                    format: float
+                    example: 96.2
+                  sample_size:
+                    type: integer
+                    example: 47
+                  last_updated:
+                    type: string
+                    format: date-time
+                    example: "2025-10-30T18:45:00Z"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-OTI-API-Key
+
+  schemas:
+    IndustryBenchmarks:
+      type: object
+      properties:
+        quarter:
+          type: string
+          example: "2025-Q4"
+        last_updated:
+          type: string
+          format: date-time
+        industries:
+          type: array
+          items:
+            $ref: '#/components/schemas/IndustryMetrics'
+
+    IndustryMetrics:
+      type: object
+      properties:
+        industry:
+          type: string
+          example: "Financial Services"
+        customer_count:
+          type: integer
+          example: 12
+        agent_count:
+          type: integer
+          example: 1524
+        avg_trust_score:
+          type: number
+          format: float
+          example: 97.1
+        market_avg_trust_score:
+          type: number
+          format: float
+          example: 81.2
+        delta:
+          type: number
+          format: float
+          example: 15.9
+        risk_avoided_usd:
+          type: integer
+          example: 3200000
+        cost_saved_percent:
+          type: number
+          format: float
+          example: 71
+        compliance_uptime_percent:
+          type: number
+          format: float
+          example: 99.8
+        roi_multiple:
+          type: number
+          format: float
+          example: 8.9
+
+    OperationalMetrics:
+      type: object
+      properties:
+        quarter:
+          type: string
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+
+    Metric:
+      type: object
+      properties:
+        metric:
+          type: string
+        orca_average:
+          type: string
+        market_average:
+          type: string
+        improvement_percent:
+          type: number
+          format: float
+        improvement_points:
+          type: number
+          format: float
+        unit:
+          type: string
+
+    TrustScoreDistribution:
+      type: object
+      properties:
+        quarter:
+          type: string
+        distribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/DistributionBucket'
+
+    DistributionBucket:
+      type: object
+      properties:
+        range:
+          type: string
+          example: "95-100"
+        label:
+          type: string
+          example: "Excellent"
+        customer_percent:
+          type: number
+          format: float
+        agent_percent:
+          type: number
+          format: float
+        avg_risk_avoided_usd:
+          type: integer
+        avg_roi_multiple:
+          type: number
+          format: float
+
+    OrganizationTrustScore:
+      type: object
+      properties:
+        org_id:
+          type: string
+        org_name:
+          type: string
+        current_trust_score:
+          type: number
+          format: float
+        target_trust_score:
+          type: number
+          format: float
+        status:
+          type: string
+          enum:
+            - EXCEEDS_TARGET
+            - MEETS_TARGET
+            - BELOW_TARGET
+        components:
+          $ref: '#/components/schemas/TrustScoreComponents'
+        percentile_rank:
+          type: integer
+          minimum: 0
+          maximum: 100
+        industry_comparison:
+          $ref: '#/components/schemas/IndustryComparison'
+        last_updated:
+          type: string
+          format: date-time
+
+    TrustScoreComponents:
+      type: object
+      properties:
+        policy_alignment:
+          type: number
+          format: float
+        workflow_conformance:
+          type: number
+          format: float
+        anomaly_detection:
+          type: number
+          format: float
+        sla_adherence:
+          type: number
+          format: float
+        audit_readiness:
+          type: number
+          format: float
+
+    IndustryComparison:
+      type: object
+      properties:
+        industry:
+          type: string
+        industry_avg:
+          type: number
+          format: float
+        delta:
+          type: number
+          format: float
+
+    BenchmarkComparison:
+      type: object
+      properties:
+        org_id:
+          type: string
+        comparison_date:
+          type: string
+          format: date-time
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComparisonMetric'
+
+    ComparisonMetric:
+      type: object
+      properties:
+        metric:
+          type: string
+        org_value:
+          type: number
+          format: float
+        industry_avg:
+          type: number
+          format: float
+        market_avg:
+          type: number
+          format: float
+        percentile_rank:
+          type: integer
+
+    QuarterlyReport:
+      type: object
+      properties:
+        quarter:
+          type: string
+        report_date:
+          type: string
+          format: date
+        executive_summary:
+          type: string
+        key_findings:
+          type: array
+          items:
+            type: string
+        industry_benchmarks:
+          $ref: '#/components/schemas/IndustryBenchmarks'
+        operational_metrics:
+          $ref: '#/components/schemas/OperationalMetrics'
+        trust_score_distribution:
+          $ref: '#/components/schemas/TrustScoreDistribution'
+
+    TrendAnalysis:
+      type: object
+      properties:
+        metric:
+          type: string
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrendPeriod'
+
+    TrendPeriod:
+      type: object
+      properties:
+        period:
+          type: string
+          example: "2025-Q4"
+        value:
+          type: number
+          format: float
+        change_from_previous:
+          type: number
+          format: float
+
+  responses:
+    UnauthorizedError:
+      description: API key is missing or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Unauthorized"
+              message:
+                type: string
+                example: "Invalid or missing API key"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Not Found"
+              message:
+                type: string
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Rate Limit Exceeded"
+              message:
+                type: string
+                example: "You have exceeded your rate limit of 100 requests/day"
+              retry_after:
+                type: integer
+                description: Seconds until rate limit resets
+                example: 3600

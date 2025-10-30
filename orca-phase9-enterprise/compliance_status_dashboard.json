@@ -1,0 +1,688 @@
+{
+  "dashboard_metadata": {
+    "version": "1.0",
+    "generated_at": "2025-10-30T18:42:00Z",
+    "orca_platform_version": "3.2.0",
+    "refresh_interval_seconds": 300,
+    "classification": "Internal - Compliance Team"
+  },
+  "overall_compliance_status": {
+    "health_score": 97.3,
+    "status": "EXCELLENT",
+    "frameworks_monitored": 7,
+    "frameworks_certified": 3,
+    "frameworks_in_progress": 3,
+    "frameworks_planned": 1,
+    "last_incident": "2025-09-12T14:23:00Z",
+    "days_since_last_violation": 48,
+    "total_controls_monitored": 847,
+    "controls_compliant": 824,
+    "controls_in_progress": 23,
+    "controls_at_risk": 0
+  },
+  "certifications": {
+    "completed": [
+      {
+        "framework": "SOC 2 Type II",
+        "status": "CERTIFIED",
+        "certification_date": "2025-06-15",
+        "expiration_date": "2026-06-15",
+        "auditor": "Deloitte & Touche LLP",
+        "scope": "Security, Availability, Processing Integrity, Confidentiality",
+        "report_url": "orca://certs/soc2-type2-2025.pdf",
+        "control_coverage_percent": 100,
+        "controls_tested": 38,
+        "controls_passed": 38,
+        "findings": 0,
+        "recommendations": 2,
+        "next_audit_date": "2026-06-15",
+        "audit_prep_days_required": 6
+      },
+      {
+        "framework": "ISO 27001:2022",
+        "status": "CERTIFIED",
+        "certification_date": "2025-08-22",
+        "expiration_date": "2028-08-22",
+        "auditor": "BSI Group",
+        "scope": "ORCA Control Plane (SaaS), Customer Telemetry Handling",
+        "report_url": "orca://certs/iso27001-2025.pdf",
+        "control_coverage_percent": 100,
+        "controls_tested": 114,
+        "controls_passed": 114,
+        "findings": 0,
+        "recommendations": 3,
+        "next_surveillance_date": "2026-08-22",
+        "audit_prep_days_required": 8
+      },
+      {
+        "framework": "HIPAA (BAA Available)",
+        "status": "VALIDATED",
+        "validation_date": "2025-07-18",
+        "scope": "Healthcare Customer Deployments",
+        "validator": "Third-party security assessment (confidential)",
+        "report_url": "orca://certs/hipaa-validation-2025.pdf",
+        "control_coverage_percent": 100,
+        "controls_tested": 42,
+        "controls_passed": 42,
+        "findings": 0,
+        "baa_available": true,
+        "customer_deployments_hipaa_compliant": 8,
+        "audit_prep_days_required": 5
+      }
+    ],
+    "in_progress": [
+      {
+        "framework": "ISO 42001:2023 (AI Management System)",
+        "status": "IN_PROGRESS",
+        "target_certification_date": "2026-03-31",
+        "progress_percent": 85,
+        "auditor": "BSI Group",
+        "scope": "ORCA Trust Engine, Policy Enforcement, Agent Lifecycle",
+        "milestones": [
+          {
+            "name": "Gap Analysis",
+            "status": "COMPLETED",
+            "completion_date": "2025-10-15"
+          },
+          {
+            "name": "Control Implementation",
+            "status": "IN_PROGRESS",
+            "progress_percent": 85,
+            "target_completion": "2025-12-20"
+          },
+          {
+            "name": "Pre-Audit Readiness Assessment",
+            "status": "SCHEDULED",
+            "scheduled_date": "2025-12-15"
+          },
+          {
+            "name": "Stage 1 Audit",
+            "status": "SCHEDULED",
+            "scheduled_date": "2026-01-20"
+          },
+          {
+            "name": "Stage 2 Audit + Certification",
+            "status": "SCHEDULED",
+            "scheduled_date": "2026-03-15"
+          }
+        ],
+        "controls_implemented": 34,
+        "controls_remaining": 6,
+        "estimated_audit_prep_days": 9
+      },
+      {
+        "framework": "NIST AI RMF 1.0",
+        "status": "IN_PROGRESS",
+        "target_validation_date": "2026-06-30",
+        "progress_percent": 95,
+        "validator": "MITRE (third-party assessment)",
+        "scope": "ORCA Platform Alignment with NIST AI 100-1",
+        "milestones": [
+          {
+            "name": "Framework Mapping",
+            "status": "COMPLETED",
+            "completion_date": "2025-09-30"
+          },
+          {
+            "name": "Control Implementation",
+            "status": "COMPLETED",
+            "completion_date": "2025-10-25"
+          },
+          {
+            "name": "MITRE Assessment",
+            "status": "SCHEDULED",
+            "scheduled_date": "2026-03-15"
+          },
+          {
+            "name": "Whitepaper Publication",
+            "status": "SCHEDULED",
+            "scheduled_date": "2026-06-30"
+          }
+        ],
+        "functions_covered": ["GOVERN", "MAP", "MEASURE", "MANAGE"],
+        "controls_implemented": 38,
+        "controls_remaining": 2,
+        "estimated_validation_days": 7
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "status": "IN_PROGRESS",
+        "target_authorization_date": "2026-09-30",
+        "progress_percent": 78,
+        "3pao": "TBD (selection in progress)",
+        "scope": "ORCA SaaS on AWS GovCloud",
+        "sponsoring_agency": "Department of Homeland Security (under discussion)",
+        "milestones": [
+          {
+            "name": "FedRAMP-Ready Architecture",
+            "status": "COMPLETED",
+            "completion_date": "2025-09-15"
+          },
+          {
+            "name": "SSP (System Security Plan) Draft",
+            "status": "COMPLETED",
+            "completion_date": "2025-10-20"
+          },
+          {
+            "name": "3PAO Selection",
+            "status": "IN_PROGRESS",
+            "target_completion": "2025-11-30"
+          },
+          {
+            "name": "Readiness Assessment",
+            "status": "SCHEDULED",
+            "scheduled_date": "2026-03-01"
+          },
+          {
+            "name": "Full Assessment + Authorization",
+            "status": "SCHEDULED",
+            "scheduled_date": "2026-09-30"
+          }
+        ],
+        "nist_800_53_controls": 800,
+        "controls_implemented": 624,
+        "controls_remaining": 176,
+        "estimated_authorization_days": 45
+      }
+    ],
+    "planned": [
+      {
+        "framework": "EU AI Act (High-Risk AI Systems)",
+        "status": "PLANNED",
+        "target_start_date": "2026-04-01",
+        "target_completion_date": "2026-12-31",
+        "scope": "ORCA Compliance Automation for EU AI Act Article 9",
+        "partner": "TÜV SÜD or similar (TBD)",
+        "key_articles": [
+          "Article 9 (Risk Management)",
+          "Article 11 (Technical Documentation)",
+          "Article 12 (Record-Keeping)",
+          "Article 15 (Accuracy, Robustness, Cybersecurity)"
+        ],
+        "dependency": "EU AI Act enforcement timeline (2026-2027)",
+        "estimated_conformity_assessment_days": "TBD"
+      },
+      {
+        "framework": "TISAX (Automotive)",
+        "status": "PLANNED",
+        "target_start_date": "2026-01-01",
+        "target_completion_date": "2026-06-30",
+        "scope": "Manufacturing Customers (Automotive Supply Chain)",
+        "assessment_level": "AL2 or AL3",
+        "dependency": "Customer demand (BMW, Daimler, VW suppliers)"
+      },
+      {
+        "framework": "CMMC Level 2",
+        "status": "PLANNED",
+        "target_start_date": "2026-04-01",
+        "target_completion_date": "2026-09-30",
+        "scope": "Defense Industrial Base (DIB) Customers",
+        "controls": 110,
+        "c3pao": "TBD",
+        "dependency": "CMMC 2.0 rulemaking finalized"
+      }
+    ]
+  },
+  "real_time_compliance_metrics": {
+    "trust_score": {
+      "current": 96.2,
+      "target": 95.0,
+      "status": "EXCEEDS_TARGET",
+      "trend_7d": "+0.4",
+      "trend_30d": "+1.2",
+      "trend_90d": "+3.8",
+      "last_updated": "2025-10-30T18:40:00Z"
+    },
+    "policy_compliance_rate": {
+      "current_percent": 99.8,
+      "target_percent": 99.0,
+      "status": "EXCELLENT",
+      "violations_last_24h": 0,
+      "violations_last_7d": 2,
+      "violations_last_30d": 8,
+      "auto_remediated_percent": 100,
+      "last_updated": "2025-10-30T18:40:00Z"
+    },
+    "agent_uptime": {
+      "current_percent": 99.73,
+      "target_percent": 99.5,
+      "status": "EXCEEDS_SLA",
+      "agents_monitored": 4200,
+      "agents_healthy": 4189,
+      "agents_degraded": 11,
+      "agents_down": 0,
+      "last_updated": "2025-10-30T18:40:00Z"
+    },
+    "audit_trail_completeness": {
+      "current_percent": 100.0,
+      "target_percent": 100.0,
+      "status": "COMPLIANT",
+      "events_logged_last_24h": 2847392,
+      "events_missing": 0,
+      "cryptographic_signatures_valid": "100%",
+      "last_updated": "2025-10-30T18:40:00Z"
+    },
+    "mean_time_to_resolution": {
+      "current_minutes": 4.2,
+      "target_minutes": 5.0,
+      "status": "EXCEEDS_TARGET",
+      "incidents_last_30d": 127,
+      "auto_resolved_percent": 89,
+      "last_updated": "2025-10-30T18:40:00Z"
+    }
+  },
+  "framework_specific_status": {
+    "soc2_type_ii": {
+      "overall_status": "COMPLIANT",
+      "control_categories": [
+        {
+          "category": "Common Criteria (CC)",
+          "controls_total": 17,
+          "controls_compliant": 17,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "Availability (A)",
+          "controls_total": 6,
+          "controls_compliant": 6,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "Processing Integrity (PI)",
+          "controls_total": 5,
+          "controls_compliant": 5,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "Confidentiality (C)",
+          "controls_total": 10,
+          "controls_compliant": 10,
+          "status": "COMPLIANT"
+        }
+      ],
+      "recent_tests": [
+        {
+          "control": "CC6.1 (Logical Access)",
+          "test_date": "2025-10-28",
+          "result": "PASS",
+          "evidence_reviewed": 3247,
+          "findings": 0
+        },
+        {
+          "control": "CC7.2 (System Monitoring)",
+          "test_date": "2025-10-29",
+          "result": "PASS",
+          "evidence_reviewed": "Continuous monitoring",
+          "findings": 0
+        },
+        {
+          "control": "A1.2 (Availability)",
+          "test_date": "2025-10-30",
+          "result": "PASS",
+          "uptime_actual": "99.93%",
+          "uptime_sla": "99.90%",
+          "findings": 0
+        }
+      ],
+      "next_audit": "2026-06-15",
+      "days_until_audit": 228
+    },
+    "iso_27001": {
+      "overall_status": "COMPLIANT",
+      "annex_a_controls": [
+        {
+          "category": "A.5 Organizational Controls",
+          "controls_total": 37,
+          "controls_compliant": 37,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "A.6 People Controls",
+          "controls_total": 8,
+          "controls_compliant": 8,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "A.7 Physical Controls",
+          "controls_total": 14,
+          "controls_compliant": 14,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "A.8 Technological Controls",
+          "controls_total": 34,
+          "controls_compliant": 34,
+          "status": "COMPLIANT"
+        }
+      ],
+      "recent_tests": [
+        {
+          "control": "A.9.2 (User Access Management)",
+          "test_date": "2025-10-25",
+          "result": "PASS",
+          "access_reviews_completed": 4,
+          "findings": 0
+        },
+        {
+          "control": "A.12.4 (Logging and Monitoring)",
+          "test_date": "2025-10-27",
+          "result": "PASS",
+          "log_integrity_verified": true,
+          "findings": 0
+        }
+      ],
+      "next_surveillance": "2026-08-22",
+      "days_until_surveillance": 296
+    },
+    "iso_42001": {
+      "overall_status": "IN_PROGRESS",
+      "progress_percent": 85,
+      "clauses": [
+        {
+          "clause": "4. Context of the Organization",
+          "status": "COMPLETE",
+          "completion_percent": 100
+        },
+        {
+          "clause": "5. Leadership",
+          "status": "COMPLETE",
+          "completion_percent": 100
+        },
+        {
+          "clause": "6. Planning",
+          "status": "COMPLETE",
+          "completion_percent": 100
+        },
+        {
+          "clause": "7. Support",
+          "status": "IN_PROGRESS",
+          "completion_percent": 75,
+          "blockers": ["Training completion tracking integration (LMS)"]
+        },
+        {
+          "clause": "8. Operation",
+          "status": "IN_PROGRESS",
+          "completion_percent": 90,
+          "blockers": ["Agent retirement workflow automation"]
+        },
+        {
+          "clause": "9. Performance Evaluation",
+          "status": "COMPLETE",
+          "completion_percent": 100
+        },
+        {
+          "clause": "10. Improvement",
+          "status": "IN_PROGRESS",
+          "completion_percent": 80,
+          "blockers": ["Corrective action tracking dashboard"]
+        }
+      ],
+      "target_certification": "2026-03-31",
+      "days_until_target": 152
+    },
+    "nist_ai_rmf": {
+      "overall_status": "IN_PROGRESS",
+      "progress_percent": 95,
+      "functions": [
+        {
+          "function": "GOVERN",
+          "status": "COMPLETE",
+          "categories_covered": 6,
+          "categories_total": 6
+        },
+        {
+          "function": "MAP",
+          "status": "COMPLETE",
+          "categories_covered": 5,
+          "categories_total": 5
+        },
+        {
+          "function": "MEASURE",
+          "status": "COMPLETE",
+          "categories_covered": 4,
+          "categories_total": 4
+        },
+        {
+          "function": "MANAGE",
+          "status": "IN_PROGRESS",
+          "categories_covered": 3,
+          "categories_total": 4,
+          "blockers": ["Continuous improvement process documentation"]
+        }
+      ],
+      "target_validation": "2026-06-30",
+      "days_until_target": 243
+    },
+    "hipaa": {
+      "overall_status": "COMPLIANT",
+      "safeguards": [
+        {
+          "category": "Administrative Safeguards",
+          "controls_total": 9,
+          "controls_compliant": 9,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "Physical Safeguards",
+          "controls_total": 4,
+          "controls_compliant": 4,
+          "status": "COMPLIANT"
+        },
+        {
+          "category": "Technical Safeguards",
+          "controls_total": 5,
+          "controls_compliant": 5,
+          "status": "COMPLIANT"
+        }
+      ],
+      "baa_active_customers": 8,
+      "phi_access_events_last_30d": 127493,
+      "unauthorized_access_attempts": 0,
+      "breaches_last_18mo": 0,
+      "last_security_assessment": "2025-07-18"
+    },
+    "fedramp_moderate": {
+      "overall_status": "IN_PROGRESS",
+      "progress_percent": 78,
+      "nist_800_53_families": [
+        {
+          "family": "AC (Access Control)",
+          "controls_total": 25,
+          "controls_implemented": 22,
+          "status": "IN_PROGRESS"
+        },
+        {
+          "family": "AU (Audit and Accountability)",
+          "controls_total": 16,
+          "controls_implemented": 16,
+          "status": "COMPLETE"
+        },
+        {
+          "family": "CA (Assessment, Authorization, and Monitoring)",
+          "controls_total": 9,
+          "controls_implemented": 7,
+          "status": "IN_PROGRESS"
+        },
+        {
+          "family": "CM (Configuration Management)",
+          "controls_total": 14,
+          "controls_implemented": 12,
+          "status": "IN_PROGRESS"
+        },
+        {
+          "family": "IA (Identification and Authentication)",
+          "controls_total": 12,
+          "controls_implemented": 12,
+          "status": "COMPLETE"
+        },
+        {
+          "family": "IR (Incident Response)",
+          "controls_total": 10,
+          "controls_implemented": 10,
+          "status": "COMPLETE"
+        },
+        {
+          "family": "RA (Risk Assessment)",
+          "controls_total": 10,
+          "controls_implemented": 8,
+          "status": "IN_PROGRESS"
+        },
+        {
+          "family": "SC (System and Communications Protection)",
+          "controls_total": 47,
+          "controls_implemented": 38,
+          "status": "IN_PROGRESS"
+        },
+        {
+          "family": "SI (System and Information Integrity)",
+          "controls_total": 23,
+          "controls_implemented": 19,
+          "status": "IN_PROGRESS"
+        }
+      ],
+      "total_controls": 800,
+      "controls_implemented": 624,
+      "controls_remaining": 176,
+      "target_authorization": "2026-09-30",
+      "days_until_target": 335
+    }
+  },
+  "audit_readiness": {
+    "last_simulation_date": "2025-10-15",
+    "simulation_results": {
+      "soc2_type_ii": {
+        "estimated_prep_days": 6,
+        "evidence_completeness_percent": 100,
+        "controls_tested": 38,
+        "controls_passed": 38,
+        "predicted_findings": 0,
+        "predicted_recommendations": 1
+      },
+      "iso_27001": {
+        "estimated_prep_days": 8,
+        "evidence_completeness_percent": 100,
+        "controls_tested": 114,
+        "controls_passed": 114,
+        "predicted_findings": 0,
+        "predicted_recommendations": 2
+      },
+      "iso_42001": {
+        "estimated_prep_days": 9,
+        "evidence_completeness_percent": 90,
+        "controls_tested": 34,
+        "controls_passed": 34,
+        "predicted_findings": 0,
+        "predicted_recommendations": 4
+      }
+    },
+    "on_demand_report_generation": {
+      "avg_generation_time_seconds": 4.2,
+      "reports_generated_last_30d": 127,
+      "formats_supported": ["PDF", "CSV", "JSON", "Excel"]
+    }
+  },
+  "risk_and_incidents": {
+    "current_risk_level": "LOW",
+    "compliance_violations_last_30d": 8,
+    "compliance_violations_last_90d": 34,
+    "auto_remediated_violations_percent": 100,
+    "open_compliance_incidents": 0,
+    "recent_incidents": [
+      {
+        "incident_id": "INC-2025-09-12-001",
+        "date": "2025-09-12T14:23:00Z",
+        "type": "Policy Drift",
+        "severity": "LOW",
+        "affected_framework": "SOC 2 (CC8.1)",
+        "description": "Agent #247 policy version mismatch",
+        "resolution": "Auto-remediated (policy synced)",
+        "resolution_time_minutes": 2.1,
+        "status": "CLOSED"
+      },
+      {
+        "incident_id": "INC-2025-08-28-003",
+        "date": "2025-08-28T09:14:00Z",
+        "type": "Unauthorized Access Attempt",
+        "severity": "MEDIUM",
+        "affected_framework": "HIPAA (164.312(a)(1))",
+        "description": "Agent #89 attempted PII access outside scope",
+        "resolution": "Blocked automatically, access revoked",
+        "resolution_time_minutes": 0.3,
+        "status": "CLOSED"
+      }
+    ],
+    "controls_at_risk": [],
+    "upcoming_control_reviews": [
+      {
+        "control": "ISO 27001 A.9.2 (User Access Management)",
+        "review_type": "Quarterly Access Review",
+        "scheduled_date": "2025-11-15"
+      },
+      {
+        "control": "SOC 2 CC6.1 (Logical Access)",
+        "review_type": "Annual Penetration Test",
+        "scheduled_date": "2025-12-01"
+      }
+    ]
+  },
+  "customer_impact": {
+    "customers_using_compliance_automation": 47,
+    "avg_audit_prep_time_reduction_percent": 74,
+    "customers_passed_first_audit_zero_findings": 41,
+    "frameworks_customer_achieved_with_orca": [
+      "SOC 2 Type II",
+      "ISO 27001",
+      "HIPAA",
+      "ISO 42001",
+      "NIST AI RMF"
+    ],
+    "customer_testimonials_available": 12
+  },
+  "alerts_and_notifications": {
+    "active_alerts": 0,
+    "alerts_last_7d": 3,
+    "alert_types": [
+      {
+        "type": "Policy Drift",
+        "count_last_30d": 12,
+        "avg_resolution_time_minutes": 3.2
+      },
+      {
+        "type": "Compliance Threshold Warning",
+        "count_last_30d": 2,
+        "avg_resolution_time_minutes": 18.4
+      },
+      {
+        "type": "Audit Preparation Reminder",
+        "count_last_30d": 4,
+        "avg_resolution_time_minutes": "N/A (informational)"
+      }
+    ]
+  },
+  "next_actions": [
+    {
+      "action": "Complete ISO 42001 Clause 7 (Support) - LMS integration",
+      "owner": "Engineering Team",
+      "due_date": "2025-11-15",
+      "priority": "HIGH"
+    },
+    {
+      "action": "Select 3PAO for FedRAMP assessment",
+      "owner": "Compliance Team",
+      "due_date": "2025-11-30",
+      "priority": "HIGH"
+    },
+    {
+      "action": "Schedule MITRE NIST AI RMF validation",
+      "owner": "Product Team",
+      "due_date": "2026-01-15",
+      "priority": "MEDIUM"
+    },
+    {
+      "action": "Quarterly ISO 27001 access review",
+      "owner": "Security Team",
+      "due_date": "2025-11-15",
+      "priority": "MEDIUM"
+    }
+  ]
+}
