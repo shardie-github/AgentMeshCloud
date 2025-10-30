@@ -44,7 +44,7 @@
     "@anthropic-ai/sdk": "^0.20.0",
     "@google/generative-ai": "^0.2.0",
     "cohere-ai": "^7.0.0",
-    "@huggingface/inference": "^2.6.0"
+    "@huggingface/inference": "^4.13.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
