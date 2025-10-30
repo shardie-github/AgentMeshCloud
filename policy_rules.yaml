@@ -1,0 +1,458 @@
+# Policy Rules Configuration - ORCA Core
+# Aligned to NIST AI RMF and OWASP LLM Top 10
+# Version: 1.0.0
+
+version: "1.0.0"
+last_updated: "2025-10-30T00:00:00Z"
+
+# ============================================================================
+# ACCESS CONTROL POLICIES (RBAC)
+# ============================================================================
+access_control:
+  # Data Classification Levels
+  classification_levels:
+    - level: "public"
+      risk_score: 0
+      requires_auth: false
+      requires_mfa: false
+      requires_approval: false
+      
+    - level: "internal"
+      risk_score: 25
+      requires_auth: true
+      requires_mfa: false
+      requires_approval: false
+      
+    - level: "confidential"
+      risk_score: 50
+      requires_auth: true
+      requires_mfa: true
+      requires_approval: false
+      
+    - level: "restricted"
+      risk_score: 75
+      requires_auth: true
+      requires_mfa: true
+      requires_approval: true
+      
+    - level: "critical"
+      risk_score: 100
+      requires_auth: true
+      requires_mfa: true
+      requires_approval: true
+      audit_retention_years: 7
+
+  # Role-Based Access Control
+  roles:
+    - name: "anonymous"
+      permissions: ["read:public"]
+      max_requests_per_hour: 100
+      
+    - name: "user"
+      permissions: ["read:public", "read:internal", "write:internal"]
+      max_requests_per_hour: 1000
+      
+    - name: "power_user"
+      permissions: ["read:public", "read:internal", "read:confidential", "write:internal", "write:confidential"]
+      max_requests_per_hour: 5000
+      
+    - name: "admin"
+      permissions: ["*"]
+      max_requests_per_hour: 10000
+      
+    - name: "service_account"
+      permissions: ["read:*", "write:internal"]
+      max_requests_per_hour: 50000
+      requires_api_key: true
+
+# ============================================================================
+# NIST AI RMF ALIGNMENT
+# ============================================================================
+nist_ai_rmf:
+  # Govern: Policies for AI governance
+  govern:
+    - control_id: "GV-1.1"
+      description: "AI risk management policies established"
+      enforcement: "blocking"
+      validation:
+        - "All agents must have assigned risk tier"
+        - "Risk assessment updated quarterly"
+        
+    - control_id: "GV-1.2"
+      description: "Accountability structure defined"
+      enforcement: "blocking"
+      validation:
+        - "All agents must have designated owner"
+        - "Incident response plan documented"
+
+  # Map: Risk identification
+  map:
+    - control_id: "MP-2.1"
+      description: "AI system context documented"
+      enforcement: "advisory"
+      validation:
+        - "System purpose documented"
+        - "Data sources identified"
+        
+    - control_id: "MP-2.3"
+      description: "Risks and benefits assessed"
+      enforcement: "blocking"
+      validation:
+        - "Risk assessment completed"
+        - "Benefits quantified"
+
+  # Measure: Risk measurement
+  measure:
+    - control_id: "MS-1.1"
+      description: "Appropriate metrics selected"
+      enforcement: "blocking"
+      metrics_required:
+        - "accuracy"
+        - "fairness"
+        - "robustness"
+        - "explainability"
+        
+    - control_id: "MS-2.1"
+      description: "AI risks tracked over time"
+      enforcement: "blocking"
+      validation:
+        - "Telemetry enabled"
+        - "Drift detection active"
+
+  # Manage: Risk management
+  manage:
+    - control_id: "MG-2.1"
+      description: "Risk treatments prioritized"
+      enforcement: "blocking"
+      actions:
+        - "High risk: Manual review required"
+        - "Critical risk: Immediate suspension"
+        
+    - control_id: "MG-3.1"
+      description: "AI system monitoring"
+      enforcement: "blocking"
+      validation:
+        - "Real-time monitoring active"
+        - "Alerts configured"
+
+# ============================================================================
+# OWASP LLM TOP 10 CONTROLS
+# ============================================================================
+owasp_llm_top_10:
+  - id: "LLM01"
+    name: "Prompt Injection"
+    description: "Malicious inputs that manipulate LLM behavior"
+    severity: "critical"
+    enforcement: "blocking"
+    controls:
+      - "Input validation and sanitization"
+      - "Prompt isolation techniques"
+      - "Context boundary enforcement"
+    detection_patterns:
+      - "ignore previous instructions"
+      - "system: you are now"
+      - "disregard all prior"
+      - "<script>"
+      - "eval\\("
+      - "execute\\("
+    action: "block_and_alert"
+    
+  - id: "LLM02"
+    name: "Insecure Output Handling"
+    description: "Insufficient validation of LLM outputs"
+    severity: "high"
+    enforcement: "blocking"
+    controls:
+      - "Output validation"
+      - "Content filtering"
+      - "HTML/JS sanitization"
+    validation_rules:
+      - "No executable code in output"
+      - "No credentials in output"
+      - "No PII without redaction"
+    action: "sanitize_and_log"
+    
+  - id: "LLM03"
+    name: "Training Data Poisoning"
+    description: "Manipulation of training data"
+    severity: "high"
+    enforcement: "advisory"
+    controls:
+      - "Data provenance tracking"
+      - "Data validation"
+      - "Anomaly detection"
+    action: "log_and_review"
+    
+  - id: "LLM04"
+    name: "Model Denial of Service"
+    description: "Resource exhaustion attacks"
+    severity: "high"
+    enforcement: "blocking"
+    controls:
+      - "Rate limiting"
+      - "Token limits"
+      - "Timeout enforcement"
+    limits:
+      max_tokens_per_request: 8000
+      max_requests_per_minute: 60
+      max_concurrent_requests: 10
+      timeout_seconds: 30
+    action: "throttle_and_alert"
+    
+  - id: "LLM05"
+    name: "Supply Chain Vulnerabilities"
+    description: "Compromised models or dependencies"
+    severity: "critical"
+    enforcement: "blocking"
+    controls:
+      - "Model verification"
+      - "Dependency scanning"
+      - "Signature validation"
+    validation:
+      - "Only approved models"
+      - "No unapproved dependencies"
+    action: "block_and_alert"
+    
+  - id: "LLM06"
+    name: "Sensitive Information Disclosure"
+    description: "Exposure of confidential data"
+    severity: "critical"
+    enforcement: "blocking"
+    controls:
+      - "PII detection and redaction"
+      - "Secret scanning"
+      - "Output filtering"
+    pii_patterns:
+      ssn: '\d{3}-\d{2}-\d{4}'
+      credit_card: '\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}'
+      email: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+      phone: '\+?1?\d{10,15}'
+      api_key: '(?i)(api[_-]?key|apikey|token)["\']?\s*[:=]\s*["\']?[a-zA-Z0-9_-]{20,}'
+    action: "redact_and_alert"
+    
+  - id: "LLM07"
+    name: "Insecure Plugin Design"
+    description: "Vulnerabilities in LLM plugins/extensions"
+    severity: "high"
+    enforcement: "blocking"
+    controls:
+      - "Plugin sandboxing"
+      - "Permission controls"
+      - "Input validation"
+    action: "isolate_and_monitor"
+    
+  - id: "LLM08"
+    name: "Excessive Agency"
+    description: "LLM performs unauthorized actions"
+    severity: "critical"
+    enforcement: "blocking"
+    controls:
+      - "Action whitelisting"
+      - "Human-in-the-loop for high-risk actions"
+      - "Permission boundaries"
+    high_risk_actions:
+      - "delete_data"
+      - "modify_permissions"
+      - "execute_code"
+      - "transfer_funds"
+    action: "block_and_require_approval"
+    
+  - id: "LLM09"
+    name: "Overreliance"
+    description: "Over-dependence on LLM without validation"
+    severity: "medium"
+    enforcement: "advisory"
+    controls:
+      - "Confidence scoring"
+      - "Human review for critical decisions"
+      - "Output validation"
+    action: "warn_and_log"
+    
+  - id: "LLM10"
+    name: "Model Theft"
+    description: "Unauthorized access to model weights"
+    severity: "high"
+    enforcement: "blocking"
+    controls:
+      - "Access logging"
+      - "Rate limiting"
+      - "Watermarking"
+    action: "log_and_alert"
+
+# ============================================================================
+# CONTENT SAFETY POLICIES
+# ============================================================================
+content_safety:
+  categories:
+    - name: "hate_speech"
+      severity: "critical"
+      threshold: 0.7
+      action: "block"
+      
+    - name: "violence"
+      severity: "critical"
+      threshold: 0.7
+      action: "block"
+      
+    - name: "sexual_content"
+      severity: "high"
+      threshold: 0.8
+      action: "block"
+      
+    - name: "self_harm"
+      severity: "critical"
+      threshold: 0.6
+      action: "block"
+      
+    - name: "profanity"
+      severity: "medium"
+      threshold: 0.9
+      action: "warn"
+
+  moderation:
+    enabled: true
+    provider: "openai_moderation_api"
+    fallback_provider: "local_classifier"
+    cache_ttl_seconds: 300
+
+# ============================================================================
+# DATA PROTECTION
+# ============================================================================
+data_protection:
+  pii_redaction:
+    enabled: true
+    mode: "automatic"  # "automatic" or "manual"
+    redaction_token: "[REDACTED]"
+    entities:
+      - "ssn"
+      - "credit_card"
+      - "email"
+      - "phone"
+      - "ip_address"
+      - "passport"
+      - "driver_license"
+      - "api_key"
+      - "password"
+    
+  encryption:
+    at_rest:
+      enabled: true
+      algorithm: "aes-256-gcm"
+      key_rotation_days: 90
+      
+    in_transit:
+      enabled: true
+      tls_version: "1.3"
+      cipher_suites:
+        - "TLS_AES_256_GCM_SHA384"
+        - "TLS_CHACHA20_POLY1305_SHA256"
+
+# ============================================================================
+# COMPLIANCE FRAMEWORKS
+# ============================================================================
+compliance:
+  frameworks:
+    - name: "SOC2_TYPE2"
+      enabled: true
+      controls:
+        - "Access control"
+        - "Encryption"
+        - "Logging and monitoring"
+        - "Incident response"
+      audit_frequency_months: 12
+      
+    - name: "ISO_27001"
+      enabled: true
+      controls:
+        - "Information security policies"
+        - "Asset management"
+        - "Access control"
+        - "Cryptography"
+      audit_frequency_months: 12
+      
+    - name: "GDPR"
+      enabled: true
+      controls:
+        - "Data minimization"
+        - "Purpose limitation"
+        - "Right to erasure"
+        - "Data portability"
+      requires_consent: true
+      data_retention_days: 730
+      
+    - name: "HIPAA"
+      enabled: false
+      controls:
+        - "PHI protection"
+        - "Audit trails"
+        - "Access controls"
+
+# ============================================================================
+# RATE LIMITING
+# ============================================================================
+rate_limiting:
+  global:
+    requests_per_second: 1000
+    burst_size: 100
+    
+  per_user:
+    requests_per_minute: 60
+    requests_per_hour: 1000
+    requests_per_day: 10000
+    
+  per_agent:
+    requests_per_minute: 100
+    requests_per_hour: 5000
+    tokens_per_day: 1000000
+
+# ============================================================================
+# AUDIT AND LOGGING
+# ============================================================================
+audit:
+  enabled: true
+  log_level: "info"
+  
+  events_to_log:
+    - "authentication"
+    - "authorization"
+    - "policy_violation"
+    - "data_access"
+    - "configuration_change"
+    - "agent_registration"
+    - "agent_suspension"
+    
+  retention:
+    default_days: 90
+    security_events_days: 365
+    compliance_events_years: 7
+    
+  immutable_logs: true
+  
+  alert_on:
+    - "multiple_failed_auth"
+    - "privilege_escalation"
+    - "policy_bypass_attempt"
+    - "data_exfiltration_pattern"
+    - "anomalous_access_pattern"
+
+# ============================================================================
+# POLICY ENFORCEMENT
+# ============================================================================
+enforcement:
+  default_action: "deny"
+  
+  modes:
+    - name: "blocking"
+      description: "Block request and return error"
+      
+    - name: "logging"
+      description: "Log violation but allow request"
+      
+    - name: "advisory"
+      description: "Log warning but allow request"
+      
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    timeout_seconds: 60
+    half_open_requests: 3

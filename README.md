@@ -1,417 +1,435 @@
-# AgentMesh Cloud - Global AI Platform Builder
+# ORCA Core
 
-A fully adaptive, multi-cloud, self-optimizing AI platform integrating partner ecosystems, AI-driven observability, cross-domain agents, and continuous autonomy.
+**Production-Ready Agent Mesh with UADSI (Unified Agent Diagnostics & Synchronization Intelligence)**
 
-## 🚀 Overview
-
-AgentMesh Cloud has been extended into a comprehensive AI-native enterprise operating system that provides:
-
-- **Adaptive AI Autonomy** - Dynamic inference routing with model-agnostic LLM selection
-- **Universal API Network** - Partner ecosystem integration with federated gateway
-- **Intelligence Engine** - Predictive orchestration and agentic knowledge graphs
-- **Digital Twin Infrastructure** - System simulation and stress testing capabilities
-- **AI Governance & Trust Framework** - Transparent governance with automated compliance
-
-## 🏗️ Architecture
-
-### Core Components
-
-#### 1. Ecosystem Module (`/ecosystem`)
-- **Adaptive Inference Router** - Multi-LLM selection with auto-fallback
-- **Federated Gateway Service** - Third-party agent integration
-- **Knowledge Graph Service** - Agentic knowledge graph with vector search
-- **Partner Marketplace Service** - Partner integration and revenue sharing
-
-#### 2. Digital Twin Module (`/digital-twin`)
-- **System Digital Twin** - Complete system mirroring
-- **Scenario Testing Lab** - Agentic stress testing
-- **Predictive Energy Optimization** - Cost and CO₂ impact optimization
-
-#### 3. AIOps Module (`/aiops`)
-- **Self-Healing Pipeline Agent** - Fault detection and auto-rollback
-- **Real-Time Ethical Compliance Agent** - Bias, drift, and privacy monitoring
-- **Predictive Orchestration Engine** - Dynamic resource allocation
-
-#### 4. Partners Module (`/partners`)
-- **Partner Portal** - Marketplace and API publisher center
-- **Revenue Sharing System** - Automated partner compensation
-- **SDK Generator** - Partner development tools
-
-### Technology Stack
-
-- **Backend**: Node.js, TypeScript, Express.js
-- **Database**: Supabase (PostgreSQL with pgvector)
-- **Message Queue**: Kafka, NATS
-- **Cache**: Redis
-- **Monitoring**: Prometheus, Grafana
-- **AI/ML**: OpenAI, Anthropic, Google Gemini, Cohere, Hugging Face
-- **Vector Search**: pgvector, VectorHub integration
-- **Containerization**: Docker, Kubernetes
-- **CI/CD**: GitHub Actions, automated deployment
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- npm 8+
-- Docker (optional)
-- Supabase account
-- Redis instance
-- Kafka cluster (optional)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd agentmesh-cloud
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. **Start the development environment**
-   ```bash
-   npm run dev
-   ```
-
-### Environment Variables
-
-```env
-# Database
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_KEY=your_supabase_service_key
-
-# LLM Providers
-OPENAI_API_KEY=your_openai_key
-ANTHROPIC_API_KEY=your_anthropic_key
-GOOGLE_API_KEY=your_google_key
-COHERE_API_KEY=your_cohere_key
-HUGGINGFACE_API_KEY=your_huggingface_key
-
-# Infrastructure
-REDIS_URL=redis://localhost:6379
-KAFKA_BROKERS=localhost:9092
-NATS_URL=nats://localhost:4222
-
-# Security
-JWT_SECRET=your_jwt_secret
-ENCRYPTION_KEY=your_encryption_key
-```
-
-## 📚 API Documentation
-
-### Inference Router API
-
-#### Route Inference Request
-```http
-POST /api/v1/inference/route
-Content-Type: application/json
-
-{
-  "prompt": "What is the capital of France?",
-  "model": "gpt-4",
-  "provider": "openai",
-  "parameters": {
-    "temperature": 0.7,
-    "maxTokens": 100
-  },
-  "priority": "normal"
-}
-```
-
-#### Get Available Providers
-```http
-GET /api/v1/inference/providers
-```
-
-### Knowledge Graph API
-
-#### Create Knowledge Node
-```http
-POST /api/v1/knowledge/nodes
-Content-Type: application/json
-
-{
-  "type": "concept",
-  "content": "Artificial Intelligence is the simulation of human intelligence in machines",
-  "metadata": {
-    "title": "Artificial Intelligence",
-    "description": "Definition of AI",
-    "domain": "technology"
-  },
-  "tags": ["ai", "technology", "definition"]
-}
-```
-
-#### Search Knowledge Graph
-```http
-POST /api/v1/knowledge/search
-Content-Type: application/json
-
-{
-  "text": "machine learning algorithms",
-  "type": "semantic",
-  "filters": {
-    "nodeTypes": ["concept", "entity"],
-    "confidence": { "min": 0.8 }
-  },
-  "options": {
-    "limit": 10,
-    "sortBy": "relevance"
-  }
-}
-```
-
-### Partner Marketplace API
-
-#### List Available Partners
-```http
-GET /api/v1/partners/marketplace
-```
-
-#### Register New Partner
-```http
-POST /api/v1/partners/register
-Content-Type: application/json
-
-{
-  "name": "AI Solutions Inc",
-  "description": "Specialized AI consulting services",
-  "capabilities": ["nlp", "computer-vision", "predictive-analytics"],
-  "pricing": {
-    "type": "per_request",
-    "cost": 0.01
-  }
-}
-```
-
-## 🔧 Configuration
-
-### Feature Flags
-
-Control which features are enabled:
-
-```env
-FEATURE_INFERENCE_ROUTER=true
-FEATURE_FEDERATED_GATEWAY=true
-FEATURE_KNOWLEDGE_GRAPH=true
-FEATURE_PARTNER_MARKETPLACE=true
-FEATURE_DIGITAL_TWIN=true
-FEATURE_AIOPS=true
-FEATURE_COMPLIANCE_AUTOMATION=true
-```
-
-### Provider Configuration
-
-Configure LLM providers:
-
-```env
-OPENAI_ENABLED=true
-OPENAI_PRIORITY=1
-OPENAI_WEIGHT=1.0
-
-ANTHROPIC_ENABLED=true
-ANTHROPIC_PRIORITY=2
-ANTHROPIC_WEIGHT=0.9
-
-GOOGLE_ENABLED=true
-GOOGLE_PRIORITY=3
-GOOGLE_WEIGHT=0.8
-```
-
-## 🧪 Testing
-
-### Run Tests
-```bash
-# Run all tests
-npm test
-
-# Run specific module tests
-npm test -- --grep "ecosystem"
-npm test -- --grep "digital-twin"
-npm test -- --grep "aiops"
-npm test -- --grep "partners"
-```
-
-### Load Testing
-```bash
-# Test inference router performance
-npm run test:load:inference
-
-# Test knowledge graph performance
-npm run test:load:knowledge
-
-# Test partner marketplace performance
-npm run test:load:partners
-```
-
-## 📊 Monitoring
-
-### Health Checks
-
-- **Ecosystem Service**: `http://localhost:3002/health`
-- **Digital Twin Service**: `http://localhost:3003/health`
-- **AIOps Service**: `http://localhost:3004/health`
-- **Partners Service**: `http://localhost:3005/health`
-
-### Metrics
-
-- **Prometheus**: `http://localhost:9090/metrics`
-- **Grafana Dashboard**: `http://localhost:3000`
-
-### Logs
-
-```bash
-# View ecosystem logs
-npm run logs:ecosystem
-
-# View digital twin logs
-npm run logs:digital-twin
-
-# View AIOps logs
-npm run logs:aiops
-
-# View partners logs
-npm run logs:partners
-```
-
-## 🚀 Deployment
-
-### Docker Deployment
-
-```bash
-# Build all services
-docker-compose build
-
-# Start all services
-docker-compose up -d
-
-# Scale specific services
-docker-compose up -d --scale ecosystem=3
-```
-
-### Kubernetes Deployment
-
-```bash
-# Apply Kubernetes manifests
-kubectl apply -f k8s/
-
-# Check deployment status
-kubectl get pods -l app=agentmesh-cloud
-
-# Scale deployments
-kubectl scale deployment ecosystem --replicas=5
-```
-
-### Multi-Cloud Deployment
-
-```bash
-# Deploy to AWS
-npm run deploy:aws
-
-# Deploy to GCP
-npm run deploy:gcp
-
-# Deploy to Azure
-npm run deploy:azure
-```
-
-## 🔒 Security
-
-### Authentication & Authorization
-
-- JWT-based authentication
-- Role-based access control (RBAC)
-- Tenant isolation
-- API key management
-
-### Data Protection
-
-- End-to-end encryption
-- Data residency controls
-- Privacy-preserving analytics
-- Automated data anonymization
-
-### Compliance
-
-- SOC 2 Type II automation
-- ISO 27001 compliance
-- GDPR compliance
-- HIPAA compliance (healthcare)
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-### Development Guidelines
-
-- Follow TypeScript best practices
-- Write comprehensive tests
-- Document all APIs
-- Follow the existing code style
-- Update documentation
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- **Documentation**: [docs.agentmesh.cloud](https://docs.agentmesh.cloud)
-- **Community**: [Discord](https://discord.gg/agentmesh)
-- **Issues**: [GitHub Issues](https://github.com/agentmesh/agentmesh-cloud/issues)
-- **Email**: support@agentmesh.cloud
-
-## 🗺️ Roadmap
-
-### Phase 1: Core Platform (Q1 2025)
-- ✅ Adaptive Inference Router
-- ✅ Knowledge Graph Service
-- ✅ Partner Marketplace
-- 🔄 Digital Twin Framework
-- 🔄 AIOps Self-Healing
-
-### Phase 2: Advanced Features (Q2 2025)
-- 🔄 Multi-Cloud Orchestration
-- 🔄 Advanced Analytics
-- 🔄 Compliance Automation
-- 🔄 Edge Computing Support
-
-### Phase 3: Enterprise Features (Q3 2025)
-- 🔄 Enterprise SSO
-- 🔄 Advanced Security
-- 🔄 Custom Model Training
-- 🔄 White-label Solutions
-
-### Phase 4: AI-Native OS (Q4 2025)
-- 🔄 Autonomous Operations
-- 🔄 Self-Improving Systems
-- 🔄 Global Intelligence Network
-- 🔄 Quantum-Ready Architecture
-
-## 🙏 Acknowledgments
-
-- OpenAI for GPT models
-- Anthropic for Claude models
-- Google for Gemini models
-- Supabase for backend infrastructure
-- The open-source community for various libraries and tools
+[![CI](https://github.com/orca-mesh/orca-core/actions/workflows/ci.yml/badge.svg)](https://github.com/orca-mesh/orca-core/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.18%2B-green)](https://nodejs.org/)
 
 ---
 
-**AgentMesh Cloud** - Building the future of AI-native enterprise operations.
+## Overview
+
+ORCA (Orchestrated Reliable Cognitive Agents) is a production-ready platform for managing, monitoring, and governing AI agents across your organization. Built with TypeScript, OpenTelemetry, and MCP compliance, ORCA provides:
+
+- **🔍 Agent Discovery**: Automatic discovery across MCP servers, Zapier, Make, n8n, Airflow, and Lambda
+- **🛡️ Policy Enforcement**: RBAC, data classification, NIST AI RMF, and OWASP LLM Top 10 alignment
+- **📊 Trust Scoring**: Compute Trust Score (TS), Risk Avoided (RA$), and comprehensive KPIs
+- **🔄 Sync Intelligence**: Detect data freshness issues, drift, and synchronization gaps
+- **📈 Observability**: OpenTelemetry traces, metrics, and structured logging
+- **🔐 Security**: Secrets management, PII redaction, encryption, audit trails
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js >= 18.18.0
+- pnpm >= 8.0.0
+- Docker & Docker Compose (for local services)
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/orca-mesh/orca-core.git
+cd orca-core
+
+# Install dependencies
+pnpm install
+
+# Start infrastructure (PostgreSQL, Redis, OpenTelemetry, etc.)
+docker-compose up -d
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
+
+# Run health check
+pnpm run doctor
+
+# Start ORCA
+pnpm run orca:dev
+```
+
+### Verify Installation
+
+```bash
+# Check health
+curl http://localhost:3000/health
+
+# Get Trust KPIs
+curl http://localhost:3000/api/v1/trust
+
+# List agents
+curl http://localhost:3000/api/v1/agents
+```
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        ORCA Core                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │   Registry   │  │  Telemetry   │  │    Policy    │     │
+│  │   (MCP)      │  │  (OTel)      │  │  (RBAC)      │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              UADSI (Core Differentiator)             │  │
+│  │  ┌──────────┐ ┌───────────┐ ┌──────────────────┐   │  │
+│  │  │Discovery │ │Sync       │ │Trust Scoring     │   │  │
+│  │  │          │ │Analyzer   │ │& Reporting       │   │  │
+│  │  └──────────┘ └───────────┘ └──────────────────┘   │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │ Context Bus  │  │ Diagnostics  │  │   Security   │     │
+│  │ (pgvector)   │  │ (Healing)    │  │  (Secrets)   │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│                                                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              REST API + GraphQL (planned)            │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+         │                   │                   │
+         ▼                   ▼                   ▼
+    ┌─────────┐         ┌─────────┐       ┌──────────┐
+    │   MCP   │         │ Zapier  │       │  Airflow │
+    │ Servers │         │  Make   │       │  Lambda  │
+    └─────────┘         │   n8n   │       └──────────┘
+                        └─────────┘
+```
+
+---
+
+## Key Features
+
+### 1. UADSI - Unified Agent Diagnostics & Synchronization Intelligence
+
+**The Core Differentiator**
+
+#### Agent Discovery
+- Scans MCP servers, Zapier, Make, n8n, Airflow, Lambda
+- Builds comprehensive agent inventory
+- Quarantines shadow AI for review
+- Auto-registration with approval workflow
+
+#### Trust Scoring
+```
+Trust Score (TS) = weighted(
+  reliability × policy_adherence × context_freshness
+) ÷ risk_exposure
+
+Result: 0-100 scale
+```
+
+#### Trust KPIs
+- **TS (Trust Score)**: Overall trust metric (0-100)
+- **RA$ (Risk Avoided)**: Financial risk mitigation
+- **Sync Freshness %**: Data currency across integrations
+- **Drift Rate %**: Configuration/data inconsistency detection
+- **Compliance SLA %**: Policy adherence rate
+- **Self-Resolution Ratio**: Auto-healing effectiveness
+- **ROI**: RA$ ÷ platform cost
+
+#### Sync Analysis
+- Detect missing records
+- Monitor data freshness
+- Identify event ordering issues
+- Track webhook drift
+
+### 2. Policy Enforcement
+
+**NIST AI RMF & OWASP LLM Top 10 Aligned**
+
+- Role-Based Access Control (RBAC)
+- Data classification (public → critical)
+- PII detection and redaction
+- Content safety (hate speech, violence, etc.)
+- Rate limiting and quota management
+- Audit trails for compliance (SOC2, ISO 27001, GDPR)
+
+### 3. OpenTelemetry Integration
+
+**Full Observability Stack**
+
+- Distributed tracing with correlation IDs
+- Custom metrics (trust score, drift rate, etc.)
+- Structured logging with PII redaction
+- Prometheus exporter
+- Jaeger trace visualization
+- Grafana dashboards
+
+### 4. MCP Compliance
+
+**Model Context Protocol v1.0**
+
+- Standard agent registration
+- Context sharing (foundation)
+- Capability negotiation
+- Tool/function calling (planned)
+- Streaming responses (planned)
+
+---
+
+## API Reference
+
+### REST Endpoints
+
+#### Agents
+```bash
+GET    /api/v1/agents          # List agents
+POST   /api/v1/agents          # Register agent
+GET    /api/v1/agents/:id      # Get agent
+PUT    /api/v1/agents/:id      # Update agent
+DELETE /api/v1/agents/:id      # Delete agent
+POST   /api/v1/agents/:id/suspend  # Suspend agent
+```
+
+#### Trust & KPIs
+```bash
+GET    /api/v1/trust                    # Get Trust KPIs
+GET    /api/v1/trust/score/:agentId    # Agent trust score
+GET    /api/v1/trust/sync-gaps         # Sync gaps report
+GET    /api/v1/trust/report/executive  # Executive summary
+POST   /api/v1/trust/incident          # Record incident
+```
+
+#### Health
+```bash
+GET    /health                 # Health check
+GET    /ready                  # Readiness check
+GET    /status                 # Status endpoint
+```
+
+See [openapi.yaml](./openapi.yaml) for full API specification.
+
+---
+
+## Configuration
+
+### Environment Variables
+
+See [.env.example](./.env.example) for all configuration options.
+
+Key settings:
+```bash
+NODE_ENV=production
+PORT=3000
+DB_HOST=postgres.example.com
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+ENABLE_DISCOVERY=true
+```
+
+### Policy Configuration
+
+Edit `policy_rules.yaml` to customize:
+- RBAC roles and permissions
+- Data classification levels
+- PII patterns
+- Rate limits
+- Compliance frameworks
+
+### MCP Registry
+
+Edit `mcp_registry.yaml` to register agents:
+```yaml
+agents:
+  - id: "my-agent"
+    name: "My AI Agent"
+    type: "chatbot"
+    vendor: "openai"
+    model: "gpt-4"
+    mcp_config:
+      protocol_version: "1.0.0"
+      capabilities: ["context_sharing", "tool_use"]
+```
+
+---
+
+## Deployment
+
+### Docker Compose (Development)
+
+```bash
+docker-compose up -d
+```
+
+### Kubernetes (Production)
+
+```bash
+# Coming soon: Helm charts
+kubectl apply -f kubernetes/
+```
+
+### AWS ECS / EKS
+
+```bash
+# Coming soon: Terraform modules
+terraform apply
+```
+
+---
+
+## Monitoring & Observability
+
+### Dashboards
+
+1. **Service Health**: Request rate, latency, errors
+2. **Trust KPIs**: TS, RA$, Sync Freshness, Drift Rate
+3. **Agent Registry**: Agents by status, type, vendor
+
+Access Grafana: http://localhost:3001 (admin/admin)
+
+### Metrics
+
+```
+orca.trust.score                # Trust Score
+orca.risk.avoided_usd           # Risk Avoided
+orca.sync.lag                   # Sync lag in ms
+orca.drift.rate                 # Drift rate %
+orca.requests.total             # Total requests
+orca.requests.duration          # Request duration
+orca.errors.total               # Total errors
+orca.policy.violations          # Policy violations
+```
+
+### Tracing
+
+View traces in Jaeger: http://localhost:16686
+
+---
+
+## Security
+
+### Best Practices
+
+1. **Secrets**: Use environment variables or KMS/Vault
+2. **Authentication**: Enable JWT or API key auth
+3. **TLS**: Use TLS 1.3 for all external communication
+4. **PII**: Enable PII redaction in logs
+5. **Policies**: Set enforcement mode to `blocking` in production
+6. **Auditing**: Enable comprehensive audit logging
+
+See [SECURITY.md](./SECURITY.md) for vulnerability reporting.
+
+---
+
+## Development
+
+### Project Structure
+
+```
+/workspace
+├── src/                    # ORCA Core source
+│   ├── common/             # Shared utilities
+│   ├── registry/           # Agent registry
+│   ├── telemetry/          # OpenTelemetry
+│   ├── policy/             # Policy enforcer
+│   ├── uadsi/              # Discovery, trust, sync
+│   ├── api/                # REST API
+│   ├── adapters/           # Integration adapters
+│   └── security/           # Security utilities
+├── docs/                   # Documentation
+├── scripts/                # Utility scripts
+├── .github/workflows/      # CI/CD
+└── docker-compose.yml      # Local infrastructure
+```
+
+### Running Tests
+
+```bash
+pnpm run test              # Run all tests
+pnpm run test:watch        # Watch mode
+pnpm run test:coverage     # Coverage report
+```
+
+### Linting & Formatting
+
+```bash
+pnpm run lint              # ESLint
+pnpm run format            # Prettier
+pnpm run type-check        # TypeScript
+pnpm run doctor            # Health check
+```
+
+### Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+---
+
+## Documentation
+
+- **[ASSUMPTIONS.md](./docs/ASSUMPTIONS.md)**: Decisions & tradeoffs
+- **[OPERATIONS.md](./docs/OPERATIONS.md)**: Runbooks & on-call procedures
+- **[UADSI_SPEC.md](./docs/UADSI_SPEC.md)**: Algorithms, scoring formulae, KPIs
+- **[MCP_ALIGNMENT.md](./docs/MCP_ALIGNMENT.md)**: MCP compliance details
+- **[SECURITY.md](./SECURITY.md)**: Security policy
+- **[CHANGELOG.md](./CHANGELOG.md)**: Version history
+
+---
+
+## Roadmap
+
+### v1.1 (Q1 2026)
+- [ ] Complete context bus with pgvector
+- [ ] Full self-healing diagnostics
+- [ ] GraphQL API
+- [ ] Comprehensive test suite
+- [ ] Performance benchmarks
+
+### v1.2 (Q2 2026)
+- [ ] Multi-tenant support
+- [ ] Real-time WebSocket subscriptions
+- [ ] Advanced ML-based trust scoring
+- [ ] Additional adapters (Make, n8n, Airflow, Lambda)
+
+### v2.0 (Q3 2026)
+- [ ] Federated MCP across organizations
+- [ ] Zero-trust architecture
+- [ ] Advanced anomaly detection
+- [ ] Multi-agent orchestration
+
+---
+
+## Support
+
+- **Documentation**: https://docs.orca-mesh.io
+- **Issues**: https://github.com/orca-mesh/orca-core/issues
+- **Discussions**: https://github.com/orca-mesh/orca-core/discussions
+- **Email**: support@orca-mesh.io
+
+---
+
+## License
+
+MIT License - see [LICENSE](./LICENSE) file for details.
+
+---
+
+## Acknowledgments
+
+Built with:
+- [TypeScript](https://www.typescriptlang.org/)
+- [Node.js](https://nodejs.org/)
+- [Express](https://expressjs.com/)
+- [OpenTelemetry](https://opentelemetry.io/)
+- [PostgreSQL](https://www.postgresql.org/) + [pgvector](https://github.com/pgvector/pgvector)
+- [Redis](https://redis.io/)
+- [Prometheus](https://prometheus.io/)
+- [Jaeger](https://www.jaegertracing.io/)
+- [Grafana](https://grafana.com/)
+
+---
+
+**⭐ Star this repo if you find it useful!**
+
+**Made with ❤️ by the ORCA Team**

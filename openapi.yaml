@@ -1,0 +1,676 @@
+openapi: 3.1.0
+info:
+  title: AI-Agent Mesh API
+  description: |
+    Enterprise API for AI agent governance, policy enforcement, and observability.
+    Supports MCP (Model Context Protocol) v1.0 compliance.
+  version: 1.0.0
+  contact:
+    name: AI-Agent Mesh Support
+    email: support@ai-mesh.io
+    url: https://docs.ai-mesh.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: https://api.ai-mesh.io/v1
+    description: Production
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+tags:
+  - name: Agents
+    description: Agent registration and management
+  - name: Policies
+    description: Policy enforcement and compliance
+  - name: Telemetry
+    description: Metrics, traces, and logs
+  - name: Federation
+    description: Context federation and knowledge sharing
+  - name: Compliance
+    description: Compliance reports and audits
+
+paths:
+  # ============================================================================
+  # AGENTS
+  # ============================================================================
+  /agents:
+    get:
+      tags: [Agents]
+      summary: List all agents
+      description: Retrieve a list of all registered agents with optional filters
+      operationId: listAgents
+      parameters:
+        - name: status
+          in: query
+          description: Filter by agent status
+          schema:
+            type: string
+            enum: [active, suspended, deprecated, quarantined]
+        - name: vendor
+          in: query
+          description: Filter by vendor
+          schema:
+            type: string
+            enum: [openai, anthropic, azure, aws, google, custom]
+        - name: type
+          in: query
+          description: Filter by agent type
+          schema:
+            type: string
+            enum: [chatbot, copilot, pipeline, service]
+        - name: compliance_tier
+          in: query
+          description: Filter by compliance tier
+          schema:
+            type: string
+            enum: [none, standard, high, critical]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  agents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    post:
+      tags: [Agents]
+      summary: Register new agent
+      description: Register a new AI agent with the mesh
+      operationId: registerAgent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentInput'
+      responses:
+        '201':
+          description: Agent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  
+  /agents/{agentId}:
+    get:
+      tags: [Agents]
+      summary: Get agent details
+      description: Retrieve details for a specific agent
+      operationId: getAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    put:
+      tags: [Agents]
+      summary: Update agent
+      description: Update an existing agent's configuration
+      operationId: updateAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentUpdateInput'
+      responses:
+        '200':
+          description: Agent updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      tags: [Agents]
+      summary: Delete agent
+      description: Remove an agent from the registry
+      operationId: deleteAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '204':
+          description: Agent deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
+  /agents/{agentId}/suspend:
+    post:
+      tags: [Agents]
+      summary: Suspend agent
+      description: Suspend an agent to block all requests
+      operationId: suspendAgent
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for suspension
+      responses:
+        '200':
+          description: Agent suspended successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
+  /agents/{agentId}/compliance-report:
+    get:
+      tags: [Compliance]
+      summary: Get compliance report
+      description: Generate a compliance report for an agent
+      operationId: getComplianceReport
+      parameters:
+        - $ref: '#/components/parameters/AgentId'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReport'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
+  # ============================================================================
+  # POLICIES
+  # ============================================================================
+  /policies:
+    get:
+      tags: [Policies]
+      summary: List all policies
+      description: Retrieve a list of all governance policies
+      operationId: listPolicies
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  policies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Policy'
+  
+  /policies/{policyId}:
+    get:
+      tags: [Policies]
+      summary: Get policy details
+      description: Retrieve details for a specific policy
+      operationId: getPolicy
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
+  /policies/evaluate:
+    post:
+      tags: [Policies]
+      summary: Evaluate policy
+      description: Evaluate policies for a request
+      operationId: evaluatePolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                request:
+                  $ref: '#/components/schemas/PolicyRequest'
+                context:
+                  $ref: '#/components/schemas/PolicyContext'
+      responses:
+        '200':
+          description: Policy evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyEvaluation'
+  
+  # ============================================================================
+  # TELEMETRY
+  # ============================================================================
+  /telemetry/metrics:
+    post:
+      tags: [Telemetry]
+      summary: Ingest metrics
+      description: Submit metrics data
+      operationId: ingestMetrics
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricInput'
+      responses:
+        '201':
+          description: Metric recorded
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    
+    get:
+      tags: [Telemetry]
+      summary: Query metrics
+      description: Retrieve metrics data
+      operationId: queryMetrics
+      parameters:
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+        - name: metric_type
+          in: query
+          schema:
+            type: string
+        - name: start_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  metrics:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Metric'
+  
+  /telemetry/dashboard:
+    get:
+      tags: [Telemetry]
+      summary: Get dashboard summary
+      description: Retrieve summary statistics for dashboard
+      operationId: getDashboard
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+  
+  # ============================================================================
+  # FEDERATION
+  # ============================================================================
+  /federation/embeddings:
+    post:
+      tags: [Federation]
+      summary: Store embedding
+      description: Store an embedding in the federation cache
+      operationId: storeEmbedding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                embedding:
+                  type: array
+                  items:
+                    type: number
+                metadata:
+                  type: object
+                ttl_hours:
+                  type: integer
+      responses:
+        '201':
+          description: Embedding stored
+  
+  /federation/embeddings/search:
+    post:
+      tags: [Federation]
+      summary: Search similar embeddings
+      description: Find similar embeddings using cosine similarity
+      operationId: searchEmbeddings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                embedding:
+                  type: array
+                  items:
+                    type: number
+                threshold:
+                  type: number
+                limit:
+                  type: integer
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  results:
+                    type: array
+                    items:
+                      type: object
+
+# ============================================================================
+# COMPONENTS
+# ============================================================================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  
+  parameters:
+    AgentId:
+      name: agentId
+      in: path
+      required: true
+      description: Unique agent identifier
+      schema:
+        type: string
+  
+  schemas:
+    Agent:
+      type: object
+      required: [id, name, type, vendor, model, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [chatbot, copilot, pipeline, service]
+        vendor:
+          type: string
+          enum: [openai, anthropic, azure, aws, google, custom]
+        model:
+          type: string
+        status:
+          type: string
+          enum: [active, suspended, deprecated, quarantined]
+        compliance_tier:
+          type: string
+          enum: [none, standard, high, critical]
+        mcp_config:
+          $ref: '#/components/schemas/MCPConfig'
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyRef'
+        metadata:
+          type: object
+    
+    AgentInput:
+      type: object
+      required: [name, type, vendor, model]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        vendor:
+          type: string
+        model:
+          type: string
+        compliance_tier:
+          type: string
+    
+    AgentUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+        compliance_tier:
+          type: string
+    
+    MCPConfig:
+      type: object
+      properties:
+        protocol_version:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        context_window:
+          type: integer
+        temperature:
+          type: number
+        top_p:
+          type: number
+    
+    Policy:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        type:
+          type: string
+        enabled:
+          type: boolean
+    
+    PolicyRef:
+      type: object
+      properties:
+        policy_id:
+          type: string
+        version:
+          type: string
+        enforcement:
+          type: string
+          enum: [blocking, logging, advisory]
+    
+    PolicyRequest:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        prompt:
+          type: string
+        model:
+          type: string
+    
+    PolicyContext:
+      type: object
+      properties:
+        user_id:
+          type: string
+        role:
+          type: string
+        ip_address:
+          type: string
+    
+    PolicyEvaluation:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum: [allow, allow_with_modifications, deny]
+        modifications:
+          type: object
+        policy_violations:
+          type: array
+          items:
+            type: object
+        warnings:
+          type: array
+          items:
+            type: object
+    
+    ComplianceReport:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        compliance_tier:
+          type: string
+        policies_attached:
+          type: integer
+        status:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+    
+    MetricInput:
+      type: object
+      required: [agent_id, metric_type, value]
+      properties:
+        agent_id:
+          type: string
+        metric_type:
+          type: string
+        value:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        labels:
+          type: object
+    
+    Metric:
+      type: object
+      properties:
+        id:
+          type: string
+        agent_id:
+          type: string
+        metric_type:
+          type: string
+        value:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+    
+    Dashboard:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        agents:
+          type: object
+        requests:
+          type: object
+        logs:
+          type: object
+        performance:
+          type: object
+  
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+    
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Resource not found

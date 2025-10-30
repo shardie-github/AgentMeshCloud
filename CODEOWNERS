@@ -1,0 +1,37 @@
+# CODEOWNERS - ORCA Core
+# These owners will be requested for review when someone opens a pull request
+
+# Global owners - notified for all PRs
+* @orca-team @platform-engineering
+
+# Core modules
+/src/registry/ @orca-team @agent-registry-team
+/src/telemetry/ @orca-team @observability-team
+/src/policy/ @orca-team @security-team @compliance-team
+/src/uadsi/ @orca-team @uadsi-team
+/src/api/ @orca-team @api-team
+/src/security/ @security-team @orca-team
+/src/adapters/ @integrations-team @orca-team
+
+# Configuration
+*.yaml @orca-team @devops-team
+*.yml @orca-team @devops-team
+*.json @orca-team
+
+# CI/CD
+/.github/ @devops-team @orca-team
+/docker-compose.yml @devops-team @orca-team
+
+# Documentation
+/docs/ @documentation-team @orca-team
+*.md @documentation-team
+
+# Security-critical files
+SECURITY.md @security-team
+/src/security/ @security-team
+policy_rules.yaml @security-team @compliance-team
+
+# Build and tooling
+package.json @orca-team @devops-team
+tsconfig.json @orca-team
+.eslintrc.cjs @orca-team
