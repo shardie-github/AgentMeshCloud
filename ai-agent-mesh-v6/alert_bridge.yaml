@@ -1,0 +1,302 @@
+# Alert Bridge Configuration
+# Integration with OpsGenie, PagerDuty, and other alerting platforms
+
+version: "1.0"
+lastUpdated: "2025-10-30"
+
+providers:
+  opsgenie:
+    enabled: true
+    apiKey: "${OPSGENIE_API_KEY}"
+    region: "US"  # US or EU
+    priority: primary
+    teams:
+      - name: "mesh-os-sre"
+        escalation: "sre-escalation"
+      - name: "mesh-os-security"
+        escalation: "security-escalation"
+    defaultPriority: "P3"
+    
+  pagerduty:
+    enabled: true
+    apiKey: "${PAGERDUTY_API_KEY}"
+    routingKey: "${PAGERDUTY_ROUTING_KEY}"
+    priority: secondary
+    services:
+      - name: "Mesh OS Production"
+        integrationKey: "${PD_INTEGRATION_KEY_PROD}"
+      - name: "Mesh OS Security"
+        integrationKey: "${PD_INTEGRATION_KEY_SEC}"
+    urgency: "high"
+    
+  slack:
+    enabled: true
+    webhookUrl: "${SLACK_WEBHOOK_URL}"
+    channels:
+      critical: "#incidents"
+      warning: "#alerts"
+      info: "#monitoring"
+    mentionOnCall: true
+    
+  email:
+    enabled: true
+    smtpServer: "smtp.meshos.io"
+    smtpPort: 587
+    from: "alerts@meshos.io"
+    distributionLists:
+      critical: ["oncall@meshos.io", "leadership@meshos.io"]
+      warning: ["sre@meshos.io"]
+      info: ["monitoring@meshos.io"]
+      
+  webhook:
+    enabled: true
+    endpoints:
+      - name: "Custom Alert Handler"
+        url: "https://alerts.meshos.io/webhook"
+        method: "POST"
+        headers:
+          Authorization: "Bearer ${WEBHOOK_TOKEN}"
+        retryAttempts: 3
+
+alertRules:
+  # Infrastructure Alerts
+  - name: "Region Down"
+    severity: critical
+    condition: "region_health_status == 'down'"
+    duration: "1m"
+    providers: ["opsgenie", "pagerduty", "slack", "email"]
+    escalation: "immediate"
+    autoResolve: false
+    runbook: "https://docs.meshos.io/runbooks/region-failure"
+    
+  - name: "High Latency"
+    severity: warning
+    condition: "p95_latency_ms > 500"
+    duration: "5m"
+    providers: ["slack", "opsgenie"]
+    escalation: "standard"
+    autoResolve: true
+    threshold:
+      warning: 500
+      critical: 1000
+      
+  - name: "Error Rate Spike"
+    severity: critical
+    condition: "error_rate > 5%"
+    duration: "2m"
+    providers: ["opsgenie", "pagerduty", "slack"]
+    escalation: "immediate"
+    autoResolve: true
+    
+  - name: "CPU Utilization High"
+    severity: warning
+    condition: "cpu_usage > 80%"
+    duration: "10m"
+    providers: ["slack"]
+    escalation: "standard"
+    autoResolve: true
+    
+  - name: "Memory Utilization Critical"
+    severity: critical
+    condition: "memory_usage > 90%"
+    duration: "5m"
+    providers: ["opsgenie", "slack"]
+    escalation: "immediate"
+    autoResolve: true
+    
+  # SLA Alerts
+  - name: "SLA Violation"
+    severity: critical
+    condition: "uptime < sla_target"
+    duration: "1m"
+    providers: ["opsgenie", "pagerduty", "email"]
+    escalation: "immediate"
+    autoResolve: false
+    notifyCustomers: true
+    
+  - name: "SLA At Risk"
+    severity: warning
+    condition: "uptime < sla_target + 0.1%"
+    duration: "15m"
+    providers: ["slack", "email"]
+    escalation: "standard"
+    autoResolve: true
+    
+  # Security Alerts
+  - name: "Unauthorized Access Attempt"
+    severity: critical
+    condition: "unauthorized_access_count > 5"
+    duration: "1m"
+    providers: ["opsgenie", "slack", "email"]
+    escalation: "immediate"
+    autoResolve: false
+    team: "security"
+    
+  - name: "KMS Key Access Anomaly"
+    severity: warning
+    condition: "kms_unusual_activity == true"
+    duration: "1m"
+    providers: ["slack", "email"]
+    escalation: "standard"
+    autoResolve: false
+    
+  - name: "DDoS Attack Detected"
+    severity: critical
+    condition: "request_rate > 10000 AND error_rate > 50%"
+    duration: "30s"
+    providers: ["opsgenie", "pagerduty", "slack"]
+    escalation: "immediate"
+    autoResolve: false
+    
+  # Replication Alerts
+  - name: "Replication Lag High"
+    severity: warning
+    condition: "replication_lag_ms > 5000"
+    duration: "5m"
+    providers: ["slack"]
+    escalation: "standard"
+    autoResolve: true
+    
+  - name: "Replication Failed"
+    severity: critical
+    condition: "replication_status == 'failed'"
+    duration: "1m"
+    providers: ["opsgenie", "slack"]
+    escalation: "immediate"
+    autoResolve: false
+    
+  # Backup Alerts
+  - name: "Backup Failed"
+    severity: critical
+    condition: "backup_status == 'failed'"
+    duration: "1m"
+    providers: ["opsgenie", "email"]
+    escalation: "immediate"
+    autoResolve: false
+    
+  - name: "Backup Delayed"
+    severity: warning
+    condition: "last_backup_age > 24h"
+    duration: "1m"
+    providers: ["slack", "email"]
+    escalation: "standard"
+    autoResolve: true
+    
+  # Cost Alerts
+  - name: "Cost Anomaly Detected"
+    severity: warning
+    condition: "daily_cost > avg_daily_cost * 1.5"
+    duration: "1h"
+    providers: ["slack", "email"]
+    escalation: "standard"
+    autoResolve: false
+    
+  - name: "Budget Exceeded"
+    severity: critical
+    condition: "monthly_cost > monthly_budget"
+    duration: "1h"
+    providers: ["email"]
+    escalation: "standard"
+    autoResolve: false
+
+escalationPolicies:
+  immediate:
+    steps:
+      - delay: 0
+        action: "notify"
+        targets: ["oncall"]
+      - delay: 5  # minutes
+        action: "escalate"
+        targets: ["oncall_backup", "team_lead"]
+      - delay: 15  # minutes
+        action: "escalate"
+        targets: ["engineering_manager", "vp_engineering"]
+        
+  standard:
+    steps:
+      - delay: 0
+        action: "notify"
+        targets: ["oncall"]
+      - delay: 15  # minutes
+        action: "escalate"
+        targets: ["team_lead"]
+      - delay: 60  # minutes
+        action: "escalate"
+        targets: ["engineering_manager"]
+        
+  security:
+    steps:
+      - delay: 0
+        action: "notify"
+        targets: ["security_team"]
+      - delay: 5  # minutes
+        action: "escalate"
+        targets: ["security_lead", "ciso"]
+
+notification:
+  templates:
+    critical:
+      title: "🚨 CRITICAL: {alert_name}"
+      body: |
+        Alert: {alert_name}
+        Severity: {severity}
+        Region: {region}
+        Description: {description}
+        Time: {timestamp}
+        Runbook: {runbook_url}
+        
+    warning:
+      title: "⚠️ WARNING: {alert_name}"
+      body: |
+        Alert: {alert_name}
+        Severity: {severity}
+        Region: {region}
+        Description: {description}
+        Time: {timestamp}
+        
+    resolved:
+      title: "✅ RESOLVED: {alert_name}"
+      body: |
+        Alert: {alert_name}
+        Duration: {duration}
+        Resolved by: {resolved_by}
+        Time: {timestamp}
+        
+  throttling:
+    enabled: true
+    maxAlertsPerMinute: 10
+    groupingWindow: 300  # seconds
+    
+  silencing:
+    enabled: true
+    maintenanceWindows:
+      - day: "Sunday"
+        start: "02:00"
+        end: "06:00"
+        timezone: "UTC"
+
+monitoring:
+  healthCheck:
+    enabled: true
+    interval: 60  # seconds
+    timeout: 10  # seconds
+    
+  delivery:
+    retryAttempts: 3
+    retryBackoff: "exponential"
+    maxBackoff: 300  # seconds
+    trackDeliveryStatus: true
+    
+  metrics:
+    - name: "alerts_sent_total"
+      type: counter
+    - name: "alert_delivery_latency"
+      type: histogram
+    - name: "alert_failures_total"
+      type: counter
+
+compliance:
+  retention: 2555  # days (7 years)
+  encryption: true
+  auditLog: true
+  gdprCompliant: true

@@ -1,0 +1,22 @@
+{
+  "common": {
+    "welcome": "Bienvenido a Mesh OS",
+    "dashboard": "Panel de control",
+    "agents": "Agentes",
+    "users": "Usuarios",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "export": "Exportar",
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "success": "Éxito",
+    "confirm": "¿Estás seguro?"
+  }
+}

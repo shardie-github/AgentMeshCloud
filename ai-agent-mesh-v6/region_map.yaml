@@ -1,0 +1,228 @@
+# Multi-Region Federation Map
+# Defines routing, failover, and regional cluster configuration
+
+version: "1.0"
+lastUpdated: "2025-10-30"
+
+regions:
+  us-east-1:
+    name: "US East (Virginia)"
+    type: primary
+    provider: aws
+    endpoints:
+      api: "https://us-east-1.meshos.io"
+      metrics: "https://metrics-us-east-1.meshos.io"
+      auth: "https://auth-us-east-1.meshos.io"
+    capacity:
+      maxTenants: 5000
+      maxAgents: 50000
+      currentLoad: 0.45
+    latency:
+      p50: 25
+      p95: 85
+      p99: 150
+    status: active
+    compliance:
+      - SOC2
+      - ISO27001
+      - HIPAA
+    dataSovereignty: US
+    
+  us-west-2:
+    name: "US West (Oregon)"
+    type: secondary
+    provider: aws
+    endpoints:
+      api: "https://us-west-2.meshos.io"
+      metrics: "https://metrics-us-west-2.meshos.io"
+      auth: "https://auth-us-west-2.meshos.io"
+    capacity:
+      maxTenants: 5000
+      maxAgents: 50000
+      currentLoad: 0.32
+    latency:
+      p50: 22
+      p95: 80
+      p99: 140
+    status: active
+    compliance:
+      - SOC2
+      - ISO27001
+    dataSovereignty: US
+    
+  eu-west-1:
+    name: "EU West (Ireland)"
+    type: primary
+    provider: aws
+    endpoints:
+      api: "https://eu-west-1.meshos.io"
+      metrics: "https://metrics-eu-west-1.meshos.io"
+      auth: "https://auth-eu-west-1.meshos.io"
+    capacity:
+      maxTenants: 3000
+      maxAgents: 30000
+      currentLoad: 0.58
+    latency:
+      p50: 18
+      p95: 65
+      p99: 120
+    status: active
+    compliance:
+      - GDPR
+      - SOC2
+      - ISO27001
+    dataSovereignty: EU
+    
+  eu-central-1:
+    name: "EU Central (Frankfurt)"
+    type: secondary
+    provider: aws
+    endpoints:
+      api: "https://eu-central-1.meshos.io"
+      metrics: "https://metrics-eu-central-1.meshos.io"
+      auth: "https://auth-eu-central-1.meshos.io"
+    capacity:
+      maxTenants: 3000
+      maxAgents: 30000
+      currentLoad: 0.41
+    latency:
+      p50: 16
+      p95: 60
+      p99: 110
+    status: active
+    compliance:
+      - GDPR
+      - SOC2
+      - ISO27001
+    dataSovereignty: EU
+    
+  ca-central-1:
+    name: "Canada Central (Montreal)"
+    type: primary
+    provider: aws
+    endpoints:
+      api: "https://ca-central-1.meshos.io"
+      metrics: "https://metrics-ca-central-1.meshos.io"
+      auth: "https://auth-ca-central-1.meshos.io"
+    capacity:
+      maxTenants: 1000
+      maxAgents: 10000
+      currentLoad: 0.28
+    latency:
+      p50: 30
+      p95: 90
+      p99: 160
+    status: active
+    compliance:
+      - SOC2
+      - PIPEDA
+    dataSovereignty: CA
+    
+  me-south-1:
+    name: "Middle East (Bahrain)"
+    type: primary
+    provider: aws
+    endpoints:
+      api: "https://me-south-1.meshos.io"
+      metrics: "https://metrics-me-south-1.meshos.io"
+      auth: "https://auth-me-south-1.meshos.io"
+    capacity:
+      maxTenants: 500
+      maxAgents: 5000
+      currentLoad: 0.15
+    latency:
+      p50: 35
+      p95: 100
+      p99: 180
+    status: active
+    compliance:
+      - ISO27001
+    dataSovereignty: ME
+    
+  ap-southeast-1:
+    name: "Asia Pacific (Singapore)"
+    type: primary
+    provider: aws
+    endpoints:
+      api: "https://ap-southeast-1.meshos.io"
+      metrics: "https://metrics-ap-southeast-1.meshos.io"
+      auth: "https://auth-ap-southeast-1.meshos.io"
+    capacity:
+      maxTenants: 2000
+      maxAgents: 20000
+      currentLoad: 0.52
+    latency:
+      p50: 28
+      p95: 88
+      p99: 155
+    status: active
+    compliance:
+      - SOC2
+      - ISO27001
+    dataSovereignty: APAC
+
+routingRules:
+  strategy: geoLatency
+  fallbackStrategy: roundRobin
+  maxRetries: 3
+  retryBackoff: exponential
+  healthCheckInterval: 30
+  
+  geolocationMap:
+    - geoRegion: northAmerica
+      preferredRegions:
+        - us-east-1
+        - us-west-2
+      fallback: ca-central-1
+      
+    - geoRegion: southAmerica
+      preferredRegions:
+        - us-east-1
+      fallback: us-west-2
+      
+    - geoRegion: europe
+      preferredRegions:
+        - eu-west-1
+        - eu-central-1
+      fallback: us-east-1
+      
+    - geoRegion: middleEast
+      preferredRegions:
+        - me-south-1
+      fallback: eu-central-1
+      
+    - geoRegion: asiaPacific
+      preferredRegions:
+        - ap-southeast-1
+      fallback: us-west-2
+
+crossRegionReplication:
+  enabled: true
+  mode: async
+  maxReplicationLag: 5000  # milliseconds
+  replicationTargets:
+    - source: us-east-1
+      replicas: [us-west-2, eu-west-1]
+    - source: eu-west-1
+      replicas: [eu-central-1, us-east-1]
+    - source: ap-southeast-1
+      replicas: [us-west-2]
+
+loadBalancing:
+  algorithm: weightedRoundRobin
+  weights:
+    us-east-1: 100
+    us-west-2: 90
+    eu-west-1: 100
+    eu-central-1: 90
+    ca-central-1: 70
+    me-south-1: 60
+    ap-southeast-1: 85
+  stickySessions: true
+  sessionTTL: 3600
+
+monitoring:
+  prometheusEndpoint: "https://prometheus.meshos.io"
+  grafanaEndpoint: "https://grafana.meshos.io"
+  alertmanagerEndpoint: "https://alerts.meshos.io"
+  retentionDays: 90
