@@ -1,0 +1,111 @@
+version: 0.1
+organization:
+  name: ExampleCorp
+  domain: example.com
+  owner: platform-engineering
+  contacts:
+    - role: security
+      email: security@example.com
+    - role: compliance
+      email: compliance@example.com
+
+schema:
+  description: Canonical registry for all AI agents (MCP-aligned)
+  agent_types: [copilot, chatbot, pipeline, service]
+  fields:
+    - id: string
+    - name: string
+    - type: agent_types
+    - owner: string
+    - repos: [string]
+    - endpoints: [string]
+    - models: [string]
+    - capabilities: [string]
+    - mcp:
+        servers:
+          - name: string
+            transport: [http, stdio, websocket]
+            endpoint: string
+            tools: [string]
+            resources: [string]
+    - tags: [string]
+    - data_classification: [public, internal, confidential, restricted]
+
+agents:
+  - id: apps-front-web
+    name: Frontend Chat Assistant
+    type: chatbot
+    owner: web-platform
+    repos:
+      - apps/front
+    endpoints:
+      - https://front.example.com/api/assistant
+    models: [gpt-4o, claude-3-5, gemini-1.5-pro]
+    capabilities: [retrieval, summarization, classification]
+    mcp:
+      servers:
+        - name: front-mcp
+          transport: http
+          endpoint: https://front.example.com/mcp
+          tools: [search, db.query]
+          resources: [kb://marketing, kb://product]
+    tags: [customer-facing]
+    data_classification: internal
+
+  - id: aiops-incident-copilot
+    name: AIOps Incident Copilot
+    type: copilot
+    owner: sre
+    repos:
+      - aiops
+    endpoints:
+      - https://aiops.example.com/api/copilot
+    models: [gpt-4o-mini, claude-3-haiku]
+    capabilities: [root-cause, runbook, ticketing]
+    mcp:
+      servers:
+        - name: aiops-mcp
+          transport: http
+          endpoint: https://aiops.example.com/mcp
+          tools: [pagerduty, kubernetes, logs.search]
+          resources: [kb://runbooks, kb://incidents]
+    tags: [internal, oncall]
+    data_classification: confidential
+
+  - id: digital-twin-svc
+    name: Digital Twin Simulator
+    type: service
+    owner: data-platform
+    repos:
+      - digital-twin
+    endpoints:
+      - https://twin.example.com/api
+    models: [llama-3.1-70b, mistral-large]
+    capabilities: [simulation, planning]
+    mcp:
+      servers:
+        - name: twin-mcp
+          transport: http
+          endpoint: https://twin.example.com/mcp
+          tools: [sim.run, asset.query]
+          resources: [kb://twin-models]
+    tags: [batch]
+    data_classification: internal
+
+policies:
+  model_allowlist: [gpt-4o, gpt-4o-mini, claude-3-5, claude-3-haiku, gemini-1.5-pro, llama-3.1-70b, mistral-large]
+  default_data_classification: internal
+  pii_redaction: true
+  logging:
+    level: info
+    retention_days: 365
+  residency:
+    regions: [us, eu]
+    default_region: us
+
+telemetry:
+  exporter: opentelemetry
+  endpoints:
+    traces: otlp://otel-collector:4317
+    metrics: otlp://otel-collector:4317
+    logs: https://siem.example.com/ingest
