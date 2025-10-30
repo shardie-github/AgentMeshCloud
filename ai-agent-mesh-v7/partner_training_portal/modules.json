@@ -1,0 +1,360 @@
+{
+  "version": "1.0.0",
+  "updated": "2025-10-30",
+  "program": {
+    "name": "Mesh OS Partner Certification Program",
+    "description": "Comprehensive training and certification for Mesh OS partners",
+    "levels": ["foundation", "practitioner", "architect", "expert"],
+    "certifications": [
+      {
+        "id": "mesh-os-foundation",
+        "name": "Mesh OS Foundation Certification",
+        "level": "foundation",
+        "duration": "4 hours",
+        "prerequisites": [],
+        "exam": {
+          "questions": 30,
+          "passing_score": 70,
+          "duration_minutes": 45,
+          "cost": 0
+        }
+      },
+      {
+        "id": "mesh-os-practitioner",
+        "name": "Mesh OS Practitioner Certification",
+        "level": "practitioner",
+        "duration": "8 hours",
+        "prerequisites": ["mesh-os-foundation"],
+        "exam": {
+          "questions": 50,
+          "passing_score": 75,
+          "duration_minutes": 90,
+          "cost": 500
+        }
+      },
+      {
+        "id": "mesh-os-architect",
+        "name": "Mesh OS Solutions Architect Certification",
+        "level": "architect",
+        "duration": "16 hours",
+        "prerequisites": ["mesh-os-practitioner"],
+        "exam": {
+          "questions": 75,
+          "passing_score": 80,
+          "duration_minutes": 120,
+          "cost": 1000
+        }
+      }
+    ]
+  },
+  "modules": [
+    {
+      "id": "module-001",
+      "title": "Introduction to Mesh OS",
+      "level": "foundation",
+      "duration": "60 minutes",
+      "format": "video + quiz",
+      "topics": [
+        "What is Autonomous Mesh OS?",
+        "Key differentiators (Trust Telemetry™, Autonomous Healing)",
+        "Target customer personas (CISO, CTO, VP Eng, CFO)",
+        "Value proposition and ROI framework"
+      ],
+      "learning_objectives": [
+        "Explain Mesh OS core value proposition",
+        "Identify target customer personas and pain points",
+        "Articulate key differentiators vs. competitors",
+        "Calculate basic ROI for prospect"
+      ],
+      "assessment": {
+        "type": "multiple_choice_quiz",
+        "questions": 10,
+        "passing_score": 70
+      }
+    },
+    {
+      "id": "module-002",
+      "title": "Real-Time Trust Telemetry™",
+      "level": "foundation",
+      "duration": "45 minutes",
+      "format": "video + hands-on lab",
+      "topics": [
+        "Trust Score algorithm explained",
+        "Component metrics (policy adherence, agent reputation, response integrity, risk exposure)",
+        "Trust Score dashboard navigation",
+        "Use cases and customer examples"
+      ],
+      "learning_objectives": [
+        "Understand Trust Score calculation methodology",
+        "Interpret Trust Score components and trends",
+        "Demo Trust Score dashboard to prospects",
+        "Explain Trust Score ROI (quantified compliance signal)"
+      ],
+      "assessment": {
+        "type": "hands_on_lab",
+        "scenario": "Calculate Trust Score for sample agent",
+        "passing_criteria": "Score within 5% of actual"
+      }
+    },
+    {
+      "id": "module-003",
+      "title": "Autonomous Healing Engine",
+      "level": "foundation",
+      "duration": "45 minutes",
+      "format": "video + demo",
+      "topics": [
+        "Autonomous healing workflow (detect, diagnose, remediate, verify)",
+        "Self-resolution rate (80% target)",
+        "Supported remediation actions",
+        "MTTR reduction (4-6 hours → 4 minutes)"
+      ],
+      "learning_objectives": [
+        "Explain autonomous healing workflow",
+        "Demo autonomous healing in action",
+        "Quantify MTTR reduction ROI",
+        "Handle objections (\"Can it make mistakes?\")"
+      ],
+      "assessment": {
+        "type": "scenario_walkthrough",
+        "scenario": "Walk through policy violation remediation",
+        "passing_criteria": "Correct explanation of all 4 workflow stages"
+      }
+    },
+    {
+      "id": "module-004",
+      "title": "Federated Policy Enforcement",
+      "level": "practitioner",
+      "duration": "90 minutes",
+      "format": "video + hands-on lab",
+      "topics": [
+        "MCP (Model Context Protocol) alignment",
+        "Multi-cloud, multi-tenant, multi-org governance",
+        "Hierarchical policy inheritance (global → regional → team)",
+        "Policy conflict resolution"
+      ],
+      "learning_objectives": [
+        "Design federated policy architecture",
+        "Configure policy inheritance hierarchy",
+        "Resolve policy conflicts",
+        "Explain MCP protocol benefits"
+      ],
+      "assessment": {
+        "type": "hands_on_lab",
+        "scenario": "Configure 3-tier policy hierarchy for enterprise customer",
+        "passing_criteria": "Zero policy conflicts, 99.7% consistency"
+      }
+    },
+    {
+      "id": "module-005",
+      "title": "Cost & Carbon Optimization",
+      "level": "practitioner",
+      "duration": "60 minutes",
+      "format": "video + calculator tool",
+      "topics": [
+        "Regional cost arbitrage",
+        "Carbon-aware workload routing",
+        "Trade-off analysis (cost vs. carbon)",
+        "ESG reporting automation"
+      ],
+      "learning_objectives": [
+        "Configure cost optimization policies",
+        "Set up carbon-aware routing",
+        "Generate ESG reports",
+        "Calculate customer ROI (40% cost reduction)"
+      ],
+      "assessment": {
+        "type": "roi_calculation",
+        "scenario": "Calculate cost savings for 10K compute hours/month",
+        "passing_criteria": "Within 10% of actual savings"
+      }
+    },
+    {
+      "id": "module-006",
+      "title": "Audit-Ready Evidence Collection",
+      "level": "practitioner",
+      "duration": "45 minutes",
+      "format": "video + demo",
+      "topics": [
+        "SOC 2, ISO 27001, GDPR compliance frameworks",
+        "Immutable audit logs (cryptographic signing)",
+        "Chain-of-custody tracking",
+        "Audit prep time reduction (50 hours → 4 hours)"
+      ],
+      "learning_objectives": [
+        "Export audit-ready evidence",
+        "Explain cryptographic signing",
+        "Demo chain-of-custody for auditors",
+        "Quantify audit prep savings ($27.6K/year)"
+      ],
+      "assessment": {
+        "type": "audit_simulation",
+        "scenario": "Generate SOC 2 evidence package for auditor",
+        "passing_criteria": "Complete evidence package with zero gaps"
+      }
+    },
+    {
+      "id": "module-007",
+      "title": "Sales Methodology & Discovery",
+      "level": "practitioner",
+      "duration": "90 minutes",
+      "format": "video + role play",
+      "topics": [
+        "Discovery call framework (MEDDIC)",
+        "Qualification criteria (company size, industry, pain points)",
+        "Demo best practices",
+        "Objection handling (pricing, competitive, trust)"
+      ],
+      "learning_objectives": [
+        "Conduct discovery call using MEDDIC framework",
+        "Qualify leads effectively (SQL criteria)",
+        "Deliver compelling demos",
+        "Handle top 10 objections"
+      ],
+      "assessment": {
+        "type": "role_play",
+        "scenario": "Discovery call with CISO of Fortune 500 company",
+        "passing_criteria": "Score 80% on MEDDIC rubric"
+      }
+    },
+    {
+      "id": "module-008",
+      "title": "Competitive Positioning",
+      "level": "practitioner",
+      "duration": "60 minutes",
+      "format": "video + battle cards",
+      "topics": [
+        "Competitor landscape (Competitor A, B, C)",
+        "Win/loss analysis",
+        "Battle cards (feature comparison)",
+        "Differentiation messaging"
+      ],
+      "learning_objectives": [
+        "Position Mesh OS vs. top 3 competitors",
+        "Use battle cards effectively",
+        "Win competitive deals",
+        "Understand win/loss patterns"
+      ],
+      "assessment": {
+        "type": "competitive_scenario",
+        "scenario": "Handle objection: 'Competitor A is cheaper'",
+        "passing_criteria": "Effective value-based response"
+      }
+    },
+    {
+      "id": "module-009",
+      "title": "Implementation & Onboarding",
+      "level": "architect",
+      "duration": "120 minutes",
+      "format": "video + hands-on lab",
+      "topics": [
+        "Architecture design (AWS, Azure, GCP)",
+        "Integration with existing tools (Datadog, Prometheus, Jira)",
+        "SSO configuration (Okta, Auth0, Azure AD)",
+        "6-week implementation timeline"
+      ],
+      "learning_objectives": [
+        "Design Mesh OS architecture for enterprise customer",
+        "Integrate with customer's tech stack",
+        "Configure SSO and RBAC",
+        "Execute 6-week implementation plan"
+      ],
+      "assessment": {
+        "type": "architecture_design",
+        "scenario": "Design multi-region deployment for enterprise customer",
+        "passing_criteria": "Architecture review passing score (80%)"
+      }
+    },
+    {
+      "id": "module-010",
+      "title": "Advanced Policy Design",
+      "level": "architect",
+      "duration": "90 minutes",
+      "format": "video + hands-on lab",
+      "topics": [
+        "Custom policy authoring (YAML syntax)",
+        "Policy testing and validation",
+        "Exception handling",
+        "Policy versioning and rollback"
+      ],
+      "learning_objectives": [
+        "Author custom policies from scratch",
+        "Test policies in staging environment",
+        "Handle policy exceptions",
+        "Version and rollback policies safely"
+      ],
+      "assessment": {
+        "type": "hands_on_lab",
+        "scenario": "Author custom policy for PCI DSS compliance",
+        "passing_criteria": "Policy passes all validation tests"
+      }
+    },
+    {
+      "id": "module-011",
+      "title": "Customer Success & Renewal",
+      "level": "architect",
+      "duration": "60 minutes",
+      "format": "video + playbook",
+      "topics": [
+        "Customer health scoring",
+        "QBR (Quarterly Business Review) best practices",
+        "Renewal playbook",
+        "Expansion opportunity identification"
+      ],
+      "learning_objectives": [
+        "Calculate customer health score",
+        "Conduct effective QBRs",
+        "Execute renewal playbook",
+        "Identify upsell opportunities (tier upgrades, add-ons)"
+      ],
+      "assessment": {
+        "type": "qbr_simulation",
+        "scenario": "Conduct QBR with at-risk customer (health score 55)",
+        "passing_criteria": "Recovery plan with 80% success probability"
+      }
+    },
+    {
+      "id": "module-012",
+      "title": "Partner Program Overview",
+      "level": "foundation",
+      "duration": "30 minutes",
+      "format": "video",
+      "topics": [
+        "Partner program structure (tiers, benefits)",
+        "Revenue sharing model",
+        "Co-marketing opportunities",
+        "Support and enablement resources"
+      ],
+      "learning_objectives": [
+        "Understand partner program tiers",
+        "Calculate revenue share",
+        "Access co-marketing resources",
+        "Leverage partner support"
+      ],
+      "assessment": {
+        "type": "program_knowledge_quiz",
+        "questions": 10,
+        "passing_score": 80
+      }
+    }
+  ],
+  "learning_paths": {
+    "sales_partner": {
+      "name": "Sales Partner Track",
+      "modules": ["module-001", "module-002", "module-003", "module-007", "module-008", "module-012"],
+      "duration": "8 hours",
+      "certification": "mesh-os-practitioner"
+    },
+    "technical_partner": {
+      "name": "Technical Partner Track",
+      "modules": ["module-001", "module-002", "module-003", "module-004", "module-005", "module-006", "module-009", "module-010", "module-012"],
+      "duration": "12 hours",
+      "certification": "mesh-os-architect"
+    },
+    "customer_success_partner": {
+      "name": "Customer Success Partner Track",
+      "modules": ["module-001", "module-002", "module-003", "module-006", "module-011", "module-012"],
+      "duration": "6 hours",
+      "certification": "mesh-os-practitioner"
+    }
+  }
+}

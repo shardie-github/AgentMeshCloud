@@ -1,0 +1,502 @@
+# CRM Bridge Configuration
+# HubSpot & Salesforce Integration for Mesh OS
+
+version: "1.0.0"
+updated: "2025-10-30"
+
+# ==============================================================================
+# HUBSPOT INTEGRATION
+# ==============================================================================
+
+hubspot:
+  enabled: true
+  api_key: "${HUBSPOT_API_KEY}"
+  base_url: "https://api.hubapi.com"
+  
+  # OAuth Configuration
+  oauth:
+    client_id: "${HUBSPOT_CLIENT_ID}"
+    client_secret: "${HUBSPOT_CLIENT_SECRET}"
+    redirect_uri: "https://mesh-os.ai/integrations/hubspot/callback"
+    scopes:
+      - crm.objects.contacts.read
+      - crm.objects.contacts.write
+      - crm.objects.companies.read
+      - crm.objects.companies.write
+      - crm.objects.deals.read
+      - crm.objects.deals.write
+      - crm.objects.quotes.write
+      - crm.schemas.custom.read
+      - automation
+  
+  # Object Mapping
+  object_mapping:
+    customer:
+      hubspot_object: "companies"
+      sync_frequency: "15 minutes"
+      fields:
+        mesh_customer_id: "custom_mesh_customer_id"
+        mesh_tier: "custom_mesh_tier"
+        mesh_arr: "custom_mesh_arr"
+        mesh_mrr: "custom_mesh_mrr"
+        contract_start_date: "custom_contract_start"
+        contract_end_date: "custom_contract_end"
+        trust_score_avg: "custom_trust_score"
+        churn_risk_score: "custom_churn_risk"
+        renewal_probability: "custom_renewal_probability"
+        total_agents: "custom_total_agents"
+        total_policies: "custom_total_policies"
+        incidents_resolved: "custom_incidents_resolved"
+        cost_savings: "custom_cost_savings"
+        carbon_offset: "custom_carbon_offset"
+    
+    contact:
+      hubspot_object: "contacts"
+      sync_frequency: "1 hour"
+      fields:
+        mesh_user_id: "custom_mesh_user_id"
+        last_login_date: "custom_last_login"
+        user_role: "custom_mesh_role"
+        feature_adoption_score: "custom_adoption_score"
+    
+    deal:
+      hubspot_object: "deals"
+      sync_frequency: "real-time"
+      fields:
+        deal_type: "dealtype"  # "newbusiness", "renewal", "upsell"
+        mesh_contract_id: "custom_contract_id"
+        renewal_date: "custom_renewal_date"
+        churn_risk: "custom_churn_risk_category"
+        upsell_value: "custom_upsell_opportunity"
+        recommended_tier: "custom_recommended_tier"
+  
+  # Workflows (HubSpot Automation)
+  workflows:
+    renewal_alert_30_days:
+      trigger: "contract_renewal_30_days"
+      actions:
+        - type: "create_task"
+          owner: "account_manager"
+          task_type: "renewal_outreach"
+          priority: "medium"
+          title: "Renewal Outreach - {{company.name}}"
+          due_days: 5
+        - type: "send_email"
+          template: "renewal_30_day_reminder"
+          to: "primary_contact"
+    
+    renewal_alert_7_days:
+      trigger: "contract_renewal_7_days"
+      actions:
+        - type: "create_task"
+          owner: "account_manager"
+          task_type: "urgent_renewal"
+          priority: "high"
+          title: "URGENT: Renewal - {{company.name}}"
+          due_days: 1
+        - type: "send_internal_notification"
+          channel: "slack"
+          message: "⚠️ Urgent Renewal: {{company.name}} - 7 days remaining"
+    
+    high_churn_risk:
+      trigger: "churn_risk_high"
+      actions:
+        - type: "create_task"
+          owner: "cs_manager"
+          task_type: "churn_prevention"
+          priority: "critical"
+          title: "HIGH CHURN RISK: {{company.name}}"
+          due_days: 0
+        - type: "escalate"
+          escalation_path: ["account_manager", "cs_manager", "vp_customer_success"]
+        - type: "schedule_meeting"
+          meeting_type: "emergency_qbr"
+          attendees: ["account_manager", "cs_manager", "customer_executive"]
+    
+    upsell_opportunity:
+      trigger: "upsell_identified"
+      actions:
+        - type: "create_deal"
+          deal_type: "upsell"
+          pipeline: "expansion"
+          stage: "qualified"
+          amount: "{{upsell_value}}"
+        - type: "create_quote"
+          products: "{{recommended_products}}"
+          discount: "{{customer_loyalty_discount}}"
+        - type: "assign_to"
+          owner: "account_manager"
+  
+  # Webhooks (Mesh OS → HubSpot)
+  webhooks:
+    outbound:
+      - event: "trust_score.updated"
+        endpoint: "/crm/v3/objects/companies/{{company_id}}"
+        method: "PATCH"
+        payload:
+          properties:
+            custom_trust_score: "{{trust_score}}"
+            custom_trust_score_updated: "{{timestamp}}"
+      
+      - event: "contract.renewal_pending"
+        endpoint: "/crm/v3/objects/deals"
+        method: "POST"
+        payload:
+          properties:
+            dealname: "Renewal: {{customer_name}}"
+            dealtype: "renewal"
+            amount: "{{annual_value}}"
+            closedate: "{{renewal_date}}"
+            dealstage: "qualified"
+            custom_contract_id: "{{contract_id}}"
+            custom_churn_risk: "{{churn_risk_category}}"
+      
+      - event: "incident.high_severity"
+        endpoint: "/crm/v3/objects/tickets"
+        method: "POST"
+        payload:
+          properties:
+            subject: "High-Severity Incident: {{incident_id}}"
+            content: "{{incident_details}}"
+            hs_pipeline_stage: "escalated"
+            hs_ticket_priority: "HIGH"
+
+# ==============================================================================
+# SALESFORCE INTEGRATION
+# ==============================================================================
+
+salesforce:
+  enabled: true
+  instance_url: "${SALESFORCE_INSTANCE_URL}"
+  api_version: "v58.0"
+  
+  # OAuth Configuration
+  oauth:
+    client_id: "${SALESFORCE_CLIENT_ID}"
+    client_secret: "${SALESFORCE_CLIENT_SECRET}"
+    redirect_uri: "https://mesh-os.ai/integrations/salesforce/callback"
+    auth_url: "https://login.salesforce.com/services/oauth2/authorize"
+    token_url: "https://login.salesforce.com/services/oauth2/token"
+  
+  # Object Mapping
+  object_mapping:
+    account:
+      salesforce_object: "Account"
+      sync_frequency: "15 minutes"
+      fields:
+        Mesh_Customer_ID__c: "mesh_customer_id"
+        Mesh_Tier__c: "mesh_tier"
+        Mesh_ARR__c: "mesh_arr"
+        Mesh_MRR__c: "mesh_mrr"
+        Contract_Start_Date__c: "contract_start_date"
+        Contract_End_Date__c: "contract_end_date"
+        Trust_Score_Avg__c: "trust_score_avg"
+        Churn_Risk_Score__c: "churn_risk_score"
+        Renewal_Probability__c: "renewal_probability"
+        Total_Agents__c: "total_agents"
+        Total_Policies__c: "total_policies"
+        Incidents_Resolved__c: "incidents_resolved"
+        Cost_Savings__c: "cost_savings"
+        Carbon_Offset__c: "carbon_offset"
+    
+    contact:
+      salesforce_object: "Contact"
+      sync_frequency: "1 hour"
+      fields:
+        Mesh_User_ID__c: "mesh_user_id"
+        Last_Login_Date__c: "last_login_date"
+        User_Role__c: "user_role"
+        Feature_Adoption_Score__c: "feature_adoption_score"
+    
+    opportunity:
+      salesforce_object: "Opportunity"
+      sync_frequency: "real-time"
+      fields:
+        Type: "deal_type"  # "New Business", "Renewal", "Upsell"
+        Mesh_Contract_ID__c: "mesh_contract_id"
+        Renewal_Date__c: "renewal_date"
+        Churn_Risk__c: "churn_risk_category"
+        Upsell_Value__c: "upsell_value"
+        Recommended_Tier__c: "recommended_tier"
+        StageName: "stage"
+        CloseDate: "close_date"
+        Amount: "amount"
+    
+    quote:
+      salesforce_object: "Quote"
+      sync_frequency: "real-time"
+      fields:
+        Name: "quote_name"
+        OpportunityId: "opportunity_id"
+        ExpirationDate: "expiration_date"
+        Status: "status"
+        Discount: "discount_percent"
+  
+  # Apex Triggers (Custom Salesforce Logic)
+  apex_triggers:
+    - name: "MeshOSTrustScoreUpdate"
+      object: "Account"
+      event: "after update"
+      condition: "Trust_Score_Avg__c < 80"
+      action: "create_case_for_cs_team"
+    
+    - name: "MeshOSRenewalOpportunity"
+      object: "Account"
+      event: "daily_batch"
+      condition: "Contract_End_Date__c <= TODAY + 30"
+      action: "create_renewal_opportunity"
+  
+  # Process Builder Flows
+  flows:
+    renewal_30_day_alert:
+      trigger: "contract_renewal_30_days"
+      actions:
+        - create_task:
+            subject: "Renewal Outreach: {!Account.Name}"
+            owner: "{!Account.OwnerId}"
+            priority: "Normal"
+            due_date: "TODAY + 5"
+        - send_email:
+            template: "Renewal_30_Day_Reminder"
+            recipient: "{!Contact.Email}"
+    
+    high_churn_risk_escalation:
+      trigger: "churn_risk_high"
+      actions:
+        - create_case:
+            subject: "HIGH CHURN RISK: {!Account.Name}"
+            priority: "Critical"
+            owner: "{!Account.CS_Manager__c}"
+        - send_chatter_post:
+            parent_id: "{!Account.Id}"
+            body: "@CS_Manager - High churn risk detected for {!Account.Name}"
+        - schedule_event:
+            subject: "Emergency QBR: {!Account.Name}"
+            attendees: ["{!Account.OwnerId}", "{!Account.CS_Manager__c}"]
+            duration: "60 minutes"
+    
+    upsell_quote_generation:
+      trigger: "upsell_identified"
+      actions:
+        - create_opportunity:
+            name: "Upsell: {!Account.Name}"
+            type: "Upsell"
+            stage_name: "Qualification"
+            close_date: "TODAY + 30"
+            amount: "{!Upsell_Value__c}"
+        - create_quote:
+            opportunity_id: "{!Opportunity.Id}"
+            status: "Draft"
+            expiration_date: "TODAY + 14"
+
+# ==============================================================================
+# WEBHOOK ENDPOINTS (Mesh OS API)
+# ==============================================================================
+
+mesh_os_webhooks:
+  base_url: "https://api.mesh-os.ai/v1/webhooks"
+  
+  endpoints:
+    trust_score_update:
+      path: "/trust-score"
+      method: "POST"
+      authentication: "bearer_token"
+      payload_schema:
+        customer_id: "string"
+        trust_score: "number"
+        components:
+          policy_adherence: "number"
+          agent_reputation: "number"
+          response_integrity: "number"
+          risk_exposure: "number"
+        timestamp: "iso8601"
+    
+    renewal_alert:
+      path: "/renewal-alert"
+      method: "POST"
+      authentication: "bearer_token"
+      payload_schema:
+        contract_id: "string"
+        customer_id: "string"
+        customer_name: "string"
+        days_until_renewal: "integer"
+        urgency: "enum[critical,urgent,early_warning]"
+        churn_risk:
+          score: "number"
+          category: "enum[high,medium,low]"
+        renewal_probability:
+          probability: "number"
+          confidence: "enum[high,medium,low]"
+        upsell_opportunities: "array"
+    
+    upsell_opportunity:
+      path: "/upsell-opportunity"
+      method: "POST"
+      authentication: "bearer_token"
+      payload_schema:
+        customer_id: "string"
+        opportunities: "array"
+        total_arr_increase: "number"
+        recommended_actions: "array"
+
+# ==============================================================================
+# SYNC CONFIGURATION
+# ==============================================================================
+
+sync:
+  bidirectional: true
+  conflict_resolution: "mesh_os_wins"  # or "crm_wins" or "most_recent"
+  
+  batch_sync:
+    enabled: true
+    schedule: "0 */6 * * *"  # Every 6 hours
+    batch_size: 500
+  
+  real_time_sync:
+    enabled: true
+    events:
+      - "trust_score.updated"
+      - "contract.renewal_pending"
+      - "contract.renewed"
+      - "contract.cancelled"
+      - "incident.critical"
+      - "upsell.identified"
+  
+  error_handling:
+    retry_attempts: 3
+    retry_backoff: "exponential"
+    dead_letter_queue: "sqs://mesh-os-crm-dlq"
+    alert_on_failure: true
+    alert_channels:
+      - "slack://ops-alerts"
+      - "email://ops-team@mesh-os.ai"
+
+# ==============================================================================
+# CUSTOM FIELDS (to be created in CRM)
+# ==============================================================================
+
+custom_fields:
+  hubspot:
+    company:
+      - name: "custom_mesh_customer_id"
+        label: "Mesh OS Customer ID"
+        type: "string"
+      - name: "custom_mesh_tier"
+        label: "Mesh OS Tier"
+        type: "enumeration"
+        options: ["Starter", "Professional", "Enterprise"]
+      - name: "custom_trust_score"
+        label: "Trust Score (Avg)"
+        type: "number"
+        format: "decimal"
+      - name: "custom_churn_risk"
+        label: "Churn Risk Score"
+        type: "number"
+      - name: "custom_renewal_probability"
+        label: "Renewal Probability %"
+        type: "number"
+        format: "percentage"
+      - name: "custom_cost_savings"
+        label: "Cost Savings (Annual)"
+        type: "number"
+        format: "currency"
+      - name: "custom_carbon_offset"
+        label: "Carbon Offset (Metric Tons)"
+        type: "number"
+        format: "decimal"
+  
+  salesforce:
+    account:
+      - name: "Mesh_Customer_ID__c"
+        label: "Mesh OS Customer ID"
+        type: "Text(50)"
+      - name: "Mesh_Tier__c"
+        label: "Mesh OS Tier"
+        type: "Picklist"
+        values: ["Starter", "Professional", "Enterprise"]
+      - name: "Trust_Score_Avg__c"
+        label: "Trust Score (Avg)"
+        type: "Number(5,2)"
+      - name: "Churn_Risk_Score__c"
+        label: "Churn Risk Score"
+        type: "Number(5,2)"
+      - name: "Renewal_Probability__c"
+        label: "Renewal Probability %"
+        type: "Percent(5,2)"
+      - name: "Cost_Savings__c"
+        label: "Cost Savings (Annual)"
+        type: "Currency(16,2)"
+      - name: "Carbon_Offset__c"
+        label: "Carbon Offset (Metric Tons)"
+        type: "Number(10,2)"
+
+# ==============================================================================
+# DASHBOARDS & REPORTS
+# ==============================================================================
+
+crm_dashboards:
+  hubspot:
+    - name: "Mesh OS Health Dashboard"
+      widgets:
+        - type: "single_stat"
+          title: "Total Active Customers"
+          metric: "COUNT(companies WHERE custom_mesh_customer_id IS NOT NULL)"
+        - type: "single_stat"
+          title: "Avg Trust Score"
+          metric: "AVG(companies.custom_trust_score)"
+        - type: "chart"
+          title: "Churn Risk Distribution"
+          chart_type: "pie"
+          metric: "COUNT(companies) GROUP BY custom_churn_risk"
+        - type: "table"
+          title: "High Churn Risk Accounts"
+          filters: "custom_churn_risk >= 70"
+          columns: ["name", "custom_trust_score", "custom_churn_risk", "custom_renewal_probability"]
+  
+  salesforce:
+    - name: "Mesh OS Executive Dashboard"
+      report_type: "Account with Opportunities"
+      filters:
+        - "Mesh_Customer_ID__c NOT EQUAL TO NULL"
+      grouping: "Mesh_Tier__c"
+      summary_fields:
+        - "SUM(Mesh_ARR__c)"
+        - "AVG(Trust_Score_Avg__c)"
+        - "AVG(Churn_Risk_Score__c)"
+      chart_type: "bar"
+
+# ==============================================================================
+# SECURITY & COMPLIANCE
+# ==============================================================================
+
+security:
+  encryption:
+    in_transit: "TLS 1.3"
+    at_rest: "AES-256"
+  
+  authentication:
+    method: "OAuth 2.0"
+    token_refresh: "automatic"
+    token_expiry: "3600"  # seconds
+  
+  authorization:
+    principle: "least_privilege"
+    scopes_required:
+      hubspot: ["crm.objects.contacts.write", "crm.objects.companies.write", "crm.objects.deals.write"]
+      salesforce: ["api", "chatter_api", "full"]
+  
+  audit_logging:
+    enabled: true
+    retention_days: 365
+    log_events:
+      - "data_sync"
+      - "webhook_trigger"
+      - "authentication"
+      - "authorization_failure"
+      - "api_error"
+  
+  compliance:
+    gdpr_compliant: true
+    data_residency: "configurable"
+    right_to_be_forgotten: "supported"
+    data_export: "supported"

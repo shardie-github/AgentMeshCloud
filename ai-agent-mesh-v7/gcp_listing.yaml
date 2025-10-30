@@ -1,0 +1,406 @@
+# GCP Marketplace Listing Configuration
+# Autonomous Mesh OS - Enterprise AI Governance Platform
+
+imports:
+  - path: mesh-os.jinja
+
+resources:
+  - name: mesh-os-deployment
+    type: mesh-os.jinja
+    properties:
+      # Product Configuration
+      subscriptionTier: {{ properties["subscriptionTier"] }}
+      deploymentRegion: {{ properties["deploymentRegion"] }}
+      instanceType: {{ properties["instanceType"] }}
+      
+      # Network Configuration
+      network: {{ properties["network"] }}
+      subnetwork: {{ properties["subnetwork"] }}
+      enablePublicAccess: {{ properties["enablePublicAccess"] }}
+      
+      # Security Configuration
+      enableEncryption: {{ properties["enableEncryption"] }}
+      kmsKeyName: {{ properties["kmsKeyName"] }}
+      
+      # Integration Configuration
+      prometheusEndpoint: {{ properties["prometheusEndpoint"] }}
+      slackWebhook: {{ properties["slackWebhook"] }}
+      pagerdutyKey: {{ properties["pagerdutyKey"] }}
+
+---
+# mesh-os.jinja - Deployment Manager Template
+
+{% set DEPLOYMENT_NAME = env["deployment"] %}
+{% set PROJECT_ID = env["project"] %}
+{% set REGION = properties["deploymentRegion"] %}
+{% set TIER = properties["subscriptionTier"] %}
+{% set IS_ENTERPRISE = (TIER == "Enterprise") %}
+{% set INSTANCE_COUNT = 3 if IS_ENTERPRISE else 2 %}
+
+resources:
+  # ==========================================================================
+  # STORAGE
+  # ==========================================================================
+
+  - name: {{ DEPLOYMENT_NAME }}-telemetry-bucket
+    type: storage.v1.bucket
+    properties:
+      location: {{ REGION }}
+      storageClass: STANDARD
+      versioning:
+        enabled: true
+      lifecycle:
+        rule:
+          - action:
+              type: Delete
+            condition:
+              age: 90
+      encryption:
+        defaultKmsKeyName: {{ properties["kmsKeyName"] or "" }}
+      iamConfiguration:
+        uniformBucketLevelAccess:
+          enabled: true
+
+  # ==========================================================================
+  # NETWORKING
+  # ==========================================================================
+
+  - name: {{ DEPLOYMENT_NAME }}-firewall-https
+    type: compute.v1.firewall
+    properties:
+      network: projects/{{ PROJECT_ID }}/global/networks/{{ properties["network"] }}
+      priority: 1000
+      direction: INGRESS
+      sourceRanges:
+        {% if properties["enablePublicAccess"] %}
+        - 0.0.0.0/0
+        {% else %}
+        - 10.0.0.0/8
+        {% endif %}
+      allowed:
+        - IPProtocol: TCP
+          ports:
+            - 443
+            - 80
+
+  - name: {{ DEPLOYMENT_NAME }}-firewall-metrics
+    type: compute.v1.firewall
+    properties:
+      network: projects/{{ PROJECT_ID }}/global/networks/{{ properties["network"] }}
+      priority: 1000
+      direction: INGRESS
+      sourceRanges:
+        - 10.0.0.0/8
+      allowed:
+        - IPProtocol: TCP
+          ports:
+            - 9090
+
+  - name: {{ DEPLOYMENT_NAME }}-health-check
+    type: compute.v1.healthCheck
+    properties:
+      type: HTTP
+      httpHealthCheck:
+        port: 8080
+        requestPath: /health
+      checkIntervalSec: 30
+      timeoutSec: 5
+      healthyThreshold: 2
+      unhealthyThreshold: 3
+
+  - name: {{ DEPLOYMENT_NAME }}-backend-service
+    type: compute.v1.backendService
+    properties:
+      backends:
+        - group: $(ref.{{ DEPLOYMENT_NAME }}-instance-group.instanceGroup)
+      healthChecks:
+        - $(ref.{{ DEPLOYMENT_NAME }}-health-check.selfLink)
+      protocol: HTTP
+      port: 8080
+      timeoutSec: 30
+      connectionDraining:
+        drainingTimeoutSec: 300
+
+  - name: {{ DEPLOYMENT_NAME }}-url-map
+    type: compute.v1.urlMap
+    properties:
+      defaultService: $(ref.{{ DEPLOYMENT_NAME }}-backend-service.selfLink)
+
+  - name: {{ DEPLOYMENT_NAME }}-target-https-proxy
+    type: compute.v1.targetHttpsProxy
+    properties:
+      urlMap: $(ref.{{ DEPLOYMENT_NAME }}-url-map.selfLink)
+      sslCertificates:
+        - $(ref.{{ DEPLOYMENT_NAME }}-ssl-cert.selfLink)
+
+  - name: {{ DEPLOYMENT_NAME }}-ssl-cert
+    type: compute.v1.sslCertificate
+    properties:
+      type: MANAGED
+      managed:
+        domains:
+          - {{ DEPLOYMENT_NAME }}.{{ REGION }}.mesh-os.app
+
+  - name: {{ DEPLOYMENT_NAME }}-global-address
+    type: compute.v1.globalAddress
+    properties:
+      ipVersion: IPV4
+
+  - name: {{ DEPLOYMENT_NAME }}-forwarding-rule
+    type: compute.v1.globalForwardingRule
+    properties:
+      IPAddress: $(ref.{{ DEPLOYMENT_NAME }}-global-address.address)
+      IPProtocol: TCP
+      portRange: 443
+      target: $(ref.{{ DEPLOYMENT_NAME }}-target-https-proxy.selfLink)
+      loadBalancingScheme: EXTERNAL
+
+  # ==========================================================================
+  # IAM & SERVICE ACCOUNTS
+  # ==========================================================================
+
+  - name: {{ DEPLOYMENT_NAME }}-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: {{ DEPLOYMENT_NAME }}-sa
+      displayName: Mesh OS Service Account
+
+  - name: {{ DEPLOYMENT_NAME }}-storage-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: {{ PROJECT_ID }}
+      role: roles/storage.objectAdmin
+      member: serviceAccount:$(ref.{{ DEPLOYMENT_NAME }}-service-account.email)
+
+  - name: {{ DEPLOYMENT_NAME }}-kms-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: {{ PROJECT_ID }}
+      role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+      member: serviceAccount:$(ref.{{ DEPLOYMENT_NAME }}-service-account.email)
+
+  # ==========================================================================
+  # COMPUTE
+  # ==========================================================================
+
+  - name: {{ DEPLOYMENT_NAME }}-instance-template
+    type: compute.v1.instanceTemplate
+    properties:
+      properties:
+        machineType: {{ properties["instanceType"] }}
+        serviceAccounts:
+          - email: $(ref.{{ DEPLOYMENT_NAME }}-service-account.email)
+            scopes:
+              - https://www.googleapis.com/auth/cloud-platform
+        disks:
+          - boot: true
+            autoDelete: true
+            initializeParams:
+              sourceImage: projects/mesh-os-public/global/images/mesh-os-7-0-0
+              diskSizeGb: 100
+              diskType: pd-ssd
+        networkInterfaces:
+          - network: projects/{{ PROJECT_ID }}/global/networks/{{ properties["network"] }}
+            subnetwork: projects/{{ PROJECT_ID }}/regions/{{ REGION }}/subnetworks/{{ properties["subnetwork"] }}
+        metadata:
+          items:
+            - key: startup-script
+              value: |
+                #!/bin/bash
+                set -e
+                
+                # Configure Mesh OS
+                cat > /etc/mesh-os/config.yaml <<EOF
+                deployment:
+                  tier: {{ TIER }}
+                  region: {{ REGION }}
+                storage:
+                  gcs_bucket: {{ DEPLOYMENT_NAME }}-telemetry-bucket
+                encryption:
+                  enabled: {{ properties["enableEncryption"] }}
+                  kms_key: {{ properties["kmsKeyName"] }}
+                integrations:
+                  prometheus: {{ properties["prometheusEndpoint"] }}
+                  slack_webhook: {{ properties["slackWebhook"] }}
+                  pagerduty_key: {{ properties["pagerdutyKey"] }}
+                EOF
+                
+                # Start Mesh OS
+                docker run -d \
+                  --name mesh-os \
+                  --restart always \
+                  -p 8080:8080 \
+                  -p 9090:9090 \
+                  -v /etc/mesh-os:/config \
+                  gcr.io/mesh-os-public/platform:7.0.0
+                
+                # Configure Cloud Monitoring agent
+                curl -sSO https://dl.google.com/cloudagents/add-monitoring-agent-repo.sh
+                bash add-monitoring-agent-repo.sh --also-install
+
+  - name: {{ DEPLOYMENT_NAME }}-instance-group
+    type: compute.v1.instanceGroupManager
+    properties:
+      zone: {{ REGION }}-a
+      baseInstanceName: {{ DEPLOYMENT_NAME }}-instance
+      instanceTemplate: $(ref.{{ DEPLOYMENT_NAME }}-instance-template.selfLink)
+      targetSize: {{ INSTANCE_COUNT }}
+      autoHealingPolicies:
+        - healthCheck: $(ref.{{ DEPLOYMENT_NAME }}-health-check.selfLink)
+          initialDelaySec: 300
+
+  - name: {{ DEPLOYMENT_NAME }}-autoscaler
+    type: compute.v1.autoscaler
+    properties:
+      zone: {{ REGION }}-a
+      target: $(ref.{{ DEPLOYMENT_NAME }}-instance-group.selfLink)
+      autoscalingPolicy:
+        minNumReplicas: {{ INSTANCE_COUNT }}
+        maxNumReplicas: {% if IS_ENTERPRISE %}10{% else %}5{% endif %}
+        cpuUtilization:
+          utilizationTarget: 0.75
+        coolDownPeriodSec: 60
+
+  # ==========================================================================
+  # MONITORING & ALERTING
+  # ==========================================================================
+
+  - name: {{ DEPLOYMENT_NAME }}-alert-policy-cpu
+    type: gcp-types/monitoring-v3:projects.alertPolicies
+    properties:
+      displayName: Mesh OS High CPU
+      conditions:
+        - displayName: CPU > 80%
+          conditionThreshold:
+            filter: |
+              metric.type="compute.googleapis.com/instance/cpu/utilization"
+              resource.type="gce_instance"
+            comparison: COMPARISON_GT
+            thresholdValue: 0.8
+            duration: 300s
+            aggregations:
+              - alignmentPeriod: 60s
+                perSeriesAligner: ALIGN_MEAN
+      notificationChannels: []
+      alertStrategy:
+        autoClose: 604800s
+
+  - name: {{ DEPLOYMENT_NAME }}-alert-policy-health
+    type: gcp-types/monitoring-v3:projects.alertPolicies
+    properties:
+      displayName: Mesh OS Unhealthy Instance
+      conditions:
+        - displayName: Unhealthy instances > 0
+          conditionThreshold:
+            filter: |
+              metric.type="compute.googleapis.com/instance_group/size"
+              resource.type="instance_group"
+            comparison: COMPARISON_GT
+            thresholdValue: 0
+            duration: 120s
+      notificationChannels: []
+
+outputs:
+  - name: dashboardURL
+    value: https://$(ref.{{ DEPLOYMENT_NAME }}-global-address.address)
+
+  - name: apiEndpoint
+    value: https://$(ref.{{ DEPLOYMENT_NAME }}-global-address.address)/api/v1
+
+  - name: telemetryBucket
+    value: $(ref.{{ DEPLOYMENT_NAME }}-telemetry-bucket.name)
+
+  - name: productTier
+    value: {{ TIER }}
+
+  - name: documentation
+    value: https://docs.mesh-os.ai/gcp-marketplace
+
+  - name: support
+    value: support@mesh-os.ai
+
+# ==========================================================================
+# PROPERTIES SCHEMA (for GCP Marketplace UI)
+# ==========================================================================
+
+properties:
+  subscriptionTier:
+    type: string
+    enum:
+      - Starter
+      - Professional
+      - Enterprise
+    default: Professional
+    title: Subscription Tier
+    description: Select your Mesh OS subscription tier
+
+  deploymentRegion:
+    type: string
+    enum:
+      - us-central1
+      - us-east1
+      - us-west1
+      - europe-west1
+      - europe-west2
+      - asia-southeast1
+    default: us-central1
+    title: Deployment Region
+    description: Primary GCP region for deployment
+
+  instanceType:
+    type: string
+    enum:
+      - n2-standard-4
+      - n2-standard-8
+      - n2-standard-16
+      - c2-standard-4
+      - c2-standard-8
+    default: n2-standard-4
+    title: Instance Type
+    description: Compute Engine machine type
+
+  network:
+    type: string
+    title: VPC Network
+    description: Existing VPC network name
+
+  subnetwork:
+    type: string
+    title: Subnetwork
+    description: Existing subnetwork name
+
+  enablePublicAccess:
+    type: boolean
+    default: false
+    title: Enable Public Access
+    description: Allow public internet access to dashboard
+
+  enableEncryption:
+    type: boolean
+    default: true
+    title: Enable Encryption
+    description: Enable encryption at rest with Cloud KMS
+
+  kmsKeyName:
+    type: string
+    default: ''
+    title: KMS Key Name
+    description: (Optional) Cloud KMS key resource name
+
+  prometheusEndpoint:
+    type: string
+    default: ''
+    title: Prometheus Endpoint
+    description: (Optional) Prometheus endpoint for metrics export
+
+  slackWebhook:
+    type: string
+    default: ''
+    title: Slack Webhook URL
+    description: (Optional) Slack webhook for alerts
+
+  pagerdutyKey:
+    type: string
+    default: ''
+    title: PagerDuty Integration Key
+    description: (Optional) PagerDuty key for incident escalation

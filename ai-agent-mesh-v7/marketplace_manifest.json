@@ -1,0 +1,525 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "manifestVersion": "2.0.0",
+  "product": {
+    "name": "Autonomous Mesh OS",
+    "shortDescription": "Enterprise AI Governance Platform with Real-Time Trust Telemetry & Autonomous Compliance",
+    "longDescription": "The Autonomous Mesh OS is the only AI orchestration platform that quantifies trust in real-time, autonomously heals 80% of compliance incidents, and proves ROI through measurable risk avoidance. Built for enterprises that need to govern AI at scale with quantifiable trust, automated compliance, and audit-ready evidence.",
+    "version": "7.0.0",
+    "vendor": {
+      "name": "Mesh OS Inc.",
+      "website": "https://mesh-os.ai",
+      "support": {
+        "email": "support@mesh-os.ai",
+        "phone": "+1-800-MESH-OS1",
+        "documentation": "https://docs.mesh-os.ai",
+        "slack": "https://mesh-os-community.slack.com"
+      }
+    },
+    "categories": [
+      "AI/ML",
+      "Security & Compliance",
+      "Monitoring & Observability",
+      "DevOps & Infrastructure",
+      "Governance & Risk Management"
+    ],
+    "tags": [
+      "ai-governance",
+      "trust-telemetry",
+      "autonomous-healing",
+      "compliance-automation",
+      "policy-enforcement",
+      "risk-management",
+      "carbon-optimization",
+      "soc2",
+      "iso27001",
+      "gdpr"
+    ]
+  },
+  "marketplaces": {
+    "aws": {
+      "enabled": true,
+      "listingType": "SaaS",
+      "deliveryMethod": "CloudFormation",
+      "regions": [
+        "us-east-1",
+        "us-west-2",
+        "eu-west-1",
+        "ap-southeast-1",
+        "ap-northeast-1"
+      ],
+      "productCode": "mesh-os-enterprise-v7"
+    },
+    "azure": {
+      "enabled": true,
+      "listingType": "SaaS",
+      "deliveryMethod": "ARM Template",
+      "offer": {
+        "id": "mesh-os-enterprise",
+        "name": "Autonomous Mesh OS",
+        "publisherId": "meshos-inc"
+      }
+    },
+    "gcp": {
+      "enabled": true,
+      "listingType": "SaaS",
+      "deliveryMethod": "Deployment Manager",
+      "projectId": "mesh-os-marketplace"
+    },
+    "shopify": {
+      "enabled": true,
+      "appType": "public",
+      "scopes": [
+        "read_analytics",
+        "write_webhooks"
+      ]
+    },
+    "hubspot": {
+      "enabled": true,
+      "appType": "integration",
+      "scopes": [
+        "crm.objects.contacts.read",
+        "crm.objects.deals.write"
+      ]
+    }
+  },
+  "pricing": {
+    "model": "subscription",
+    "currency": "USD",
+    "tiers": [
+      {
+        "name": "Starter",
+        "monthlyPrice": 2500,
+        "annualPrice": 25000,
+        "description": "For teams getting started with AI governance",
+        "features": {
+          "maxAgents": 50,
+          "maxPolicies": 100,
+          "trustScoreTelemetry": true,
+          "autonomousHealing": true,
+          "basicSupport": true,
+          "sla": "99.0%",
+          "retentionDays": 30,
+          "multiRegion": false,
+          "carbonOptimization": false,
+          "customPolicies": false
+        },
+        "usage": {
+          "includedAgentHours": 10000,
+          "overagePerAgentHour": 0.15
+        }
+      },
+      {
+        "name": "Professional",
+        "monthlyPrice": 7500,
+        "annualPrice": 75000,
+        "description": "For mid-market enterprises scaling AI operations",
+        "features": {
+          "maxAgents": 500,
+          "maxPolicies": 1000,
+          "trustScoreTelemetry": true,
+          "autonomousHealing": true,
+          "prioritySupport": true,
+          "sla": "99.5%",
+          "retentionDays": 90,
+          "multiRegion": true,
+          "carbonOptimization": true,
+          "customPolicies": true,
+          "apiAccess": true,
+          "ssoIntegration": true
+        },
+        "usage": {
+          "includedAgentHours": 50000,
+          "overagePerAgentHour": 0.12
+        },
+        "popular": true
+      },
+      {
+        "name": "Enterprise",
+        "monthlyPrice": 25000,
+        "annualPrice": 250000,
+        "description": "For large enterprises with complex AI governance needs",
+        "features": {
+          "maxAgents": "unlimited",
+          "maxPolicies": "unlimited",
+          "trustScoreTelemetry": true,
+          "autonomousHealing": true,
+          "dedicatedSupport": true,
+          "sla": "99.9%",
+          "retentionDays": 365,
+          "multiRegion": true,
+          "carbonOptimization": true,
+          "customPolicies": true,
+          "apiAccess": true,
+          "ssoIntegration": true,
+          "federatedPolicies": true,
+          "onPremiseDeployment": true,
+          "customContracts": true,
+          "dedicatedAccountManager": true,
+          "quarterlyBusinessReviews": true
+        },
+        "usage": {
+          "includedAgentHours": 250000,
+          "overagePerAgentHour": 0.08
+        }
+      }
+    ],
+    "addOns": [
+      {
+        "name": "Advanced Carbon Analytics",
+        "monthlyPrice": 1500,
+        "description": "Detailed carbon tracking, scope 2/3 emissions, ESG reporting"
+      },
+      {
+        "name": "Partner Enablement Package",
+        "monthlyPrice": 2000,
+        "description": "Partner portal, co-branded dashboards, revenue sharing"
+      },
+      {
+        "name": "Extended Data Retention",
+        "monthlyPrice": 500,
+        "description": "Extend telemetry retention to 2 years (compliance requirement)"
+      },
+      {
+        "name": "Premium SLA (99.99%)",
+        "monthlyPrice": 5000,
+        "description": "Four-nines uptime SLA with financial credits"
+      }
+    ]
+  },
+  "technical": {
+    "deployment": {
+      "architectures": [
+        "x86_64",
+        "arm64"
+      ],
+      "operatingSystems": [
+        "Linux (Ubuntu 20.04+)",
+        "Amazon Linux 2",
+        "RHEL 8+"
+      ],
+      "containerRuntime": [
+        "Docker 20.10+",
+        "containerd 1.6+",
+        "Kubernetes 1.24+"
+      ],
+      "minimumRequirements": {
+        "cpu": "4 vCPUs",
+        "memory": "16 GB RAM",
+        "storage": "100 GB SSD",
+        "network": "10 Gbps"
+      },
+      "recommendedRequirements": {
+        "cpu": "8 vCPUs",
+        "memory": "32 GB RAM",
+        "storage": "500 GB NVMe SSD",
+        "network": "25 Gbps"
+      }
+    },
+    "integrations": {
+      "cloudProviders": [
+        "AWS",
+        "Azure",
+        "GCP",
+        "Oracle Cloud",
+        "IBM Cloud"
+      ],
+      "observability": [
+        "Prometheus",
+        "Grafana",
+        "Datadog",
+        "New Relic",
+        "Splunk"
+      ],
+      "iam": [
+        "Okta",
+        "Auth0",
+        "Azure AD",
+        "Google Workspace",
+        "OneLogin"
+      ],
+      "ticketing": [
+        "Jira",
+        "ServiceNow",
+        "PagerDuty",
+        "Opsgenie"
+      ],
+      "crm": [
+        "Salesforce",
+        "HubSpot",
+        "Microsoft Dynamics"
+      ],
+      "mcpProtocol": {
+        "version": "1.0",
+        "federationReady": true
+      }
+    },
+    "apis": {
+      "rest": {
+        "version": "v1",
+        "baseUrl": "https://api.mesh-os.ai/v1",
+        "authentication": "OAuth 2.0 + API Keys",
+        "rateLimits": {
+          "starter": "1000 req/min",
+          "professional": "5000 req/min",
+          "enterprise": "25000 req/min"
+        }
+      },
+      "graphql": {
+        "version": "v1",
+        "endpoint": "https://api.mesh-os.ai/graphql",
+        "authentication": "OAuth 2.0"
+      },
+      "webhooks": {
+        "supported": true,
+        "events": [
+          "trust_score.updated",
+          "incident.detected",
+          "incident.resolved",
+          "policy.violated",
+          "compliance.breach",
+          "agent.registered",
+          "cost.threshold_exceeded"
+        ]
+      }
+    },
+    "sdks": {
+      "python": {
+        "version": "1.2.0",
+        "repository": "https://github.com/mesh-os/python-sdk",
+        "packageManager": "pip"
+      },
+      "javascript": {
+        "version": "1.2.0",
+        "repository": "https://github.com/mesh-os/js-sdk",
+        "packageManager": "npm"
+      },
+      "go": {
+        "version": "1.2.0",
+        "repository": "https://github.com/mesh-os/go-sdk",
+        "packageManager": "go get"
+      },
+      "java": {
+        "version": "1.1.0",
+        "repository": "https://github.com/mesh-os/java-sdk",
+        "packageManager": "maven"
+      }
+    }
+  },
+  "compliance": {
+    "certifications": [
+      "SOC 2 Type II",
+      "ISO 27001",
+      "ISO 27017",
+      "ISO 27018",
+      "GDPR Compliant",
+      "CCPA Compliant",
+      "HIPAA Ready",
+      "FedRAMP Moderate (in progress)"
+    ],
+    "dataResidency": {
+      "regions": [
+        "US",
+        "EU",
+        "UK",
+        "APAC",
+        "Canada"
+      ],
+      "customRegions": true
+    },
+    "encryption": {
+      "atRest": "AES-256",
+      "inTransit": "TLS 1.3",
+      "keyManagement": "AWS KMS, Azure Key Vault, HashiCorp Vault"
+    },
+    "audit": {
+      "immutableLogs": true,
+      "retentionYears": 7,
+      "cryptographicSigning": true,
+      "chainOfCustody": true
+    }
+  },
+  "marketing": {
+    "uniqueValueProposition": "Monitor Trust. Quantify Risk. Prove Compliance — Automatically.",
+    "differentiators": [
+      "Real-Time Trust Telemetry™ (measurable compliance signal)",
+      "Autonomous Healing Engine (80% incident self-resolution)",
+      "Federated Policy Enforcement (MCP-aligned cross-org)",
+      "Carbon & Cost Dual Optimizer",
+      "Audit-Ready Evidence (95% reduction in prep time)"
+    ],
+    "measurableOutcomes": {
+      "policyViolationReduction": "65%",
+      "computeCostReduction": "40%",
+      "trustUptimeSLA": "95%",
+      "falsePositiveDriftRate": "<2%",
+      "mttrReduction": "92%",
+      "auditPrepTimeReduction": "95%"
+    },
+    "targetPersonas": [
+      {
+        "role": "CISO",
+        "painPoints": [
+          "Cannot quantify AI trustworthiness",
+          "Manual compliance reporting",
+          "Alert fatigue from false positives"
+        ],
+        "value": "Real-time Trust Score + automated compliance evidence"
+      },
+      {
+        "role": "CFO",
+        "painPoints": [
+          "Uncontrolled AI infrastructure costs",
+          "Expensive audit preparation",
+          "No ROI visibility on governance tools"
+        ],
+        "value": "$500K+ annual savings from cost optimization + audit automation"
+      },
+      {
+        "role": "VP Engineering",
+        "painPoints": [
+          "Team spends 40% time on incident response",
+          "Governance slows down deployment velocity",
+          "No trust visibility in CI/CD pipeline"
+        ],
+        "value": "80% autonomous healing + deploy with confidence"
+      },
+      {
+        "role": "CEO",
+        "painPoints": [
+          "AI governance is a cost center",
+          "ESG reporting gaps",
+          "Competitive pressure to prove AI safety"
+        ],
+        "value": "Transform governance into competitive advantage with quantified trust"
+      }
+    ],
+    "competitiveAlternatives": [
+      "Generic AI governance platforms (no real-time trust)",
+      "Observability tools (detection only, no remediation)",
+      "Policy-as-code engines (no autonomous healing)",
+      "Manual compliance processes (expensive, error-prone)"
+    ],
+    "useCases": [
+      {
+        "title": "Financial Services",
+        "description": "Real-time compliance monitoring for AI-driven trading algorithms, automated SOX/FINRA evidence collection"
+      },
+      {
+        "title": "Healthcare",
+        "description": "HIPAA-compliant AI orchestration with audit-ready chain-of-custody for patient data access"
+      },
+      {
+        "title": "E-commerce",
+        "description": "40% cost reduction on AI recommendation engines through carbon-aware regional routing"
+      },
+      {
+        "title": "SaaS Platforms",
+        "description": "Multi-tenant AI governance with federated policy enforcement across customer environments"
+      }
+    ]
+  },
+  "media": {
+    "logo": {
+      "svg": "https://cdn.mesh-os.ai/assets/logo.svg",
+      "png": "https://cdn.mesh-os.ai/assets/logo-1024.png",
+      "favicon": "https://cdn.mesh-os.ai/assets/favicon.ico"
+    },
+    "screenshots": [
+      {
+        "title": "Trust Score Dashboard",
+        "url": "https://cdn.mesh-os.ai/screenshots/trust-dashboard.png",
+        "description": "Real-time Trust Score telemetry with component breakdown"
+      },
+      {
+        "title": "Autonomous Healing in Action",
+        "url": "https://cdn.mesh-os.ai/screenshots/auto-healing.png",
+        "description": "Incident detection, diagnosis, and resolution timeline"
+      },
+      {
+        "title": "Cost & Carbon Optimization",
+        "url": "https://cdn.mesh-os.ai/screenshots/cost-carbon.png",
+        "description": "Trade-off analysis for compute workload routing"
+      },
+      {
+        "title": "Audit-Ready Evidence Export",
+        "url": "https://cdn.mesh-os.ai/screenshots/audit-export.png",
+        "description": "SOC 2 compliance evidence with cryptographic signing"
+      },
+      {
+        "title": "Federated Policy Enforcement",
+        "url": "https://cdn.mesh-os.ai/screenshots/federated-policies.png",
+        "description": "Multi-region, multi-org policy orchestration"
+      }
+    ],
+    "videos": [
+      {
+        "title": "3-Minute Product Demo",
+        "url": "https://www.youtube.com/watch?v=mesh-os-demo",
+        "duration": "3:15"
+      },
+      {
+        "title": "Customer Success Story: FinTech Co",
+        "url": "https://www.youtube.com/watch?v=mesh-os-case-study",
+        "duration": "5:42"
+      }
+    ],
+    "whitepapers": [
+      {
+        "title": "Real-Time Trust Telemetry: A New Paradigm for AI Governance",
+        "url": "https://mesh-os.ai/whitepapers/trust-telemetry.pdf"
+      },
+      {
+        "title": "The Economics of Autonomous AI Governance",
+        "url": "https://mesh-os.ai/whitepapers/economics.pdf"
+      }
+    ]
+  },
+  "support": {
+    "channels": [
+      "Email (24/7 for Enterprise)",
+      "Live Chat (Business Hours)",
+      "Slack Community",
+      "Phone Support (Enterprise only)",
+      "Dedicated Account Manager (Enterprise only)"
+    ],
+    "sla": {
+      "starter": {
+        "responseTime": "24 hours",
+        "availability": "Business hours"
+      },
+      "professional": {
+        "responseTime": "4 hours",
+        "availability": "24/5"
+      },
+      "enterprise": {
+        "responseTime": "1 hour (critical), 4 hours (standard)",
+        "availability": "24/7/365"
+      }
+    },
+    "documentation": {
+      "gettingStarted": "https://docs.mesh-os.ai/getting-started",
+      "apiReference": "https://docs.mesh-os.ai/api",
+      "tutorials": "https://docs.mesh-os.ai/tutorials",
+      "bestPractices": "https://docs.mesh-os.ai/best-practices"
+    },
+    "training": {
+      "selfPaced": "https://learn.mesh-os.ai/courses",
+      "instructorLed": "https://mesh-os.ai/training/schedule",
+      "certification": "https://mesh-os.ai/certification"
+    }
+  },
+  "legal": {
+    "termsOfService": "https://mesh-os.ai/legal/terms",
+    "privacyPolicy": "https://mesh-os.ai/legal/privacy",
+    "dpa": "https://mesh-os.ai/legal/dpa",
+    "sla": "https://mesh-os.ai/legal/sla",
+    "acceptableUse": "https://mesh-os.ai/legal/aup"
+  },
+  "updates": {
+    "releaseNotes": "https://mesh-os.ai/releases",
+    "changelog": "https://github.com/mesh-os/platform/blob/main/CHANGELOG.md",
+    "roadmap": "https://mesh-os.ai/roadmap",
+    "statusPage": "https://status.mesh-os.ai"
+  }
+}
