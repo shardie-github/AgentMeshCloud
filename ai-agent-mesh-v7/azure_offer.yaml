@@ -1,0 +1,382 @@
+# Azure Marketplace Offer Configuration
+# Autonomous Mesh OS - Enterprise AI Governance Platform
+
+$schema: https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#
+contentVersion: 7.0.0.0
+
+metadata:
+  displayName: Autonomous Mesh OS
+  publisher: Mesh OS Inc.
+  offerType: SaaS
+  description: Enterprise AI Governance with Real-Time Trust Telemetry & Autonomous Compliance
+  categories:
+    - AI + Machine Learning
+    - Security
+    - Monitoring
+    - DevOps
+  azureGovernment: true
+  azureStack: false
+
+parameters:
+  subscriptionTier:
+    type: string
+    defaultValue: Professional
+    allowedValues:
+      - Starter
+      - Professional
+      - Enterprise
+    metadata:
+      description: Select your subscription tier
+
+  deploymentRegion:
+    type: string
+    defaultValue: eastus
+    allowedValues:
+      - eastus
+      - westus2
+      - northeurope
+      - westeurope
+      - southeastasia
+      - eastasia
+    metadata:
+      description: Primary Azure region for deployment
+
+  vmSize:
+    type: string
+    defaultValue: Standard_D4s_v3
+    allowedValues:
+      - Standard_D2s_v3
+      - Standard_D4s_v3
+      - Standard_D8s_v3
+      - Standard_F4s_v2
+      - Standard_F8s_v2
+    metadata:
+      description: Virtual machine size for Mesh OS control plane
+
+  virtualNetworkName:
+    type: string
+    metadata:
+      description: Name of existing virtual network
+
+  subnetName:
+    type: string
+    metadata:
+      description: Name of existing subnet
+
+  enablePublicAccess:
+    type: bool
+    defaultValue: false
+    metadata:
+      description: Enable public internet access to dashboard
+
+  sslCertificateUri:
+    type: string
+    defaultValue: ''
+    metadata:
+      description: (Optional) Key Vault URI for SSL certificate
+
+  enableEncryption:
+    type: bool
+    defaultValue: true
+    metadata:
+      description: Enable encryption at rest with Azure Storage Service Encryption
+
+  keyVaultName:
+    type: string
+    defaultValue: ''
+    metadata:
+      description: (Optional) Key Vault name for secrets management
+
+  logAnalyticsWorkspaceId:
+    type: string
+    defaultValue: ''
+    metadata:
+      description: (Optional) Log Analytics workspace ID for monitoring
+
+  applicationInsightsKey:
+    type: string
+    defaultValue: ''
+    metadata:
+      description: (Optional) Application Insights instrumentation key
+
+variables:
+  resourcePrefix: meshos
+  storageAccountName: '[concat(variables(''resourcePrefix''), uniqueString(resourceGroup().id))]'
+  networkSecurityGroupName: '[concat(variables(''resourcePrefix''), ''-nsg'')]'
+  loadBalancerName: '[concat(variables(''resourcePrefix''), ''-lb'')]'
+  publicIPName: '[concat(variables(''resourcePrefix''), ''-pip'')]'
+  availabilitySetName: '[concat(variables(''resourcePrefix''), ''-avset'')]'
+  vmScaleSetName: '[concat(variables(''resourcePrefix''), ''-vmss'')]'
+  isEnterpriseTier: '[equals(parameters(''subscriptionTier''), ''Enterprise'')]'
+  instanceCount: '[if(variables(''isEnterpriseTier''), 3, 2)]'
+
+resources:
+  # ==========================================================================
+  # STORAGE
+  # ==========================================================================
+
+  - type: Microsoft.Storage/storageAccounts
+    apiVersion: '2021-09-01'
+    name: '[variables(''storageAccountName'')]'
+    location: '[parameters(''deploymentRegion'')]'
+    sku:
+      name: Standard_LRS
+    kind: StorageV2
+    properties:
+      supportsHttpsTrafficOnly: true
+      encryption:
+        services:
+          blob:
+            enabled: '[parameters(''enableEncryption'')]'
+          file:
+            enabled: '[parameters(''enableEncryption'')]'
+        keySource: Microsoft.Storage
+      minimumTlsVersion: TLS1_2
+      allowBlobPublicAccess: false
+    tags:
+      application: mesh-os
+      tier: '[parameters(''subscriptionTier'')]'
+
+  - type: Microsoft.Storage/storageAccounts/blobServices
+    apiVersion: '2021-09-01'
+    name: '[concat(variables(''storageAccountName''), ''/default'')]'
+    dependsOn:
+      - '[resourceId(''Microsoft.Storage/storageAccounts'', variables(''storageAccountName''))]'
+    properties:
+      deleteRetentionPolicy:
+        enabled: true
+        days: 90
+
+  - type: Microsoft.Storage/storageAccounts/blobServices/containers
+    apiVersion: '2021-09-01'
+    name: '[concat(variables(''storageAccountName''), ''/default/telemetry'')]'
+    dependsOn:
+      - '[resourceId(''Microsoft.Storage/storageAccounts/blobServices'', variables(''storageAccountName''), ''default'')]'
+
+  # ==========================================================================
+  # NETWORKING
+  # ==========================================================================
+
+  - type: Microsoft.Network/networkSecurityGroups
+    apiVersion: '2021-05-01'
+    name: '[variables(''networkSecurityGroupName'')]'
+    location: '[parameters(''deploymentRegion'')]'
+    properties:
+      securityRules:
+        - name: AllowHTTPS
+          properties:
+            priority: 100
+            direction: Inbound
+            access: Allow
+            protocol: Tcp
+            sourcePortRange: '*'
+            destinationPortRange: 443
+            sourceAddressPrefix: '[if(parameters(''enablePublicAccess''), ''*'', ''VirtualNetwork'')]'
+            destinationAddressPrefix: '*'
+        - name: AllowHTTP
+          properties:
+            priority: 110
+            direction: Inbound
+            access: Allow
+            protocol: Tcp
+            sourcePortRange: '*'
+            destinationPortRange: 80
+            sourceAddressPrefix: '[if(parameters(''enablePublicAccess''), ''*'', ''VirtualNetwork'')]'
+            destinationAddressPrefix: '*'
+        - name: AllowMetrics
+          properties:
+            priority: 120
+            direction: Inbound
+            access: Allow
+            protocol: Tcp
+            sourcePortRange: '*'
+            destinationPortRange: 9090
+            sourceAddressPrefix: VirtualNetwork
+            destinationAddressPrefix: '*'
+
+  - type: Microsoft.Network/publicIPAddresses
+    apiVersion: '2021-05-01'
+    name: '[variables(''publicIPName'')]'
+    location: '[parameters(''deploymentRegion'')]'
+    sku:
+      name: Standard
+    properties:
+      publicIPAllocationMethod: Static
+      dnsSettings:
+        domainNameLabel: '[concat(variables(''resourcePrefix''), ''-'', uniqueString(resourceGroup().id))]'
+
+  - type: Microsoft.Network/loadBalancers
+    apiVersion: '2021-05-01'
+    name: '[variables(''loadBalancerName'')]'
+    location: '[parameters(''deploymentRegion'')]'
+    sku:
+      name: Standard
+    dependsOn:
+      - '[resourceId(''Microsoft.Network/publicIPAddresses'', variables(''publicIPName''))]'
+    properties:
+      frontendIPConfigurations:
+        - name: LoadBalancerFrontEnd
+          properties:
+            publicIPAddress:
+              id: '[resourceId(''Microsoft.Network/publicIPAddresses'', variables(''publicIPName''))]'
+      backendAddressPools:
+        - name: BackendPool
+      probes:
+        - name: HealthProbe
+          properties:
+            protocol: Http
+            port: 8080
+            requestPath: /health
+            intervalInSeconds: 30
+            numberOfProbes: 2
+      loadBalancingRules:
+        - name: HTTPSRule
+          properties:
+            frontendIPConfiguration:
+              id: '[resourceId(''Microsoft.Network/loadBalancers/frontendIPConfigurations'', variables(''loadBalancerName''), ''LoadBalancerFrontEnd'')]'
+            backendAddressPool:
+              id: '[resourceId(''Microsoft.Network/loadBalancers/backendAddressPools'', variables(''loadBalancerName''), ''BackendPool'')]'
+            probe:
+              id: '[resourceId(''Microsoft.Network/loadBalancers/probes'', variables(''loadBalancerName''), ''HealthProbe'')]'
+            protocol: Tcp
+            frontendPort: 443
+            backendPort: 8080
+
+  # ==========================================================================
+  # COMPUTE
+  # ==========================================================================
+
+  - type: Microsoft.Compute/availabilitySets
+    apiVersion: '2021-11-01'
+    name: '[variables(''availabilitySetName'')]'
+    location: '[parameters(''deploymentRegion'')]'
+    sku:
+      name: Aligned
+    properties:
+      platformFaultDomainCount: 2
+      platformUpdateDomainCount: 5
+
+  - type: Microsoft.Compute/virtualMachineScaleSets
+    apiVersion: '2021-11-01'
+    name: '[variables(''vmScaleSetName'')]'
+    location: '[parameters(''deploymentRegion'')]'
+    dependsOn:
+      - '[resourceId(''Microsoft.Network/loadBalancers'', variables(''loadBalancerName''))]'
+      - '[resourceId(''Microsoft.Network/networkSecurityGroups'', variables(''networkSecurityGroupName''))]'
+      - '[resourceId(''Microsoft.Storage/storageAccounts'', variables(''storageAccountName''))]'
+    sku:
+      name: '[parameters(''vmSize'')]'
+      tier: Standard
+      capacity: '[variables(''instanceCount'')]'
+    identity:
+      type: SystemAssigned
+    properties:
+      overprovision: false
+      upgradePolicy:
+        mode: Automatic
+      virtualMachineProfile:
+        storageProfile:
+          imageReference:
+            publisher: meshos-inc
+            offer: autonomous-mesh-os
+            sku: enterprise
+            version: 7.0.0
+          osDisk:
+            createOption: FromImage
+            caching: ReadWrite
+            managedDisk:
+              storageAccountType: Premium_LRS
+        osProfile:
+          computerNamePrefix: meshos
+          adminUsername: azureuser
+          linuxConfiguration:
+            disablePasswordAuthentication: true
+            ssh:
+              publicKeys:
+                - path: /home/azureuser/.ssh/authorized_keys
+                  keyData: '[parameters(''sshPublicKey'')]'
+          customData: '[base64(concat(''#!/bin/bash\n'',
+            ''set -e\n'',
+            ''apt-get update -y\n'',
+            ''apt-get install -y docker.io\n'',
+            ''systemctl start docker\n'',
+            ''systemctl enable docker\n'',
+            ''docker pull meshos/platform:7.0.0\n'',
+            ''mkdir -p /etc/mesh-os\n'',
+            ''cat > /etc/mesh-os/config.yaml <<EOF\n'',
+            ''deployment:\n'',
+            ''  tier: '', parameters(''subscriptionTier''), ''\n'',
+            ''  region: '', parameters(''deploymentRegion''), ''\n'',
+            ''storage:\n'',
+            ''  azure_storage_account: '', variables(''storageAccountName''), ''\n'',
+            ''  container: telemetry\n'',
+            ''encryption:\n'',
+            ''  enabled: '', parameters(''enableEncryption''), ''\n'',
+            ''EOF\n'',
+            ''docker run -d --name mesh-os --restart always -p 8080:8080 -p 9090:9090 -v /etc/mesh-os:/config meshos/platform:7.0.0\n''))]'
+        networkProfile:
+          networkInterfaceConfigurations:
+            - name: nic
+              properties:
+                primary: true
+                networkSecurityGroup:
+                  id: '[resourceId(''Microsoft.Network/networkSecurityGroups'', variables(''networkSecurityGroupName''))]'
+                ipConfigurations:
+                  - name: ipconfig
+                    properties:
+                      subnet:
+                        id: '[resourceId(''Microsoft.Network/virtualNetworks/subnets'', parameters(''virtualNetworkName''), parameters(''subnetName''))]'
+                      loadBalancerBackendAddressPools:
+                        - id: '[resourceId(''Microsoft.Network/loadBalancers/backendAddressPools'', variables(''loadBalancerName''), ''BackendPool'')]'
+
+  # ==========================================================================
+  # MONITORING
+  # ==========================================================================
+
+  - type: Microsoft.Insights/metricAlerts
+    apiVersion: '2018-03-01'
+    name: HighCPUAlert
+    location: global
+    dependsOn:
+      - '[resourceId(''Microsoft.Compute/virtualMachineScaleSets'', variables(''vmScaleSetName''))]'
+    properties:
+      description: Mesh OS instance CPU > 80%
+      severity: 2
+      enabled: true
+      scopes:
+        - '[resourceId(''Microsoft.Compute/virtualMachineScaleSets'', variables(''vmScaleSetName''))]'
+      evaluationFrequency: PT5M
+      windowSize: PT5M
+      criteria:
+        allOf:
+          - threshold: 80
+            name: Metric1
+            metricNamespace: Microsoft.Compute/virtualMachineScaleSets
+            metricName: Percentage CPU
+            operator: GreaterThan
+            timeAggregation: Average
+
+outputs:
+  dashboardURL:
+    type: string
+    value: '[concat(''https://'', reference(variables(''publicIPName'')).dnsSettings.fqdn)]'
+
+  apiEndpoint:
+    type: string
+    value: '[concat(''https://'', reference(variables(''publicIPName'')).dnsSettings.fqdn, ''/api/v1'')]'
+
+  storageAccount:
+    type: string
+    value: '[variables(''storageAccountName'')]'
+
+  productTier:
+    type: string
+    value: '[parameters(''subscriptionTier'')]'
+
+  documentation:
+    type: string
+    value: https://docs.mesh-os.ai/azure-marketplace
+
+  support:
+    type: string
+    value: support@mesh-os.ai

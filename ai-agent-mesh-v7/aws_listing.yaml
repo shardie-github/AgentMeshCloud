@@ -1,0 +1,459 @@
+# AWS Marketplace Listing Configuration
+# Autonomous Mesh OS - Enterprise AI Governance Platform
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Autonomous Mesh OS - Real-Time Trust Telemetry & Autonomous AI Compliance'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Product Configuration"
+        Parameters:
+          - ProductTier
+          - DeploymentRegion
+          - InstanceType
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - VpcId
+          - SubnetIds
+          - EnablePublicAccess
+      - Label:
+          default: "Security Configuration"
+        Parameters:
+          - SSLCertificateArn
+          - EnableEncryption
+          - KMSKeyId
+      - Label:
+          default: "Integration Configuration"
+        Parameters:
+          - PrometheusEndpoint
+          - SlackWebhookUrl
+          - PagerDutyIntegrationKey
+
+Parameters:
+  ProductTier:
+    Type: String
+    Default: Professional
+    AllowedValues:
+      - Starter
+      - Professional
+      - Enterprise
+    Description: Select your subscription tier
+
+  DeploymentRegion:
+    Type: String
+    Default: us-east-1
+    AllowedValues:
+      - us-east-1
+      - us-west-2
+      - eu-west-1
+      - ap-southeast-1
+      - ap-northeast-1
+    Description: Primary deployment region
+
+  InstanceType:
+    Type: String
+    Default: m5.2xlarge
+    AllowedValues:
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - c5.2xlarge
+      - c5.4xlarge
+    Description: EC2 instance type for Mesh OS control plane
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for Mesh OS deployment
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnet IDs for load balancer and instances (minimum 2)
+
+  EnablePublicAccess:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Enable public internet access to dashboard
+
+  SSLCertificateArn:
+    Type: String
+    Default: ''
+    Description: (Optional) ACM Certificate ARN for HTTPS
+
+  EnableEncryption:
+    Type: String
+    Default: 'true'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Enable encryption at rest
+
+  KMSKeyId:
+    Type: String
+    Default: ''
+    Description: (Optional) KMS Key ID for encryption (uses AWS managed key if empty)
+
+  PrometheusEndpoint:
+    Type: String
+    Default: ''
+    Description: (Optional) Prometheus endpoint for metrics export
+
+  SlackWebhookUrl:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: (Optional) Slack webhook URL for alerts
+
+  PagerDutyIntegrationKey:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: (Optional) PagerDuty integration key for incident escalation
+
+Conditions:
+  UseCustomKMSKey: !Not [!Equals [!Ref KMSKeyId, '']]
+  EnableSSL: !Not [!Equals [!Ref SSLCertificateArn, '']]
+  IsEnterpriseTier: !Equals [!Ref ProductTier, 'Enterprise']
+
+Resources:
+  # ============================================================================
+  # IAM ROLES
+  # ============================================================================
+
+  MeshOSInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: MeshOSPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub '${TelemetryBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:Encrypt
+                  - kms:GenerateDataKey
+                Resource: !If
+                  - UseCustomKMSKey
+                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${KMSKeyId}'
+                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/aws/s3'
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - !Ref APIKeySecret
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+
+  MeshOSInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref MeshOSInstanceRole
+
+  # ============================================================================
+  # SECURITY GROUPS
+  # ============================================================================
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Mesh OS load balancer
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !If [EnablePublicAccess, '0.0.0.0/0', '10.0.0.0/8']
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !If [EnablePublicAccess, '0.0.0.0/0', '10.0.0.0/8']
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Mesh OS instances
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 9090
+          ToPort: 9090
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+
+  # ============================================================================
+  # STORAGE
+  # ============================================================================
+
+  TelemetryBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: !If [UseCustomKMSKey, 'aws:kms', 'AES256']
+              KMSMasterKeyID: !If [UseCustomKMSKey, !Ref KMSKeyId, !Ref 'AWS::NoValue']
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: TelemetryRetention
+            Status: Enabled
+            ExpirationInDays: 90
+            NoncurrentVersionExpirationInDays: 30
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ============================================================================
+  # SECRETS MANAGEMENT
+  # ============================================================================
+
+  APIKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Mesh OS API key for authentication
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: "password"
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\'
+
+  # ============================================================================
+  # COMPUTE
+  # ============================================================================
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Sub '{{resolve:ssm:/aws/service/marketplace/prod-mesh-os/latest/ami}}'
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Arn: !GetAtt MeshOSInstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -e
+            
+            # Install dependencies
+            yum update -y
+            yum install -y docker
+            systemctl start docker
+            systemctl enable docker
+            
+            # Pull Mesh OS container
+            docker pull meshos/platform:7.0.0
+            
+            # Configure environment
+            cat > /etc/mesh-os/config.yaml <<EOF
+            deployment:
+              tier: ${ProductTier}
+              region: ${DeploymentRegion}
+            storage:
+              s3_bucket: ${TelemetryBucket}
+            encryption:
+              enabled: ${EnableEncryption}
+              kms_key_id: ${KMSKeyId}
+            integrations:
+              prometheus: ${PrometheusEndpoint}
+              slack_webhook: ${SlackWebhookUrl}
+              pagerduty_key: ${PagerDutyIntegrationKey}
+            EOF
+            
+            # Start Mesh OS
+            docker run -d \
+              --name mesh-os \
+              --restart always \
+              -p 8080:8080 \
+              -p 9090:9090 \
+              -v /etc/mesh-os:/config \
+              -e AWS_REGION=${AWS::Region} \
+              meshos/platform:7.0.0
+            
+            # Configure CloudWatch agent
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+              -a fetch-config \
+              -m ec2 \
+              -s -c ssm:/mesh-os/cloudwatch-config
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: !If [IsEnterpriseTier, 3, 2]
+      MaxSize: !If [IsEnterpriseTier, 10, 5]
+      DesiredCapacity: !If [IsEnterpriseTier, 3, 2]
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      VPCZoneIdentifier: !Ref SubnetIds
+      TargetGroupARNs:
+        - !Ref TargetGroup
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      Tags:
+        - Key: Name
+          Value: mesh-os-instance
+          PropagateAtLaunch: true
+
+  # ============================================================================
+  # LOAD BALANCER
+  # ============================================================================
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Scheme: !If [EnablePublicAccess, internet-facing, internal]
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Subnets: !Ref SubnetIds
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 8080
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      HealthCheckEnabled: true
+      HealthCheckPath: /health
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      TargetType: instance
+
+  HTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: EnableSSL
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref SSLCertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: !If
+            - EnableSSL
+            - redirect
+            - forward
+          RedirectConfig: !If
+            - EnableSSL
+            - Protocol: HTTPS
+              Port: 443
+              StatusCode: HTTP_301
+            - !Ref AWS::NoValue
+          TargetGroupArn: !If [EnableSSL, !Ref AWS::NoValue, !Ref TargetGroup]
+
+  # ============================================================================
+  # MONITORING & ALARMS
+  # ============================================================================
+
+  HighCPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mesh OS instance CPU > 80%
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref AutoScalingGroup
+
+  UnhealthyTargetAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Mesh OS unhealthy target count > 0
+      MetricName: UnHealthyHostCount
+      Namespace: AWS/ApplicationELB
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: TargetGroup
+          Value: !GetAtt TargetGroup.TargetGroupFullName
+        - Name: LoadBalancer
+          Value: !GetAtt LoadBalancer.LoadBalancerFullName
+
+Outputs:
+  DashboardURL:
+    Description: Mesh OS Dashboard URL
+    Value: !Sub
+      - '${Protocol}://${LoadBalancerDNS}'
+      - Protocol: !If [EnableSSL, 'https', 'http']
+        LoadBalancerDNS: !GetAtt LoadBalancer.DNSName
+
+  APIEndpoint:
+    Description: Mesh OS API Endpoint
+    Value: !Sub
+      - '${Protocol}://${LoadBalancerDNS}/api/v1'
+      - Protocol: !If [EnableSSL, 'https', 'http']
+        LoadBalancerDNS: !GetAtt LoadBalancer.DNSName
+
+  TelemetryBucket:
+    Description: S3 bucket for telemetry data
+    Value: !Ref TelemetryBucket
+
+  SecretARN:
+    Description: ARN of API key secret
+    Value: !Ref APIKeySecret
+
+  ProductTier:
+    Description: Deployed product tier
+    Value: !Ref ProductTier
+
+  Documentation:
+    Description: Getting started guide
+    Value: https://docs.mesh-os.ai/aws-marketplace
+
+  Support:
+    Description: Support email
+    Value: support@mesh-os.ai

@@ -1,0 +1,280 @@
+# Partner Success Metrics
+# KPIs and tracking for Mesh OS partner program
+
+version: "1.0.0"
+updated: "2025-10-30"
+
+# ==============================================================================
+# PARTNER TIERS & BENEFITS
+# ==============================================================================
+
+partner_tiers:
+  registered:
+    requirements:
+      - signed_partner_agreement: true
+      - completed_foundation_training: true
+    benefits:
+      - access_to_partner_portal: true
+      - co_branded_materials: false
+      - deal_registration: false
+      - revenue_share: 0.10  # 10%
+      - dedicated_partner_manager: false
+      
+  silver:
+    requirements:
+      - min_annual_revenue: 50000
+      - certified_practitioners: 2
+      - customer_references: 2
+    benefits:
+      - access_to_partner_portal: true
+      - co_branded_materials: true
+      - deal_registration: true
+      - revenue_share: 0.15  # 15%
+      - dedicated_partner_manager: false
+      - mdf_funding: 5000  # $5K/quarter
+      
+  gold:
+    requirements:
+      - min_annual_revenue: 250000
+      - certified_practitioners: 5
+      - certified_architects: 2
+      - customer_references: 5
+    benefits:
+      - access_to_partner_portal: true
+      - co_branded_materials: true
+      - deal_registration: true
+      - revenue_share: 0.20  # 20%
+      - dedicated_partner_manager: true
+      - mdf_funding: 15000  # $15K/quarter
+      - early_access_to_features: true
+      
+  platinum:
+    requirements:
+      - min_annual_revenue: 1000000
+      - certified_practitioners: 10
+      - certified_architects: 5
+      - customer_references: 10
+      - joint_go_to_market: true
+    benefits:
+      - access_to_partner_portal: true
+      - co_branded_materials: true
+      - deal_registration: true
+      - revenue_share: 0.25  # 25%
+      - dedicated_partner_manager: true
+      - mdf_funding: 50000  # $50K/quarter
+      - early_access_to_features: true
+      - roadmap_influence: true
+      - joint_press_releases: true
+
+# ==============================================================================
+# PARTNER KPIs
+# ==============================================================================
+
+partner_kpis:
+  certification:
+    target_completion_rate: 0.90  # 90% within 60 days
+    measurement: "certified_employees / total_employees"
+    
+  customer_satisfaction:
+    target_score: 4.5  # out of 5
+    measurement: "post_engagement_survey"
+    survey_frequency: "after each engagement"
+    
+  revenue_contribution:
+    target_annual_growth: 1.40  # 40% YoY
+    measurement: "partner_sourced_revenue / total_revenue"
+    
+  deal_registration:
+    target_approval_rate: 0.85  # 85% of deals approved
+    measurement: "approved_deals / submitted_deals"
+    
+  customer_retention:
+    target_rate: 0.95  # 95%
+    measurement: "retained_customers / total_customers (partner-sourced)"
+    
+  support_quality:
+    first_response_time: 4  # hours
+    resolution_time: 24  # hours
+    measurement: "avg time from partner support ticket creation to resolution"
+
+# ==============================================================================
+# REVENUE TRACKING
+# ==============================================================================
+
+revenue_tracking:
+  deal_registration:
+    approval_sla: "48 hours"
+    revenue_share_calculation: "deal_value × partner_tier_rate"
+    payment_terms: "net_30 after customer payment received"
+    
+  recurring_revenue:
+    commission_structure: "monthly recurring"
+    commission_duration: "lifetime of customer contract"
+    clawback_period: "90 days"  # if customer churns within 90 days
+    
+  expansion_revenue:
+    eligible: true
+    commission_rate: "same as initial deal"
+    
+  renewal_revenue:
+    eligible: true
+    commission_rate: "50% of initial deal rate"
+
+# ==============================================================================
+# TRAINING & CERTIFICATION
+# ==============================================================================
+
+training_metrics:
+  foundation_certification:
+    target_completion_days: 30
+    current_avg_days: 22
+    passing_rate: 0.92
+    
+  practitioner_certification:
+    target_completion_days: 60
+    current_avg_days: 48
+    passing_rate: 0.85
+    
+  architect_certification:
+    target_completion_days: 90
+    current_avg_days: 72
+    passing_rate: 0.78
+    
+  recertification_rate:
+    target: 0.95  # 95% recertify before expiration
+    current: 0.88
+
+# ==============================================================================
+# PARTNER SUCCESS ALERTS
+# ==============================================================================
+
+alerts:
+  low_certification_rate:
+    threshold: "< 60% within 90 days"
+    action: "schedule_training_check_in"
+    owner: "Partner Success Manager"
+    
+  declining_revenue:
+    threshold: "< -10% QoQ"
+    action: "executive_review_meeting"
+    owner: "VP Partners"
+    
+  low_customer_satisfaction:
+    threshold: "< 4.0"
+    action: "quality_improvement_plan"
+    owner: "Partner Success Manager"
+    
+  deal_registration_decline:
+    threshold: "< 5 deals/quarter"
+    action: "sales_enablement_workshop"
+    owner: "Partner Sales Manager"
+
+# ==============================================================================
+# PARTNER ENGAGEMENT TRACKING
+# ==============================================================================
+
+engagement_tracking:
+  portal_login_frequency:
+    healthy: "> 2 logins/week"
+    at_risk: "< 1 login/week"
+    inactive: "no login for 30 days"
+    
+  training_completion:
+    healthy: "> 80% modules completed"
+    at_risk: "< 50% modules completed"
+    
+  deal_pipeline:
+    healthy: "> $100K in active pipeline"
+    at_risk: "< $50K in active pipeline"
+    
+  customer_references:
+    healthy: "> 3 referenceable customers"
+    at_risk: "< 2 referenceable customers"
+
+# ==============================================================================
+# PARTNER ONBOARDING CHECKLIST
+# ==============================================================================
+
+onboarding_checklist:
+  week_1:
+    - sign_partner_agreement
+    - complete_partner_portal_registration
+    - assign_partner_success_manager
+    - schedule_kick_off_call
+    
+  week_2_4:
+    - complete_foundation_certification
+    - access_sales_enablement_materials
+    - set_up_deal_registration_process
+    - first_co_marketing_campaign
+    
+  week_5_8:
+    - complete_practitioner_certification
+    - first_customer_engagement
+    - submit_first_deal_registration
+    - quarterly_business_review_scheduled
+    
+  week_9_12:
+    - achieve_silver_tier_status
+    - 3_certified_practitioners
+    - 1_closed_deal
+    - customer_reference_secured
+
+# ==============================================================================
+# QUARTERLY BUSINESS REVIEW (QBR) METRICS
+# ==============================================================================
+
+qbr_metrics:
+  revenue_performance:
+    - total_revenue_generated
+    - pipeline_value
+    - closed_deals
+    - average_deal_size
+    
+  certification_status:
+    - certified_practitioners_count
+    - certified_architects_count
+    - certifications_expiring_next_quarter
+    
+  customer_success:
+    - customers_onboarded
+    - customer_satisfaction_score
+    - customer_retention_rate
+    - customer_references
+    
+  marketing_activities:
+    - co_marketing_campaigns
+    - events_attended
+    - leads_generated
+    - mdf_utilization
+
+# ==============================================================================
+# PARTNER PROGRAM REPORTING
+# ==============================================================================
+
+reporting:
+  partner_scorecard:
+    frequency: "monthly"
+    metrics:
+      - revenue_contribution
+      - certification_status
+      - customer_satisfaction
+      - deal_pipeline
+      - support_quality
+      
+  portfolio_health:
+    frequency: "quarterly"
+    metrics:
+      - partner_tier_distribution
+      - revenue_by_tier
+      - certification_completion_rate
+      - average_deal_size
+      - churn_rate
+      
+  executive_summary:
+    frequency: "quarterly"
+    metrics:
+      - total_partner_revenue
+      - partner_sourced_new_customers
+      - top_10_partners_by_revenue
+      - program_roi
