@@ -1,0 +1,240 @@
+{
+  "version": "3.0.0",
+  "name": "AI Governance Marketplace",
+  "description": "Curated library of vetted governance policies, compliance frameworks, and agent templates",
+  "lastUpdated": "2025-10-30",
+  "totalPolicies": 127,
+  "totalDownloads": 15420,
+  "totalContributors": 43,
+  
+  "categories": [
+    {
+      "id": "compliance",
+      "name": "Compliance & Regulatory",
+      "description": "Industry-standard compliance frameworks",
+      "icon": "shield-check",
+      "policies": 45
+    },
+    {
+      "id": "security",
+      "name": "Security & Privacy",
+      "description": "Data protection and security policies",
+      "icon": "lock",
+      "policies": 32
+    },
+    {
+      "id": "ethics",
+      "name": "AI Ethics",
+      "description": "Responsible AI and ethical guidelines",
+      "icon": "balance",
+      "policies": 28
+    },
+    {
+      "id": "performance",
+      "name": "Performance & Optimization",
+      "description": "Resource management and efficiency policies",
+      "icon": "zap",
+      "policies": 15
+    },
+    {
+      "id": "custom",
+      "name": "Custom & Industry-Specific",
+      "description": "Specialized policies for specific use cases",
+      "icon": "customize",
+      "policies": 7
+    }
+  ],
+
+  "featured_policies": [
+    {
+      "id": "gdpr_comprehensive",
+      "name": "GDPR Comprehensive Compliance",
+      "version": "2.1.0",
+      "author": "AI-Agent Mesh Compliance Team",
+      "category": "compliance",
+      "framework": "GDPR",
+      "description": "Complete GDPR compliance policy with all articles covered including data subject rights, consent management, and breach notification",
+      "downloads": 3240,
+      "rating": 4.9,
+      "verified": true,
+      "lastUpdated": "2025-10-15",
+      "tags": ["gdpr", "eu", "privacy", "data-protection"],
+      "compatibility": ["3.0.0+"],
+      "license": "MIT",
+      "documentation_url": "https://marketplace.ai-agent-mesh.com/policies/gdpr_comprehensive",
+      "rules": {
+        "data_collection": {
+          "consent_required": true,
+          "purpose_limitation": true,
+          "data_minimization": true
+        },
+        "data_storage": {
+          "retention_period": "as_specified",
+          "encryption_required": true,
+          "location_restrictions": ["eu"]
+        },
+        "data_subject_rights": {
+          "right_to_access": true,
+          "right_to_erasure": true,
+          "right_to_portability": true,
+          "right_to_rectification": true
+        },
+        "breach_notification": {
+          "authority_notification_hours": 72,
+          "subject_notification_required": true
+        }
+      }
+    },
+    {
+      "id": "hipaa_healthcare",
+      "name": "HIPAA Healthcare Compliance",
+      "version": "1.8.0",
+      "author": "Healthcare Compliance Council",
+      "category": "compliance",
+      "framework": "HIPAA",
+      "description": "HIPAA compliance for healthcare AI agents handling PHI",
+      "downloads": 1850,
+      "rating": 4.8,
+      "verified": true,
+      "lastUpdated": "2025-09-20",
+      "tags": ["hipaa", "healthcare", "phi", "us"],
+      "compatibility": ["3.0.0+"],
+      "license": "Proprietary - Free for healthcare orgs"
+    },
+    {
+      "id": "responsible_ai_framework",
+      "name": "Responsible AI Framework",
+      "version": "3.0.0",
+      "author": "AI Ethics Consortium",
+      "category": "ethics",
+      "framework": "Custom",
+      "description": "Comprehensive responsible AI policy covering fairness, transparency, accountability, and bias mitigation",
+      "downloads": 2100,
+      "rating": 4.7,
+      "verified": true,
+      "lastUpdated": "2025-10-01",
+      "tags": ["ethics", "fairness", "transparency", "bias"],
+      "compatibility": ["2.5.0+"]
+    },
+    {
+      "id": "soc2_type_ii",
+      "name": "SOC 2 Type II Controls",
+      "version": "1.5.0",
+      "author": "Audit & Compliance Partners",
+      "category": "compliance",
+      "framework": "SOC2",
+      "description": "SOC 2 Type II control implementation for AI agent operations",
+      "downloads": 980,
+      "rating": 4.9,
+      "verified": true,
+      "lastUpdated": "2025-08-30",
+      "tags": ["soc2", "security", "audit", "compliance"],
+      "compatibility": ["3.0.0+"]
+    },
+    {
+      "id": "fedramp_moderate",
+      "name": "FedRAMP Moderate Baseline",
+      "version": "1.2.0",
+      "author": "Federal Compliance Group",
+      "category": "compliance",
+      "framework": "FedRAMP",
+      "description": "FedRAMP Moderate baseline for government-facing AI systems",
+      "downloads": 450,
+      "rating": 4.6,
+      "verified": true,
+      "lastUpdated": "2025-07-15",
+      "tags": ["fedramp", "government", "us", "nist"],
+      "compatibility": ["3.0.0+"],
+      "license": "Government Use Only"
+    }
+  ],
+
+  "trending_policies": [
+    "eu_ai_act_compliance",
+    "pci_dss_payment_security",
+    "nist_ai_risk_management",
+    "iso27001_information_security",
+    "california_ccpa_privacy"
+  ],
+
+  "contributor_program": {
+    "active": true,
+    "total_contributors": 43,
+    "requirements": {
+      "documentation": "Complete policy documentation required",
+      "testing": "Policies must be tested on at least 3 agent types",
+      "security_review": "Security audit required for all policies",
+      "versioning": "Semantic versioning required"
+    },
+    "benefits": {
+      "revenue_share": "20% of premium policy sales",
+      "recognition": "Contributor badge and profile",
+      "early_access": "Beta features and API access",
+      "support": "Dedicated technical support"
+    },
+    "submission_url": "https://marketplace.ai-agent-mesh.com/contribute"
+  },
+
+  "monetization": {
+    "free_policies": 98,
+    "premium_policies": 29,
+    "pricing_model": "freemium",
+    "premium_tiers": {
+      "basic": {
+        "price": 0,
+        "policies_included": 98,
+        "support": "community"
+      },
+      "professional": {
+        "price": 49,
+        "billing": "per_month",
+        "policies_included": "all",
+        "support": "email",
+        "features": ["Priority updates", "Custom policies", "Compliance reports"]
+      },
+      "enterprise": {
+        "price": "custom",
+        "policies_included": "all",
+        "support": "dedicated",
+        "features": ["White-label policies", "Custom development", "SLA guarantee", "Audit support"]
+      }
+    }
+  },
+
+  "quality_standards": {
+    "verification_process": [
+      "Automated security scan",
+      "Manual code review",
+      "Compliance framework validation",
+      "Performance testing",
+      "Community feedback period"
+    ],
+    "update_frequency": "Policies reviewed quarterly for regulatory changes",
+    "deprecation_policy": "6-month notice for deprecated policies"
+  },
+
+  "api_access": {
+    "endpoints": {
+      "browse": "/v3/marketplace/policies",
+      "install": "/v3/marketplace/policies/{id}/install",
+      "search": "/v3/marketplace/policies/search",
+      "submit": "/v3/marketplace/policies/submit",
+      "rate": "/v3/marketplace/policies/{id}/rate"
+    },
+    "rate_limits": {
+      "free": "100 requests/hour",
+      "pro": "1000 requests/hour",
+      "enterprise": "unlimited"
+    }
+  },
+
+  "integration": {
+    "supported_platforms": [
+      "AI-Agent Mesh",
+      "MindStudio",
+      "LangChain",
+      "Custom platforms via API"
+    ],
+    "export_formats": ["JSON", "YAML", "Python", "JavaScript"]
+  }
+}

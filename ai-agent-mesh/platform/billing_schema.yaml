@@ -1,0 +1,259 @@
+# Billing Schema for AI-Agent Mesh
+# Defines pricing tiers, metered usage, and revenue models
+
+version: "3.0.0"
+
+# Subscription tiers and pricing
+pricing_tiers:
+  free:
+    name: "Free"
+    description: "Perfect for individuals and small projects"
+    monthly_price: 0
+    annual_price: 0
+    billing_cycle: "none"
+    trial_days: 0
+    
+  pro:
+    name: "Professional"
+    description: "For growing teams and production workloads"
+    monthly_price: 99
+    annual_price: 990  # 2 months free
+    billing_cycle: "monthly"
+    trial_days: 14
+    features:
+      - "Up to 50 AI agents"
+      - "500K API calls/month"
+      - "50GB storage"
+      - "Priority support"
+      - "Custom policies"
+      - "Advanced telemetry"
+      - "Team collaboration (25 members)"
+      
+  enterprise:
+    name: "Enterprise"
+    description: "For organizations requiring scale and compliance"
+    monthly_price: 999
+    annual_price: 9990  # 2 months free
+    billing_cycle: "annual"
+    trial_days: 30
+    custom_pricing: true
+    features:
+      - "Unlimited AI agents"
+      - "Unlimited API calls"
+      - "1TB storage"
+      - "Dedicated support"
+      - "SLA guarantee (99.99%)"
+      - "SSO & advanced security"
+      - "Compliance packages"
+      - "White-label options"
+      - "Custom deployment"
+      - "Unlimited team members"
+
+# Metered usage pricing (pay-as-you-go)
+metered_usage:
+  api_calls:
+    unit: "per 1,000 calls"
+    pricing:
+      free: 0  # included in base
+      pro:
+        included: 500000
+        overage_rate: 0.02  # $0.02 per 1K calls
+      enterprise:
+        included: -1  # unlimited
+        overage_rate: 0.01  # negotiated rate
+        
+  agent_hours:
+    unit: "per agent hour"
+    pricing:
+      free:
+        included: 10
+        overage_rate: 0.10
+      pro:
+        included: 500
+        overage_rate: 0.08
+      enterprise:
+        included: -1
+        overage_rate: 0.05  # volume discount
+        
+  storage:
+    unit: "per GB/month"
+    pricing:
+      free:
+        included: 1
+        overage_rate: 0.20
+      pro:
+        included: 50
+        overage_rate: 0.10
+      enterprise:
+        included: 1000
+        overage_rate: 0.05
+        
+  data_transfer:
+    unit: "per GB"
+    pricing:
+      free:
+        included: 5
+        overage_rate: 0.12
+      pro:
+        included: 100
+        overage_rate: 0.08
+      enterprise:
+        included: 1000
+        overage_rate: 0.04
+
+# Add-ons and premium features
+addons:
+  dedicated_instance:
+    name: "Dedicated Instance"
+    description: "Single-tenant deployment with dedicated resources"
+    monthly_price: 2000
+    available_for: ["enterprise"]
+    
+  advanced_compliance:
+    name: "Advanced Compliance Package"
+    description: "HIPAA, FedRAMP, and custom compliance frameworks"
+    monthly_price: 500
+    available_for: ["pro", "enterprise"]
+    
+  premium_support:
+    name: "Premium Support"
+    description: "24/7 support with 30-minute response time"
+    monthly_price: 299
+    available_for: ["pro", "enterprise"]
+    
+  white_label:
+    name: "White Label"
+    description: "Custom branding and domain"
+    monthly_price: 500
+    available_for: ["enterprise"]
+    
+  extended_retention:
+    name: "Extended Data Retention"
+    description: "2-year telemetry and log retention"
+    monthly_price: 199
+    available_for: ["pro", "enterprise"]
+
+# Enterprise custom pricing factors
+enterprise_pricing_factors:
+  base_factors:
+    agent_volume:
+      tiers:
+        - range: "1-100"
+          price_per_agent: 10
+        - range: "101-500"
+          price_per_agent: 8
+        - range: "501-1000"
+          price_per_agent: 6
+        - range: "1001+"
+          price_per_agent: 4
+          
+    api_volume:
+      tiers:
+        - range: "0-10M"
+          price_per_million: 50
+        - range: "10M-100M"
+          price_per_million: 40
+        - range: "100M+"
+          price_per_million: 30
+          
+  premium_factors:
+    multi_region: 1.5  # 50% markup
+    dedicated_instance: 2.0  # 100% markup
+    custom_sla: 1.3  # 30% markup
+    on_premise: 3.0  # 200% markup
+
+# Payment terms
+payment_terms:
+  free:
+    payment_methods: []
+    invoice_terms: "N/A"
+    
+  pro:
+    payment_methods: ["credit_card", "debit_card"]
+    invoice_terms: "immediate"
+    auto_renewal: true
+    
+  enterprise:
+    payment_methods: ["credit_card", "wire_transfer", "ach", "invoice"]
+    invoice_terms: "net_30"
+    auto_renewal: false
+    custom_terms: true
+
+# Discounts and promotions
+discounts:
+  annual_commitment:
+    percentage: 16.67  # ~2 months free
+    applies_to: ["pro", "enterprise"]
+    
+  volume_discount:
+    agent_threshold: 100
+    percentage: 20
+    applies_to: ["enterprise"]
+    
+  nonprofit:
+    percentage: 30
+    applies_to: ["pro", "enterprise"]
+    verification_required: true
+    
+  education:
+    percentage: 50
+    applies_to: ["pro"]
+    verification_required: true
+    
+  startup:
+    name: "Startup Program"
+    percentage: 50
+    duration_months: 12
+    requirements:
+      - "Raised less than $5M"
+      - "Founded within last 3 years"
+    applies_to: ["pro"]
+
+# Revenue metrics and KPIs
+revenue_metrics:
+  targets:
+    year_1:
+      mrr: 50000
+      arr: 600000
+      customer_count: 500
+      enterprise_customers: 10
+      
+    year_2:
+      mrr: 200000
+      arr: 2400000
+      customer_count: 2000
+      enterprise_customers: 50
+      
+    year_3:
+      mrr: 500000
+      arr: 6000000
+      customer_count: 5000
+      enterprise_customers: 150
+      
+  unit_economics:
+    target_cac: 500  # Customer Acquisition Cost
+    target_ltv: 3000  # Lifetime Value
+    ltv_cac_ratio: 6.0
+    target_gross_margin: 0.85
+    target_net_revenue_retention: 1.2  # 120%
+    
+  churn_targets:
+    free_to_paid_conversion: 0.05  # 5%
+    monthly_churn_rate: 0.03  # 3%
+    annual_churn_rate: 0.15  # 15%
+
+# Billing automation rules
+automation_rules:
+  failed_payment:
+    retry_schedule: [1, 3, 5, 7]  # days
+    dunning_emails: [3, 7, 14]  # days
+    suspension_after_days: 14
+    cancellation_after_days: 30
+    
+  upgrade_path:
+    auto_upgrade_on_limit: false
+    notify_at_threshold: 0.8  # 80% of limit
+    
+  downgrade_protection:
+    retain_data_days: 90
+    allow_re-upgrade: true
