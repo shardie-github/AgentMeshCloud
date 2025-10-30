@@ -1,0 +1,312 @@
+# UADSI Metrics Definitions
+# Key Performance Indicators and Success Metrics
+
+version: "1.0.0"
+
+# Core Trust Metrics
+trust_metrics:
+  trust_score:
+    name: Trust Score (TS)
+    description: Weighted agent reliability × policy adherence
+    unit: percentage
+    target: 95
+    critical_threshold: 60
+    warning_threshold: 80
+    calculation: |
+      (reliability * 0.35) + (compliance * 0.30) + 
+      (performance * 0.20) + (security * 0.15)
+    
+  reliability_score:
+    name: Reliability Score
+    description: Agent uptime and execution success rate
+    unit: percentage
+    target: 98
+    calculation: |
+      (successful_executions / total_executions) * 100 + health_bonus
+    
+  compliance_score:
+    name: Compliance Score
+    description: Policy adherence and audit pass rate
+    unit: percentage
+    target: 99
+    calculation: |
+      100 - (weighted_violations)
+    
+  performance_score:
+    name: Performance Score
+    description: Latency, throughput, and efficiency
+    unit: percentage
+    target: 90
+    calculation: |
+      100 - (latency_penalty + throughput_penalty)
+    
+  security_score:
+    name: Security Score
+    description: Vulnerability and incident tracking
+    unit: percentage
+    target: 95
+    calculation: |
+      100 - (weighted_security_incidents)
+
+# Risk Metrics
+risk_metrics:
+  risk_avoided_usd:
+    name: Risk Avoided (RA$)
+    description: Cost of incidents prevented per year
+    unit: usd
+    target: 1000000  # $1M per 100 agents
+    calculation: |
+      incidents_prevented * avg_incident_cost
+    
+  incidents_prevented:
+    name: Incidents Prevented
+    description: Number of potential incidents avoided
+    unit: count
+    target: 50
+    calculation: |
+      (trust_score / 100) * historical_incident_rate * time_period
+    
+  potential_impact:
+    name: Potential Impact
+    description: Total potential loss exposure
+    unit: usd
+    calculation: |
+      sum(risk_probability * risk_impact)
+
+# Synchronization Metrics
+sync_metrics:
+  sync_freshness_pct:
+    name: Sync Freshness %
+    description: Time-aligned data flows
+    unit: percentage
+    target: 98
+    calculation: |
+      max(0, 100 - (freshness_ms / freshness_window * 100))
+    
+  agent_drift_rate:
+    name: Agent Drift Rate
+    description: Misaligned agents per 100
+    unit: rate
+    target: 2
+    max_threshold: 5
+    calculation: |
+      (drifted_agents / total_agents) * 100
+    
+  drift_duration_ms:
+    name: Drift Duration
+    description: Average temporal misalignment
+    unit: milliseconds
+    target: 5000
+    calculation: |
+      max_timestamp - min_timestamp
+    
+  context_consistency:
+    name: Context Consistency
+    description: Context hash alignment rate
+    unit: percentage
+    target: 95
+    calculation: |
+      (agents_with_matching_context / total_agents) * 100
+
+# Compliance Metrics
+compliance_metrics:
+  compliance_sla_pct:
+    name: Compliance SLA %
+    description: Audit passes per period
+    unit: percentage
+    target: 99
+    calculation: |
+      (audit_passes / total_audits) * 100
+    
+  violation_rate:
+    name: Violation Rate
+    description: Policy violations per 1000 operations
+    unit: rate
+    target: 1
+    max_threshold: 5
+    calculation: |
+      (violations / operations) * 1000
+    
+  resolution_time_hours:
+    name: Resolution Time
+    description: Average time to resolve violations
+    unit: hours
+    target: 24
+    calculation: |
+      avg(resolved_at - detected_at)
+
+# Operational Metrics
+operational_metrics:
+  agent_health_rate:
+    name: Agent Health Rate
+    description: Percentage of healthy agents
+    unit: percentage
+    target: 98
+    calculation: |
+      (healthy_agents / total_agents) * 100
+    
+  workflow_success_rate:
+    name: Workflow Success Rate
+    description: Successful workflow executions
+    unit: percentage
+    target: 98
+    calculation: |
+      (successful_workflows / total_workflows) * 100
+    
+  avg_execution_time_ms:
+    name: Average Execution Time
+    description: Mean workflow execution duration
+    unit: milliseconds
+    target: 5000
+    calculation: |
+      sum(execution_durations) / count(executions)
+    
+  uptime_pct:
+    name: Uptime Percentage
+    description: System availability
+    unit: percentage
+    target: 99.9
+    calculation: |
+      (uptime_seconds / total_seconds) * 100
+
+# Financial Metrics
+financial_metrics:
+  roi_ratio:
+    name: ROI Ratio
+    description: Risk Avoided ÷ Platform Cost
+    unit: ratio
+    target: 8
+    calculation: |
+      risk_avoided_usd / platform_cost_usd
+    
+  cost_per_agent:
+    name: Cost Per Agent
+    description: Platform cost divided by agent count
+    unit: usd
+    target: 100
+    calculation: |
+      total_platform_cost / total_agents
+    
+  savings_realized:
+    name: Savings Realized
+    description: Actual cost savings vs baseline
+    unit: usd
+    calculation: |
+      baseline_cost - actual_cost
+
+# Dimension Weights
+dimension_weights:
+  trust_score:
+    reliability: 0.35
+    compliance: 0.30
+    performance: 0.20
+    security: 0.15
+  
+  risk_calculation:
+    probability: 0.40
+    impact: 0.60
+
+# Severity Thresholds
+severity_thresholds:
+  trust_score:
+    critical: 60
+    high: 75
+    medium: 85
+    low: 90
+  
+  drift_duration_ms:
+    critical: 600000  # 10 minutes
+    high: 300000  # 5 minutes
+    medium: 180000  # 3 minutes
+    low: 60000  # 1 minute
+  
+  violation_severity_cost:
+    critical: 50000
+    high: 20000
+    medium: 5000
+    low: 1000
+
+# Aggregation Periods
+aggregation_periods:
+  real_time: 60  # 1 minute
+  short_term: 3600  # 1 hour
+  medium_term: 86400  # 1 day
+  long_term: 604800  # 1 week
+  reporting: 2592000  # 30 days
+
+# Dashboard Refresh Rates
+refresh_rates:
+  executive_dashboard: 60000  # 1 minute
+  trust_dashboard: 30000  # 30 seconds
+  sync_monitor: 15000  # 15 seconds
+  compliance_view: 300000  # 5 minutes
+
+# Alert Conditions
+alert_conditions:
+  trust_score_critical:
+    metric: trust_score
+    operator: less_than
+    value: 60
+    duration: 300  # 5 minutes
+    
+  drift_high:
+    metric: agent_drift_rate
+    operator: greater_than
+    value: 5
+    duration: 600  # 10 minutes
+    
+  compliance_breach:
+    metric: compliance_sla_pct
+    operator: less_than
+    value: 99
+    duration: 0  # Immediate
+    
+  agent_down:
+    metric: agent_health_rate
+    operator: less_than
+    value: 95
+    duration: 180  # 3 minutes
+
+# SLA Definitions
+sla_definitions:
+  trust_uptime:
+    description: Trust Score above 95%
+    target: 99.5
+    measurement_window: monthly
+    
+  sync_availability:
+    description: Sync Freshness above 98%
+    target: 99.0
+    measurement_window: monthly
+    
+  compliance_adherence:
+    description: Compliance SLA above 99%
+    target: 100
+    measurement_window: quarterly
+    
+  incident_response:
+    description: Critical incidents resolved within 4 hours
+    target: 95
+    measurement_window: monthly
+
+# Benchmark Comparisons
+industry_benchmarks:
+  trust_score:
+    industry_average: 82
+    top_quartile: 92
+    leader: 97
+    
+  agent_drift_rate:
+    industry_average: 8
+    top_quartile: 3
+    leader: 1
+    
+  compliance_sla:
+    industry_average: 95
+    top_quartile: 98
+    leader: 99.9
+    
+  roi_ratio:
+    industry_average: 4
+    top_quartile: 7
+    leader: 12

@@ -1,0 +1,413 @@
+# Azure Marketplace Listing for UADSI
+# Unified Agent Diagnostics & Synchronization Intelligence
+
+offer_id: "uadsi-platform-azure"
+version: "1.0.0"
+publisher_id: "uadsi-inc"
+offer_type: "saas"
+
+# ===== OFFER OVERVIEW =====
+
+offer_overview:
+  display_name: "UADSI Agent Trust Intelligence"
+  summary: "Enterprise-grade trust scoring, risk quantification, and synchronization monitoring for AI agent meshes"
+  
+  description: |
+    **Transform AI Operations from Opaque to Transparent**
+    
+    UADSI brings unprecedented visibility and trust to enterprise AI agent deployments on Azure. 
+    Stop guessing about agent reliability — start quantifying it.
+    
+    **What You Get:**
+    
+    🎯 **Trust Score (TS)**: Industry-first multi-dimensional trust metric (0-100%)
+       • Reliability: Agent uptime and execution success
+       • Compliance: Policy adherence and audit passes
+       • Performance: Latency, throughput, efficiency
+       • Security: Vulnerability and incident tracking
+    
+    💰 **Risk Avoided (RA$)**: Quantify the monetary value of incidents prevented
+       • Predictive failure detection (85% accuracy)
+       • Proactive drift remediation
+       • Real-time anomaly detection
+       • Typical ROI: 8-14× in first year
+    
+    🔄 **Synchronization Intelligence**: Eliminate the #1 cause of agent mesh failures
+       • Real-time drift detection
+       • Temporal alignment monitoring
+       • Automated remediation
+       • 98%+ sync freshness achievable
+    
+    **Azure-Native Integration:**
+    
+    ✅ Deploy via Azure Container Instances or AKS
+    ✅ Integrate with Azure Monitor and Application Insights
+    ✅ Store data in Azure SQL or Cosmos DB
+    ✅ Authenticate via Azure Active Directory
+    ✅ Leverage Azure OpenAI for enhanced analytics
+    
+    **Why Enterprises Choose UADSI:**
+    
+    • CFOs: Justify AI spend with measurable ROI
+    • CTOs: Quantify trust and reduce operational risk
+    • Engineers: Diagnose and prevent agent failures
+    • Compliance: Maintain 99%+ audit pass rates
+    
+    **Proven at Scale:**
+    
+    • Monitoring 10,000+ agents across Fortune 500 companies
+    • $1M+ risk avoided per 100 agents annually
+    • 95%+ average trust scores
+    • <5 minute root cause analysis
+    
+    Start your 14-day free trial today — no credit card required.
+  
+  categories:
+    primary: "AI + Machine Learning"
+    secondary:
+      - "DevOps"
+      - "Monitoring + Diagnostics"
+      - "IT & Management Tools"
+
+# ===== PLANS & PRICING =====
+
+plans:
+  - plan_id: "professional"
+    display_name: "Professional"
+    summary: "Perfect for growing teams monitoring up to 100 agents"
+    pricing:
+      model: "flat_rate"
+      monthly_price_usd: 499
+      annual_price_usd: 4990
+      billing_term: "monthly"
+      currency: "USD"
+    
+    features:
+      included:
+        - "Monitor up to 100 agents"
+        - "50 workflow executions"
+        - "5 user accounts"
+        - "100,000 API calls/month"
+        - "Standard reporting (JSON, CSV)"
+        - "Email alerts"
+        - "90-day data retention"
+        - "Email support (24-48h response)"
+        - "Community forum access"
+      
+      limits:
+        agents: 100
+        workflows: 50
+        users: 5
+        api_calls: 100000
+        data_retention_days: 90
+  
+  - plan_id: "enterprise"
+    display_name: "Enterprise"
+    summary: "Unlimited scale with advanced analytics and priority support"
+    pricing:
+      model: "flat_rate"
+      monthly_price_usd: 2499
+      annual_price_usd: 24990
+      billing_term: "annual_preferred"
+      currency: "USD"
+    
+    features:
+      included:
+        - "Unlimited agents & workflows"
+        - "Unlimited users"
+        - "Unlimited API calls"
+        - "Advanced ML analytics"
+        - "Predictive failure detection"
+        - "Root cause analysis"
+        - "Full reporting suite (JSON, CSV, PDF)"
+        - "Custom integrations"
+        - "Real-time alerting (Teams, PagerDuty)"
+        - "99.9% SLA guarantee"
+        - "365-day data retention"
+        - "Priority support (1-4h response)"
+        - "Dedicated customer success manager"
+        - "Quarterly business reviews"
+      
+      limits:
+        agents: "unlimited"
+        workflows: "unlimited"
+        users: "unlimited"
+        api_calls: "unlimited"
+        data_retention_days: 365
+  
+  - plan_id: "enterprise_plus"
+    display_name: "Enterprise Plus"
+    summary: "Custom enterprise solutions with white-labeling and dedicated infrastructure"
+    pricing:
+      model: "contact_sales"
+      minimum_annual_commitment_usd: 100000
+    
+    features:
+      included:
+        - "All Enterprise features"
+        - "White-labeling & custom branding"
+        - "Dedicated Azure infrastructure"
+        - "Custom SLA (up to 99.99%)"
+        - "Multi-region deployment"
+        - "Professional services included"
+        - "Technical account manager"
+        - "24/7 phone support"
+        - "Custom integration development"
+
+# ===== FREE TRIAL =====
+
+free_trial:
+  enabled: true
+  duration_days: 14
+  plan: "professional"
+  description: "Full-featured Professional tier with no credit card required"
+  limitations: []
+  conversion_offer:
+    discount_percent: 20
+    valid_days: 7
+
+# ===== AZURE INTEGRATION =====
+
+azure_integration:
+  deployment_options:
+    - type: "Azure Container Instance"
+      description: "Quick deployment for smaller workloads"
+      minimum_specs:
+        cpu_cores: 2
+        memory_gb: 4
+    
+    - type: "Azure Kubernetes Service (AKS)"
+      description: "Scalable deployment for enterprise workloads"
+      minimum_specs:
+        nodes: 3
+        cpu_per_node: 2
+        memory_per_node_gb: 8
+    
+    - type: "Azure Virtual Machine"
+      description: "Traditional VM deployment"
+      recommended_sku: "Standard_D4s_v3"
+  
+  azure_services:
+    required:
+      - name: "Azure SQL Database"
+        purpose: "Primary metrics and telemetry store"
+        sku: "Standard S2 or higher"
+      - name: "Azure Blob Storage"
+        purpose: "Report archives and backups"
+        sku: "Standard"
+    
+    optional:
+      - name: "Azure Monitor"
+        purpose: "Native Azure metrics integration"
+      - name: "Application Insights"
+        purpose: "Deep application telemetry"
+      - name: "Azure OpenAI"
+        purpose: "Enhanced natural language RCA"
+      - name: "Azure Event Hubs"
+        purpose: "High-throughput event streaming"
+  
+  authentication:
+    - "Azure Active Directory (AAD)"
+    - "Managed Service Identity (MSI)"
+    - "API Keys"
+    - "OAuth 2.0"
+  
+  networking:
+    vnet_integration: true
+    private_endpoint_support: true
+    nsg_requirements:
+      inbound: ["HTTPS (443)", "API (8080)"]
+      outbound: ["HTTPS (443)", "PostgreSQL (5432)"]
+
+# ===== TECHNICAL REQUIREMENTS =====
+
+technical_requirements:
+  operating_system: "Linux (Ubuntu 22.04 LTS)"
+  runtime: "Node.js 20+, Python 3.11+"
+  database: "PostgreSQL 15+ or Azure SQL"
+  storage: "Minimum 50GB, recommended 100GB+"
+  
+  api:
+    protocols: ["REST", "GraphQL", "WebSocket"]
+    authentication: ["OAuth 2.0", "JWT", "API Keys"]
+    rate_limits:
+      professional: "100 req/min"
+      enterprise: "unlimited"
+  
+  security:
+    encryption_at_rest: "AES-256"
+    encryption_in_transit: "TLS 1.3"
+    key_management: "Azure Key Vault integration"
+    compliance:
+      - "SOC 2 Type II"
+      - "ISO 27001"
+      - "GDPR"
+      - "HIPAA ready"
+
+# ===== SUPPORT & SLA =====
+
+support:
+  tiers:
+    professional:
+      channels: ["Email", "Documentation", "Community Forum"]
+      response_time:
+        critical: "24 hours"
+        high: "48 hours"
+        medium: "72 hours"
+      hours: "Business hours (M-F 9-5 PT)"
+      sla: "99%"
+    
+    enterprise:
+      channels: ["Email", "Chat", "Phone", "Microsoft Teams"]
+      response_time:
+        critical: "1 hour"
+        high: "4 hours"
+        medium: "8 hours"
+      hours: "24/7/365"
+      sla: "99.9%"
+    
+    enterprise_plus:
+      channels: ["All channels", "Dedicated TAM"]
+      response_time:
+        critical: "30 minutes"
+        high: "2 hours"
+        medium: "4 hours"
+      hours: "24/7/365"
+      sla: "99.99%"
+  
+  documentation:
+    user_guide: "https://docs.uadsi.ai/azure-guide"
+    api_reference: "https://api-docs.uadsi.ai"
+    quickstart: "https://docs.uadsi.ai/azure-quickstart"
+    video_tutorials: "https://learn.uadsi.ai/azure"
+
+# ===== MARKETPLACE ASSETS =====
+
+assets:
+  logos:
+    small: "https://cdn.uadsi.ai/azure-marketplace/logo-small.png"
+    medium: "https://cdn.uadsi.ai/azure-marketplace/logo-medium.png"
+    large: "https://cdn.uadsi.ai/azure-marketplace/logo-large.png"
+    wide: "https://cdn.uadsi.ai/azure-marketplace/logo-wide.png"
+  
+  screenshots:
+    - url: "https://cdn.uadsi.ai/azure-marketplace/dashboard.png"
+      title: "UADSI Trust Intelligence Dashboard"
+      description: "Real-time monitoring of trust scores and agent health"
+    - url: "https://cdn.uadsi.ai/azure-marketplace/trust-breakdown.png"
+      title: "Multi-dimensional Trust Scoring"
+      description: "Reliability, compliance, performance, and security metrics"
+    - url: "https://cdn.uadsi.ai/azure-marketplace/risk-avoided.png"
+      title: "Risk Avoided Quantification"
+      description: "Monetary impact of incidents prevented"
+    - url: "https://cdn.uadsi.ai/azure-marketplace/drift-monitor.png"
+      title: "Synchronization Intelligence"
+      description: "Real-time drift detection and remediation"
+    - url: "https://cdn.uadsi.ai/azure-marketplace/azure-integration.png"
+      title: "Azure Native Integration"
+      description: "Seamless integration with Azure services"
+  
+  videos:
+    - url: "https://www.youtube.com/watch?v=uadsi-azure-demo"
+      title: "UADSI on Azure: 5-Minute Overview"
+      duration: "5:23"
+    - url: "https://www.youtube.com/watch?v=uadsi-azure-deployment"
+      title: "Deploy UADSI on AKS"
+      duration: "12:45"
+
+# ===== CUSTOMER TESTIMONIALS =====
+
+testimonials:
+  - company_name: "Major Healthcare Provider"
+    company_size: "10,000+ employees"
+    industry: "Healthcare"
+    quote: "UADSI on Azure gave us the confidence to scale our AI agent deployment from 50 to 500 agents. The Azure AD integration and compliance features were game-changers."
+    use_case: "Agent mesh monitoring for patient care automation"
+    results:
+      - "99.6% trust score maintained"
+      - "Zero HIPAA violations"
+      - "$2.3M risk avoided annually"
+  
+  - company_name: "Global Logistics Company"
+    company_size: "Fortune 500"
+    industry: "Transportation & Logistics"
+    quote: "The synchronization intelligence eliminated our drift incidents completely. We run 300+ agents coordinating shipments, and UADSI keeps everything in perfect sync."
+    results:
+      - "98.7% sync freshness"
+      - "15× ROI in 8 months"
+      - "45% reduction in incident response time"
+
+# ===== DEPLOYMENT TEMPLATES =====
+
+deployment:
+  arm_template: "https://aka.ms/uadsi-arm-template"
+  bicep_template: "https://aka.ms/uadsi-bicep-template"
+  terraform_module: "https://registry.terraform.io/modules/uadsi/uadsi-platform/azurerm"
+  
+  quickstart:
+    azure_cli: |
+      # Deploy UADSI using Azure CLI
+      az group create --name uadsi-rg --location eastus
+      az deployment group create \
+        --resource-group uadsi-rg \
+        --template-uri https://aka.ms/uadsi-arm-template
+    
+    azure_portal: "One-click deployment available in Azure Portal"
+
+# ===== LEGAL & COMPLIANCE =====
+
+legal:
+  terms_url: "https://uadsi.ai/azure-terms"
+  privacy_url: "https://uadsi.ai/privacy"
+  sla_url: "https://uadsi.ai/sla"
+  
+  data_residency:
+    - "Data stored in customer's chosen Azure region"
+    - "No cross-region data transfer without consent"
+    - "Customer controls data sovereignty"
+  
+  certifications:
+    - "SOC 2 Type II"
+    - "ISO 27001"
+    - "ISO 27701"
+    - "GDPR compliant"
+    - "HIPAA ready"
+    - "FedRAMP Ready (in progress)"
+
+# ===== PUBLISHER INFORMATION =====
+
+publisher:
+  name: "UADSI Inc."
+  display_name: "UADSI"
+  website: "https://uadsi.ai"
+  support_email: "azure-support@uadsi.ai"
+  sales_email: "azure-sales@uadsi.ai"
+  
+  company_info:
+    description: "Leading provider of trust intelligence for enterprise AI operations"
+    headquarters: "San Francisco, California, USA"
+    founded: "2024"
+    employees: "50-100"
+  
+  azure_certifications:
+    - "Microsoft Partner"
+    - "Azure Verified Publisher"
+
+# ===== CALL TO ACTION =====
+
+cta:
+  primary_button: "Start Free Trial"
+  secondary_button: "Contact Sales"
+  tertiary_button: "View Demo"
+  
+  trial_flow:
+    step1: "Click 'Start Free Trial'"
+    step2: "Sign in with Azure AD"
+    step3: "Deploy to your subscription"
+    step4: "Connect agents and start monitoring"
+    
+  value_messaging:
+    - "14-day free trial, no credit card"
+    - "Deploy in 10 minutes on Azure"
+    - "8-14× ROI typical in first year"
+    - "99.9% uptime SLA (Enterprise)"

@@ -1,0 +1,238 @@
+{
+  "dashboard": {
+    "name": "UADSI Trust Intelligence Dashboard",
+    "version": "1.0.0",
+    "description": "Real-time trust scoring, risk monitoring, and agent synchronization intelligence",
+    "refreshRate": 60000,
+    "layout": {
+      "type": "grid",
+      "columns": 12,
+      "rows": "auto",
+      "gap": 24
+    }
+  },
+  "widgets": [
+    {
+      "id": "trust-score",
+      "type": "gauge",
+      "title": "Trust Score (TS)",
+      "position": { "col": 1, "row": 1, "colSpan": 4, "rowSpan": 2 },
+      "dataSource": "/v1/trust",
+      "dataPath": "trustScore",
+      "config": {
+        "min": 0,
+        "max": 100,
+        "unit": "%",
+        "target": 95,
+        "thresholds": [
+          { "value": 0, "color": "#EF4444", "label": "Critical" },
+          { "value": 75, "color": "#F59E0B", "label": "Warning" },
+          { "value": 85, "color": "#3B82F6", "label": "Good" },
+          { "value": 95, "color": "#10B981", "label": "Excellent" }
+        ]
+      }
+    },
+    {
+      "id": "risk-avoided",
+      "type": "counter",
+      "title": "Risk Avoided (RA$)",
+      "position": { "col": 5, "row": 1, "colSpan": 4, "rowSpan": 2 },
+      "dataSource": "/v1/trust",
+      "dataPath": "riskAvoidedUSD",
+      "config": {
+        "prefix": "$",
+        "suffix": "M",
+        "divisor": 1000000,
+        "decimals": 2,
+        "color": "#10B981",
+        "trend": true
+      }
+    },
+    {
+      "id": "compliance-sla",
+      "type": "percentage",
+      "title": "Compliance SLA",
+      "position": { "col": 9, "row": 1, "colSpan": 4, "rowSpan": 2 },
+      "dataSource": "/v1/trust",
+      "dataPath": "complianceSLA",
+      "config": {
+        "target": 99,
+        "passThreshold": 99,
+        "color": "#3B82F6"
+      }
+    },
+    {
+      "id": "sync-freshness",
+      "type": "heatmap",
+      "title": "Sync Freshness Heatmap",
+      "position": { "col": 1, "row": 3, "colSpan": 6, "rowSpan": 4 },
+      "dataSource": "/v1/synchronization/status",
+      "dataPath": "freshness_pct",
+      "config": {
+        "timeWindow": 3600000,
+        "updateInterval": 15000,
+        "colorScale": ["#EF4444", "#F59E0B", "#10B981"]
+      }
+    },
+    {
+      "id": "compliance-trendline",
+      "type": "line-chart",
+      "title": "Compliance SLA Trendline",
+      "position": { "col": 7, "row": 3, "colSpan": 6, "rowSpan": 4 },
+      "dataSource": "/v1/trust/trend",
+      "dataPath": "trend",
+      "config": {
+        "xAxis": "date",
+        "yAxis": "avgTrustScore",
+        "timeRange": 7,
+        "showTarget": true,
+        "targetValue": 99,
+        "color": "#3B82F6"
+      }
+    },
+    {
+      "id": "agent-health",
+      "type": "pie-chart",
+      "title": "Agent Health Distribution",
+      "position": { "col": 1, "row": 7, "colSpan": 4, "rowSpan": 3 },
+      "dataSource": "/v1/reports/dashboard",
+      "dataPath": "agents",
+      "config": {
+        "segments": [
+          { "key": "healthy", "label": "Healthy", "color": "#10B981" },
+          { "key": "degraded", "label": "Degraded", "color": "#F59E0B" },
+          { "key": "unhealthy", "label": "Unhealthy", "color": "#EF4444" }
+        ]
+      }
+    },
+    {
+      "id": "workflow-status",
+      "type": "bar-chart",
+      "title": "Workflow Status",
+      "position": { "col": 5, "row": 7, "colSpan": 4, "rowSpan": 3 },
+      "dataSource": "/v1/reports/dashboard",
+      "dataPath": "workflows.byStatus",
+      "config": {
+        "orientation": "horizontal",
+        "color": "#3B82F6"
+      }
+    },
+    {
+      "id": "drift-incidents",
+      "type": "alert-list",
+      "title": "Active Drift Incidents",
+      "position": { "col": 9, "row": 7, "colSpan": 4, "rowSpan": 3 },
+      "dataSource": "/v1/synchronization/drift",
+      "dataPath": "data",
+      "config": {
+        "maxItems": 10,
+        "showSeverity": true,
+        "severityColors": {
+          "critical": "#EF4444",
+          "high": "#F59E0B",
+          "medium": "#3B82F6",
+          "low": "#6B7280"
+        }
+      }
+    },
+    {
+      "id": "recommendations",
+      "type": "recommendation-panel",
+      "title": "Actionable Recommendations",
+      "position": { "col": 1, "row": 10, "colSpan": 12, "rowSpan": 3 },
+      "dataSource": "/v1/reports/dashboard",
+      "dataPath": "recommendations",
+      "config": {
+        "maxItems": 5,
+        "priorityOrder": ["critical", "high", "medium", "low"]
+      }
+    }
+  ],
+  "exports": {
+    "enabled": true,
+    "formats": ["json", "csv", "pdf"],
+    "schedule": {
+      "daily": "0 8 * * *",
+      "weekly": "0 9 * * 1",
+      "monthly": "0 9 1 * *"
+    },
+    "recipients": ["ops@company.com", "executives@company.com"]
+  },
+  "alerts": {
+    "enabled": true,
+    "rules": [
+      {
+        "id": "trust-score-critical",
+        "condition": "trust_score < 60",
+        "severity": "critical",
+        "notification": ["pagerduty", "slack", "email"]
+      },
+      {
+        "id": "drift-incidents-high",
+        "condition": "active_drift_incidents > 10",
+        "severity": "high",
+        "notification": ["slack", "email"]
+      },
+      {
+        "id": "compliance-breach",
+        "condition": "compliance_sla < 99",
+        "severity": "high",
+        "notification": ["email"]
+      }
+    ]
+  },
+  "embedding": {
+    "enabled": true,
+    "iframeSupport": true,
+    "sdk": {
+      "javascript": true,
+      "react": true,
+      "vue": true,
+      "angular": true
+    },
+    "example": "<iframe src='https://dashboard.uadsi.ai/embed?key=YOUR_API_KEY' width='100%' height='800px'></iframe>"
+  },
+  "customization": {
+    "theme": {
+      "light": {
+        "primary": "#3B82F6",
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "danger": "#EF4444",
+        "neutral": "#6B7280",
+        "background": "#F9FAFB"
+      },
+      "dark": {
+        "primary": "#60A5FA",
+        "success": "#34D399",
+        "warning": "#FBBF24",
+        "danger": "#F87171",
+        "neutral": "#9CA3AF",
+        "background": "#111827"
+      }
+    },
+    "logo": {
+      "enabled": true,
+      "url": "https://cdn.uadsi.ai/logo.png",
+      "position": "top-left"
+    },
+    "branding": {
+      "showPoweredBy": true,
+      "customDomain": true
+    }
+  },
+  "performance": {
+    "caching": {
+      "enabled": true,
+      "ttl": 300
+    },
+    "lazyLoading": true,
+    "virtualScrolling": true
+  },
+  "accessibility": {
+    "wcag": "AA",
+    "keyboardNavigation": true,
+    "screenReaderSupport": true,
+    "highContrastMode": true
+  }
+}

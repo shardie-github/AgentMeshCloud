@@ -1,0 +1,461 @@
+# UADSI GraphQL Schema
+# Unified Agent Diagnostics & Synchronization Intelligence
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+# ===== QUERY ROOT =====
+
+type Query {
+  # Agent queries
+  agents(
+    healthStatus: HealthStatus
+    agentType: AgentType
+    limit: Int = 100
+    offset: Int = 0
+  ): AgentConnection!
+  
+  agent(agentId: ID!): Agent
+  
+  agentTrust(agentId: ID!): TrustScore
+  
+  # Workflow queries
+  workflows(
+    status: WorkflowStatus
+    limit: Int = 100
+    offset: Int = 0
+  ): WorkflowConnection!
+  
+  workflow(workflowId: ID!): Workflow
+  
+  workflowConformance(workflowId: ID!): ConformanceMetrics
+  
+  # Trust queries
+  globalTrust: GlobalTrustMetrics!
+  
+  trustTrend(timeRange: Int = 7): TrustTrend!
+  
+  # Synchronization queries
+  syncStatus: SyncStatus!
+  
+  driftIncidents(severity: Severity): [DriftIncident!]!
+  
+  # Report queries
+  executiveDashboard: ExecutiveDashboard!
+  
+  roiReport: ROIReport!
+  
+  complianceReport: ComplianceReport!
+  
+  # Compliance queries
+  policyViolations(
+    severity: Severity
+    resolved: Boolean
+    limit: Int = 100
+  ): ViolationConnection!
+}
+
+# ===== MUTATION ROOT =====
+
+type Mutation {
+  # Manually trigger operations
+  triggerAgentScan: ScanResult!
+  
+  triggerSyncAnalysis: AnalysisResult!
+  
+  triggerTrustScoring: ScoringResult!
+  
+  # Incident management
+  resolveDriftIncident(
+    incidentId: ID!
+    resolution: String!
+  ): DriftIncident!
+  
+  resolveViolation(
+    violationId: ID!
+    resolution: String!
+  ): PolicyViolation!
+  
+  # Report generation
+  generateReport(
+    type: ReportType!
+    format: ExportFormat!
+  ): ReportExport!
+}
+
+# ===== SUBSCRIPTION ROOT =====
+
+type Subscription {
+  # Real-time updates
+  trustScoreUpdated: TrustScore!
+  
+  driftIncidentDetected: DriftIncident!
+  
+  agentHealthChanged(agentId: ID): Agent!
+  
+  workflowStatusChanged(workflowId: ID): Workflow!
+  
+  dashboardUpdated: ExecutiveDashboard!
+}
+
+# ===== TYPES =====
+
+type Agent {
+  agentId: ID!
+  agentName: String!
+  agentType: AgentType!
+  capabilities: JSON
+  healthStatus: HealthStatus!
+  lastHeartbeat: DateTime
+  trustScore: Float
+  metadata: JSON
+  discoveredAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type AgentConnection {
+  edges: [AgentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type AgentEdge {
+  node: Agent!
+  cursor: String!
+}
+
+type Workflow {
+  workflowId: ID!
+  workflowName: String!
+  agentIds: [ID!]!
+  agents: [Agent!]!
+  status: WorkflowStatus!
+  executionCount: Int!
+  lastExecution: DateTime
+  avgDurationMs: Int
+  successRate: Float
+  metadata: JSON
+  discoveredAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type WorkflowConnection {
+  edges: [WorkflowEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type WorkflowEdge {
+  node: Workflow!
+  cursor: String!
+}
+
+type TrustScore {
+  scoreId: ID!
+  entityId: ID!
+  entityType: EntityType!
+  trustScore: Float!
+  reliabilityScore: Float!
+  complianceScore: Float!
+  performanceScore: Float!
+  securityScore: Float!
+  riskAvoidedUSD: Float!
+  incidentsPrevented: Int!
+  complianceSLAPercent: Float!
+  calculatedAt: DateTime!
+  metadata: JSON
+}
+
+type GlobalTrustMetrics {
+  trustScore: Float!
+  riskAvoidedUSD: Float!
+  complianceSLA: Float!
+  entityCount: Int!
+  timestamp: DateTime!
+}
+
+type TrustTrend {
+  timeRange: Int!
+  dataPoints: Int!
+  trend: [TrustDataPoint!]!
+  summary: TrustTrendSummary!
+}
+
+type TrustDataPoint {
+  date: Date!
+  avgTrustScore: Float!
+  minTrustScore: Float!
+  maxTrustScore: Float!
+  sampleSize: Int!
+}
+
+type TrustTrendSummary {
+  current: Float!
+  previous: Float!
+  changePercent: Float!
+}
+
+type SyncStatus {
+  freshnessPct: Float!
+  activeDriftIncidents: Int!
+  bySeverity: JSON!
+  criticalIncidents: Int!
+  highIncidents: Int!
+}
+
+type DriftIncident {
+  incidentId: ID!
+  agentIds: [ID!]!
+  agents: [Agent!]!
+  workflowId: ID
+  workflow: Workflow
+  driftMs: Int!
+  severity: Severity!
+  rootCause: String!
+  impactScore: Float!
+  detectedAt: DateTime!
+  resolvedAt: DateTime
+  resolution: String
+  metadata: JSON
+}
+
+type ConformanceMetrics {
+  workflowId: ID!
+  status: ConformanceStatus!
+  freshness: Float!
+  drift: Int!
+  agentStates: [AgentSyncState!]!
+}
+
+type AgentSyncState {
+  agentId: ID!
+  lastUpdate: DateTime
+  dataVersion: String
+  contextHash: String
+  freshnessScore: Float
+}
+
+type ExecutiveDashboard {
+  generatedAt: DateTime!
+  summary: DashboardSummary!
+  agents: AgentInventory!
+  workflows: WorkflowHealth!
+  synchronization: SyncStatus!
+  risk: RiskMetrics!
+  compliance: ComplianceMetrics!
+  recommendations: [Recommendation!]!
+}
+
+type DashboardSummary {
+  trustScore: Float!
+  riskAvoidedUSD: Float!
+  complianceSLAPercent: Float!
+  totalAgents: Int!
+  totalWorkflows: Int!
+  syncFreshnessPercent: Float!
+}
+
+type AgentInventory {
+  total: Int!
+  byType: JSON!
+  byHealth: JSON!
+  avgTrustScore: Float!
+  healthy: Int!
+  degraded: Int!
+  unhealthy: Int!
+}
+
+type WorkflowHealth {
+  total: Int!
+  byStatus: JSON!
+  avgSuccessRate: Float!
+  totalExecutions: Int!
+  healthy: Int!
+  degraded: Int!
+  failed: Int!
+}
+
+type RiskMetrics {
+  totalRisks: Int!
+  byCategory: JSON!
+  byStatus: JSON!
+  totalPotentialImpact: Float!
+  mitigated: Int!
+  inProgress: Int!
+  unmitigated: Int!
+}
+
+type ComplianceMetrics {
+  totalViolations: Int!
+  openViolations: Int!
+  resolvedViolations: Int!
+  bySeverity: JSON!
+  complianceSLA: Float!
+  criticalOpen: Int!
+  highOpen: Int!
+}
+
+type Recommendation {
+  priority: Priority!
+  category: String!
+  title: String!
+  description: String!
+  actions: [String!]!
+}
+
+type ROIReport {
+  period: String!
+  riskAvoidedUSD: Float!
+  incidentsPrevented: Int!
+  platformCostUSD: Float!
+  netBenefitUSD: Float!
+  roiRatio: Float!
+  roiPercent: Float!
+}
+
+type ComplianceReport {
+  complianceSLA: Float!
+  target: Float!
+  status: ComplianceStatus!
+  violations: ViolationSummary!
+  recommendation: String!
+}
+
+type ViolationSummary {
+  total: Int!
+  resolved: Int!
+  open: Int!
+  bySeverity: JSON!
+}
+
+type PolicyViolation {
+  violationId: ID!
+  agentId: ID!
+  agent: Agent
+  policyId: ID!
+  severity: Severity!
+  description: String!
+  detectedAt: DateTime!
+  resolvedAt: DateTime
+  resolution: String
+}
+
+type ViolationConnection {
+  edges: [ViolationEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ViolationEdge {
+  node: PolicyViolation!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type ScanResult {
+  success: Boolean!
+  agentCount: Int!
+  workflowCount: Int!
+  timestamp: DateTime!
+}
+
+type AnalysisResult {
+  success: Boolean!
+  workflowsAnalyzed: Int!
+  incidentsDetected: Int!
+  timestamp: DateTime!
+}
+
+type ScoringResult {
+  success: Boolean!
+  scoresCalculated: Int!
+  avgTrustScore: Float!
+  timestamp: DateTime!
+}
+
+type ReportExport {
+  downloadUrl: String!
+  expiresAt: DateTime!
+  format: ExportFormat!
+}
+
+# ===== ENUMS =====
+
+enum AgentType {
+  MCP
+  SERVICE
+  TELEMETRY
+}
+
+enum HealthStatus {
+  HEALTHY
+  DEGRADED
+  UNHEALTHY
+  UNKNOWN
+}
+
+enum WorkflowStatus {
+  HEALTHY
+  DEGRADED
+  FAILED
+  INACTIVE
+}
+
+enum EntityType {
+  AGENT
+  WORKFLOW
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ConformanceStatus {
+  IN_SYNC
+  DRIFTED
+  STALE
+  UNKNOWN
+}
+
+enum ComplianceStatus {
+  PASS
+  FAIL
+}
+
+enum ReportType {
+  EXECUTIVE_DASHBOARD
+  TRUST_TREND
+  ROI
+  COMPLIANCE
+}
+
+enum ExportFormat {
+  JSON
+  CSV
+  PDF
+}
+
+# ===== SCALARS =====
+
+scalar DateTime
+scalar Date
+scalar JSON

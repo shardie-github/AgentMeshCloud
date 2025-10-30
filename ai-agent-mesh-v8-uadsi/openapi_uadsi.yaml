@@ -1,0 +1,764 @@
+openapi: 3.0.3
+info:
+  title: UADSI API - Unified Agent Diagnostics & Synchronization Intelligence
+  description: |
+    REST API for enterprise-grade agent trust scoring, synchronization monitoring, 
+    and workflow diagnostics. Quantify trust, measure risk avoided, and ensure 
+    compliance across your AI agent mesh.
+    
+    **Key Features:**
+    - Real-time Trust Score (TS) calculation
+    - Risk Avoided (RA$) monetary impact tracking
+    - Synchronization drift detection
+    - Compliance SLA monitoring
+    - Executive dashboards and reports
+    
+  version: 1.0.0
+  contact:
+    name: UADSI Support
+    email: support@uadsi.ai
+    url: https://uadsi.ai/support
+  license:
+    name: Commercial License
+    url: https://uadsi.ai/license
+
+servers:
+  - url: https://api.uadsi.ai/v1
+    description: Production
+  - url: https://staging-api.uadsi.ai/v1
+    description: Staging
+  - url: http://localhost:8080/v1
+    description: Local Development
+
+tags:
+  - name: Agents
+    description: Agent discovery and inventory management
+  - name: Workflows
+    description: Workflow monitoring and health tracking
+  - name: Trust
+    description: Trust scoring and risk metrics
+  - name: Synchronization
+    description: Sync analysis and drift detection
+  - name: Reports
+    description: Dashboard data and report generation
+  - name: Compliance
+    description: Policy compliance and audit tracking
+
+paths:
+  /agents:
+    get:
+      tags: [Agents]
+      summary: List all discovered agents
+      description: Retrieve inventory of all agents discovered across MCP, service mesh, and telemetry sources
+      operationId: listAgents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: health_status
+          in: query
+          schema:
+            type: string
+            enum: [healthy, degraded, unhealthy, unknown]
+        - name: agent_type
+          in: query
+          schema:
+            type: string
+            enum: [MCP, SERVICE, TELEMETRY]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agent'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /agents/{agent_id}:
+    get:
+      tags: [Agents]
+      summary: Get agent details
+      operationId: getAgent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /agents/{agent_id}/trust:
+    get:
+      tags: [Agents, Trust]
+      summary: Get agent trust score
+      operationId: getAgentTrust
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trust score retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustScore'
+
+  /workflows:
+    get:
+      tags: [Workflows]
+      summary: List all workflows
+      operationId: listWorkflows
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [healthy, degraded, failed, inactive]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workflow'
+                  total:
+                    type: integer
+
+  /workflows/{workflow_id}:
+    get:
+      tags: [Workflows]
+      summary: Get workflow details
+      operationId: getWorkflow
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workflow_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+
+  /workflows/{workflow_id}/conformance:
+    get:
+      tags: [Workflows, Synchronization]
+      summary: Get workflow conformance metrics
+      description: Retrieve sync status, drift metrics, and conformance data
+      operationId: getWorkflowConformance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: workflow_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Conformance metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConformanceMetrics'
+
+  /trust:
+    get:
+      tags: [Trust]
+      summary: Get global trust KPIs
+      description: Retrieve organization-wide trust score, risk avoided, and compliance SLA
+      operationId: getGlobalTrust
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Global trust metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalTrustMetrics'
+
+  /trust/trend:
+    get:
+      tags: [Trust]
+      summary: Get trust score trends
+      operationId: getTrustTrend
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: timeRange
+          in: query
+          schema:
+            type: integer
+            default: 7
+            description: Number of days
+      responses:
+        '200':
+          description: Trust trend data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustTrend'
+
+  /synchronization/status:
+    get:
+      tags: [Synchronization]
+      summary: Get synchronization status
+      description: Retrieve sync freshness, drift incidents, and temporal alignment metrics
+      operationId: getSyncStatus
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Synchronization status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncStatus'
+
+  /synchronization/drift:
+    get:
+      tags: [Synchronization]
+      summary: List active drift incidents
+      operationId: listDriftIncidents
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+      responses:
+        '200':
+          description: Drift incidents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DriftIncident'
+                  total:
+                    type: integer
+
+  /reports/dashboard:
+    get:
+      tags: [Reports]
+      summary: Get executive dashboard data
+      description: Comprehensive dashboard with all KPIs, metrics, and recommendations
+      operationId: getExecutiveDashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutiveDashboard'
+
+  /reports/dashboard/export:
+    post:
+      tags: [Reports]
+      summary: Export dashboard report
+      description: Generate and download dashboard in specified format
+      operationId: exportDashboard
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [json, csv, pdf]
+                includeCharts:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Export generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloadUrl:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+
+  /reports/roi:
+    get:
+      tags: [Reports]
+      summary: Get ROI report
+      description: Return on investment analysis with risk avoided and cost savings
+      operationId: getROIReport
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: ROI metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ROIReport'
+
+  /reports/compliance:
+    get:
+      tags: [Reports, Compliance]
+      summary: Get compliance report
+      operationId: getComplianceReport
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Compliance metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReport'
+
+  /compliance/violations:
+    get:
+      tags: [Compliance]
+      summary: List policy violations
+      operationId: listViolations
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [critical, high, medium, low]
+        - name: resolved
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Policy violations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PolicyViolation'
+                  total:
+                    type: integer
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Agent:
+      type: object
+      properties:
+        agent_id:
+          type: string
+        agent_name:
+          type: string
+        agent_type:
+          type: string
+          enum: [MCP, SERVICE, TELEMETRY]
+        capabilities:
+          type: object
+        health_status:
+          type: string
+          enum: [healthy, degraded, unhealthy, unknown]
+        last_heartbeat:
+          type: string
+          format: date-time
+        trust_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+        metadata:
+          type: object
+        discovered_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Workflow:
+      type: object
+      properties:
+        workflow_id:
+          type: string
+        workflow_name:
+          type: string
+        agent_ids:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [healthy, degraded, failed, inactive]
+        execution_count:
+          type: integer
+        last_execution:
+          type: string
+          format: date-time
+        avg_duration_ms:
+          type: integer
+        success_rate:
+          type: number
+          format: float
+        metadata:
+          type: object
+
+    TrustScore:
+      type: object
+      properties:
+        score_id:
+          type: string
+        entity_id:
+          type: string
+        entity_type:
+          type: string
+          enum: [agent, workflow]
+        trust_score:
+          type: number
+          format: float
+        reliability_score:
+          type: number
+          format: float
+        compliance_score:
+          type: number
+          format: float
+        performance_score:
+          type: number
+          format: float
+        security_score:
+          type: number
+          format: float
+        risk_avoided_usd:
+          type: number
+          format: float
+        incidents_prevented:
+          type: integer
+        compliance_sla_pct:
+          type: number
+          format: float
+        calculated_at:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+
+    GlobalTrustMetrics:
+      type: object
+      properties:
+        trust_score:
+          type: number
+          format: float
+        risk_avoided_usd:
+          type: number
+          format: float
+        compliance_sla:
+          type: number
+          format: float
+        entity_count:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+
+    TrustTrend:
+      type: object
+      properties:
+        timeRange:
+          type: integer
+        dataPoints:
+          type: integer
+        trend:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              avgTrustScore:
+                type: number
+              minTrustScore:
+                type: number
+              maxTrustScore:
+                type: number
+        summary:
+          type: object
+          properties:
+            current:
+              type: number
+            previous:
+              type: number
+            changePercent:
+              type: number
+
+    SyncStatus:
+      type: object
+      properties:
+        freshness_pct:
+          type: number
+          format: float
+        active_drift_incidents:
+          type: integer
+        by_severity:
+          type: object
+          additionalProperties:
+            type: integer
+        critical_incidents:
+          type: integer
+        high_incidents:
+          type: integer
+
+    DriftIncident:
+      type: object
+      properties:
+        incident_id:
+          type: string
+        agent_ids:
+          type: array
+          items:
+            type: string
+        workflow_id:
+          type: string
+        drift_ms:
+          type: integer
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        root_cause:
+          type: string
+        impact_score:
+          type: number
+        detected_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ConformanceMetrics:
+      type: object
+      properties:
+        workflow_id:
+          type: string
+        status:
+          type: string
+          enum: [in_sync, drifted, stale, unknown]
+        freshness:
+          type: number
+        drift:
+          type: integer
+        agent_states:
+          type: array
+          items:
+            type: object
+
+    ExecutiveDashboard:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        summary:
+          type: object
+          properties:
+            trust_score:
+              type: number
+            risk_avoided_usd:
+              type: number
+            compliance_sla_pct:
+              type: number
+            total_agents:
+              type: integer
+            total_workflows:
+              type: integer
+            sync_freshness_pct:
+              type: number
+        agents:
+          type: object
+        workflows:
+          type: object
+        synchronization:
+          type: object
+        risk:
+          type: object
+        compliance:
+          type: object
+        recommendations:
+          type: array
+          items:
+            type: object
+
+    ROIReport:
+      type: object
+      properties:
+        period:
+          type: string
+        risk_avoided_usd:
+          type: number
+        incidents_prevented:
+          type: integer
+        platform_cost_usd:
+          type: number
+        net_benefit_usd:
+          type: number
+        roi_ratio:
+          type: number
+        roi_percent:
+          type: number
+
+    ComplianceReport:
+      type: object
+      properties:
+        compliance_sla:
+          type: number
+        target:
+          type: number
+        status:
+          type: string
+          enum: [pass, fail]
+        violations:
+          type: object
+        recommendation:
+          type: string
+
+    PolicyViolation:
+      type: object
+      properties:
+        violation_id:
+          type: string
+        agent_id:
+          type: string
+        policy_id:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        description:
+          type: string
+        detected_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Not Found
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string

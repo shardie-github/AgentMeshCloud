@@ -1,0 +1,211 @@
+# UADSI Core Configuration
+# Unified Agent Diagnostics & Synchronization Intelligence
+
+version: "1.0.0"
+environment: production
+
+# Database Configuration
+database:
+  provider: supabase
+  url: ${SUPABASE_URL}
+  key: ${SUPABASE_KEY}
+  poolSize: 20
+  connectionTimeout: 5000
+
+# Agent Discovery Configuration
+agent_discovery:
+  enabled: true
+  scanInterval: 30000  # 30 seconds
+  sources:
+    - mcp_registry
+    - service_mesh
+    - telemetry
+    - kubernetes
+  healthCheckInterval: 60000  # 1 minute
+  timeoutMs: 5000
+
+# Sync Analyzer Configuration
+sync_analyzer:
+  enabled: true
+  analysisInterval: 60000  # 1 minute
+  driftThreshold: 300000  # 5 minutes
+  freshnessWindow: 600000  # 10 minutes
+  contextHashAlgorithm: sha256
+  alerting:
+    enabled: true
+    severityLevels:
+      - critical
+      - high
+      - medium
+      - low
+
+# Trust Scoring Configuration
+trust_scoring:
+  enabled: true
+  scoringInterval: 120000  # 2 minutes
+  weights:
+    reliability: 0.35
+    compliance: 0.30
+    performance: 0.20
+    security: 0.15
+  thresholds:
+    minimum_trust_score: 80
+    critical_threshold: 60
+    warning_threshold: 75
+  cost_parameters:
+    incident_cost_base: 10000  # $10k
+    downtime_cost_per_hour: 50000  # $50k
+    compliance_violation_cost: 100000  # $100k
+    data_breach_cost: 500000  # $500k
+
+# Report Engine Configuration
+report_engine:
+  enabled: true
+  reportPath: ./reports
+  formats:
+    - json
+    - csv
+    - pdf
+  schedules:
+    executive_dashboard: "0 8 * * *"  # Daily at 8 AM
+    trust_trend: "0 */6 * * *"  # Every 6 hours
+    roi_report: "0 9 * * 1"  # Weekly on Monday
+    compliance_report: "0 9 1 * *"  # Monthly on 1st
+
+# OpenTelemetry Configuration
+telemetry:
+  enabled: true
+  endpoint: ${OTEL_ENDPOINT}
+  protocol: grpc
+  sampling:
+    type: probabilistic
+    rate: 0.1  # 10% sampling
+  exportInterval: 15000  # 15 seconds
+  traces:
+    enabled: true
+  metrics:
+    enabled: true
+  logs:
+    enabled: true
+
+# API Configuration
+api:
+  enabled: true
+  port: 8080
+  host: "0.0.0.0"
+  cors:
+    enabled: true
+    origins:
+      - "*"
+  rateLimit:
+    enabled: true
+    windowMs: 900000  # 15 minutes
+    maxRequests: 100
+  authentication:
+    type: bearer
+    required: true
+
+# Alerting Configuration
+alerting:
+  enabled: true
+  channels:
+    - type: slack
+      webhook: ${SLACK_WEBHOOK_URL}
+      enabled: true
+    - type: pagerduty
+      integrationKey: ${PAGERDUTY_KEY}
+      enabled: true
+    - type: email
+      smtp:
+        host: ${SMTP_HOST}
+        port: 587
+        secure: true
+        auth:
+          user: ${SMTP_USER}
+          pass: ${SMTP_PASS}
+      recipients:
+        - ops@company.com
+      enabled: true
+  rules:
+    trust_score_critical:
+      condition: trust_score < 60
+      severity: critical
+      channels:
+        - pagerduty
+        - slack
+    drift_incident_high:
+      condition: drift_severity == "high"
+      severity: high
+      channels:
+        - slack
+        - email
+    compliance_violation:
+      condition: violation_severity == "critical"
+      severity: critical
+      channels:
+        - pagerduty
+        - email
+
+# Retention Policies
+retention:
+  trust_scores:
+    days: 365
+    enabled: true
+  sync_events:
+    days: 90
+    enabled: true
+  drift_incidents:
+    days: 180
+    enabled: true
+  reports:
+    days: 730  # 2 years
+    enabled: true
+
+# Feature Flags
+features:
+  predictive_analytics: true
+  root_cause_analysis: true
+  automated_remediation: false
+  ml_anomaly_detection: true
+  real_time_streaming: true
+  multi_tenant: true
+
+# Performance Tuning
+performance:
+  batchSize: 100
+  workerThreads: 4
+  memoryLimit: "2GB"
+  cacheEnabled: true
+  cacheTTL: 300  # 5 minutes
+
+# Security
+security:
+  encryption:
+    enabled: true
+    algorithm: "aes-256-gcm"
+  audit:
+    enabled: true
+    logLevel: info
+  accessControl:
+    enabled: true
+    type: rbac
+
+# Integration Settings
+integrations:
+  servicenow:
+    enabled: false
+    instance: ${SERVICENOW_INSTANCE}
+    username: ${SERVICENOW_USER}
+    password: ${SERVICENOW_PASS}
+  datadog:
+    enabled: false
+    apiKey: ${DATADOG_API_KEY}
+    appKey: ${DATADOG_APP_KEY}
+  zapier:
+    enabled: false
+    webhookUrl: ${ZAPIER_WEBHOOK_URL}
+  airflow:
+    enabled: false
+    baseUrl: ${AIRFLOW_BASE_URL}
+    username: ${AIRFLOW_USER}
+    password: ${AIRFLOW_PASS}
