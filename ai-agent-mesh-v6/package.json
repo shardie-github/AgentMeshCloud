@@ -1,0 +1,39 @@
+{
+  "name": "mesh-os-v6-federation",
+  "version": "6.0.0",
+  "description": "Autonomous Mesh OS - Phase VI: Global Federation & Partner Distribution",
+  "type": "module",
+  "main": "federation_manager.mjs",
+  "scripts": {
+    "start": "node federation_manager.mjs",
+    "federation": "node federation_manager.mjs",
+    "sla": "node SLA_dashboard.mjs",
+    "audit": "node cert_audit_tool.mjs",
+    "insights": "node ecosystem_insights.mjs",
+    "canary": "node deploy_canary.mjs",
+    "partner": "node partner_cli.mjs",
+    "invoice": "node invoice_generator.mjs",
+    "secrets": "node secrets_bridge.mjs"
+  },
+  "keywords": [
+    "mesh-os",
+    "federation",
+    "multi-region",
+    "autonomous",
+    "ai-agents",
+    "compliance",
+    "sla",
+    "partner-sdk"
+  ],
+  "author": "Mesh OS Team",
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

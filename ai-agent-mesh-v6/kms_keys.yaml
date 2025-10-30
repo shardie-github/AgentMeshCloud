@@ -1,0 +1,259 @@
+# KMS Key Configuration
+# Regional encryption key management with automatic rotation
+
+version: "1.0"
+lastUpdated: "2025-10-30"
+
+globalSettings:
+  provider: multi  # aws, azure, gcp
+  rotationEnabled: true
+  rotationPeriod: 90  # days
+  keyAlgorithm: AES-256-GCM
+  minimumKeyLength: 256
+  hsm: true  # Use Hardware Security Modules
+
+regions:
+  us-east-1:
+    provider: aws
+    masterKeys:
+      - keyId: "arn:aws:kms:us-east-1:123456789:key/mrk-abc123"
+        alias: "alias/meshos-us-east-1-master"
+        type: master
+        multiRegion: true
+        purpose: encryption
+        status: active
+        created: "2025-01-15T00:00:00Z"
+        lastRotated: "2025-10-01T00:00:00Z"
+        nextRotation: "2025-12-30T00:00:00Z"
+        
+      - keyId: "arn:aws:kms:us-east-1:123456789:key/db-xyz789"
+        alias: "alias/meshos-us-east-1-database"
+        type: data
+        purpose: database-encryption
+        status: active
+        created: "2025-01-15T00:00:00Z"
+        
+      - keyId: "arn:aws:kms:us-east-1:123456789:key/api-def456"
+        alias: "alias/meshos-us-east-1-api"
+        type: data
+        purpose: api-encryption
+        status: active
+        created: "2025-01-15T00:00:00Z"
+        
+    backupKeys:
+      - keyId: "arn:aws:kms:us-east-1:123456789:key/backup-ghi123"
+        alias: "alias/meshos-us-east-1-backup"
+        purpose: backup-encryption
+        status: active
+        
+    compliance:
+      - FIPS-140-2
+      - SOC2
+      - HIPAA
+      
+  us-west-2:
+    provider: aws
+    masterKeys:
+      - keyId: "arn:aws:kms:us-west-2:123456789:key/mrk-abc123"  # Same multi-region key
+        alias: "alias/meshos-us-west-2-master"
+        type: master
+        multiRegion: true
+        purpose: encryption
+        status: active
+        created: "2025-01-15T00:00:00Z"
+        
+      - keyId: "arn:aws:kms:us-west-2:123456789:key/db-pqr456"
+        alias: "alias/meshos-us-west-2-database"
+        type: data
+        purpose: database-encryption
+        status: active
+        
+    compliance:
+      - FIPS-140-2
+      - SOC2
+      
+  eu-west-1:
+    provider: aws
+    masterKeys:
+      - keyId: "arn:aws:kms:eu-west-1:123456789:key/mrk-euabc"
+        alias: "alias/meshos-eu-west-1-master"
+        type: master
+        multiRegion: true
+        purpose: encryption
+        status: active
+        created: "2025-01-15T00:00:00Z"
+        lastRotated: "2025-10-01T00:00:00Z"
+        nextRotation: "2025-12-30T00:00:00Z"
+        
+      - keyId: "arn:aws:kms:eu-west-1:123456789:key/db-eu123"
+        alias: "alias/meshos-eu-west-1-database"
+        type: data
+        purpose: database-encryption
+        status: active
+        
+    compliance:
+      - GDPR
+      - SOC2
+      - ISO27001
+    dataSovereignty: EU
+    keyResidency: EU
+    
+  eu-central-1:
+    provider: aws
+    masterKeys:
+      - keyId: "arn:aws:kms:eu-central-1:123456789:key/mrk-euabc"
+        alias: "alias/meshos-eu-central-1-master"
+        type: master
+        multiRegion: true
+        purpose: encryption
+        status: active
+        
+    compliance:
+      - GDPR
+      - SOC2
+      - ISO27001
+    dataSovereignty: EU
+    keyResidency: EU
+    
+  ca-central-1:
+    provider: aws
+    masterKeys:
+      - keyId: "arn:aws:kms:ca-central-1:123456789:key/mrk-ca"
+        alias: "alias/meshos-ca-central-1-master"
+        type: master
+        purpose: encryption
+        status: active
+        
+    compliance:
+      - SOC2
+      - PIPEDA
+    dataSovereignty: CA
+    
+  me-south-1:
+    provider: aws
+    masterKeys:
+      - keyId: "arn:aws:kms:me-south-1:123456789:key/mrk-me"
+        alias: "alias/meshos-me-south-1-master"
+        type: master
+        purpose: encryption
+        status: active
+        
+    compliance:
+      - ISO27001
+    dataSovereignty: ME
+    
+  ap-southeast-1:
+    provider: aws
+    masterKeys:
+      - keyId: "arn:aws:kms:ap-southeast-1:123456789:key/mrk-ap"
+        alias: "alias/meshos-ap-southeast-1-master"
+        type: master
+        purpose: encryption
+        status: active
+        
+    compliance:
+      - SOC2
+      - ISO27001
+    dataSovereignty: APAC
+
+keyPolicies:
+  encryption:
+    algorithm: AES-256-GCM
+    keyDerivation: PBKDF2
+    saltLength: 32
+    iterations: 100000
+    
+  access:
+    principalType: role
+    allowedActions:
+      - "kms:Encrypt"
+      - "kms:Decrypt"
+      - "kms:ReEncrypt*"
+      - "kms:GenerateDataKey*"
+      - "kms:DescribeKey"
+    deniedActions:
+      - "kms:Delete*"
+      - "kms:ScheduleKeyDeletion"
+      
+  rotation:
+    automatic: true
+    gracePeriod: 7  # days - old key remains valid
+    notificationLead: 30  # days before rotation
+    
+  auditing:
+    enabled: true
+    logAllUsage: true
+    alertOnUnusualActivity: true
+    retentionPeriod: 2555  # days (7 years)
+
+crossRegionReplication:
+  enabled: true
+  multiRegionKeys:
+    - primaryRegion: us-east-1
+      replicaRegions:
+        - us-west-2
+      keyId: mrk-abc123
+      
+    - primaryRegion: eu-west-1
+      replicaRegions:
+        - eu-central-1
+      keyId: mrk-euabc
+      
+  synchronizationMode: automatic
+  maxSyncDelay: 60  # seconds
+
+emergencyProcedures:
+  keyCompromise:
+    - action: "Immediately disable compromised key"
+      automated: true
+      
+    - action: "Rotate to new key"
+      automated: true
+      
+    - action: "Notify security team"
+      automated: true
+      
+    - action: "Re-encrypt all data with new key"
+      automated: false
+      requiresApproval: true
+      
+  regionFailure:
+    - action: "Failover to replica key in secondary region"
+      automated: true
+      
+    - action: "Verify key availability"
+      automated: true
+
+monitoring:
+  metrics:
+    - name: "Key usage count"
+      frequency: realtime
+      
+    - name: "Failed decryption attempts"
+      frequency: realtime
+      alertThreshold: 10
+      
+    - name: "Key age"
+      frequency: daily
+      alertThreshold: 80  # % of rotation period
+      
+    - name: "Cross-region sync delay"
+      frequency: 60  # seconds
+      alertThreshold: 120  # seconds
+      
+  dashboards:
+    - "KMS Health Dashboard"
+    - "Key Rotation Status"
+    - "Encryption Compliance"
+
+compliance:
+  auditFrequency: quarterly
+  certifications:
+    - FIPS-140-2
+    - SOC2
+    - ISO27001
+    - GDPR
+  retentionRequirements:
+    keyMetadata: 7  # years
+    usageLogs: 7  # years
+    auditTrails: 7  # years

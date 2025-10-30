@@ -1,0 +1,327 @@
+# Billing Matrix Configuration
+# Multi-currency, regional tax, and pricing management
+
+version: "1.0"
+lastUpdated: "2025-10-30"
+
+currencies:
+  USD:
+    symbol: "$"
+    code: "USD"
+    name: "US Dollar"
+    regions: ["us-east-1", "us-west-2", "ca-central-1"]
+    exchangeRate: 1.0  # Base currency
+    roundingMode: "half-up"
+    decimalPlaces: 2
+    
+  EUR:
+    symbol: "€"
+    code: "EUR"
+    name: "Euro"
+    regions: ["eu-west-1", "eu-central-1"]
+    exchangeRate: 0.92
+    roundingMode: "half-up"
+    decimalPlaces: 2
+    
+  GBP:
+    symbol: "£"
+    code: "GBP"
+    name: "British Pound"
+    regions: ["eu-west-1"]
+    exchangeRate: 0.79
+    roundingMode: "half-up"
+    decimalPlaces: 2
+    
+  CAD:
+    symbol: "C$"
+    code: "CAD"
+    name: "Canadian Dollar"
+    regions: ["ca-central-1"]
+    exchangeRate: 1.36
+    roundingMode: "half-up"
+    decimalPlaces: 2
+    
+  AED:
+    symbol: "د.إ"
+    code: "AED"
+    name: "UAE Dirham"
+    regions: ["me-south-1"]
+    exchangeRate: 3.67
+    roundingMode: "half-up"
+    decimalPlaces: 2
+    
+  SGD:
+    symbol: "S$"
+    code: "SGD"
+    name: "Singapore Dollar"
+    regions: ["ap-southeast-1"]
+    exchangeRate: 1.35
+    roundingMode: "half-up"
+    decimalPlaces: 2
+
+plans:
+  starter:
+    name: "Starter"
+    basePrice:
+      USD: 99
+      EUR: 91
+      GBP: 78
+      CAD: 135
+      AED: 363
+      SGD: 134
+    billingCycle: monthly
+    features:
+      agents: 10
+      users: 5
+      storage: 10  # GB
+      apiCalls: 10000
+      support: community
+      regions: 1
+      
+  professional:
+    name: "Professional"
+    basePrice:
+      USD: 299
+      EUR: 275
+      GBP: 236
+      CAD: 407
+      AED: 1097
+      SGD: 404
+    billingCycle: monthly
+    features:
+      agents: 100
+      users: 50
+      storage: 100  # GB
+      apiCalls: 100000
+      support: standard
+      regions: 3
+      sla: "99.9%"
+      
+  enterprise:
+    name: "Enterprise"
+    basePrice:
+      USD: 999
+      EUR: 919
+      GBP: 789
+      CAD: 1359
+      AED: 3667
+      SGD: 1349
+    billingCycle: monthly
+    features:
+      agents: 1000
+      users: 500
+      storage: 1000  # GB
+      apiCalls: 1000000
+      support: priority
+      regions: unlimited
+      sla: "99.99%"
+      customBranding: true
+      sso: true
+      advancedAnalytics: true
+
+addOns:
+  additionalAgents:
+    name: "Additional Agents (per 10)"
+    price:
+      USD: 50
+      EUR: 46
+      GBP: 40
+      CAD: 68
+      AED: 184
+      SGD: 68
+      
+  additionalUsers:
+    name: "Additional Users (per 10)"
+    price:
+      USD: 20
+      EUR: 18
+      GBP: 16
+      CAD: 27
+      AED: 73
+      SGD: 27
+      
+  additionalStorage:
+    name: "Additional Storage (per 100GB)"
+    price:
+      USD: 30
+      EUR: 28
+      GBP: 24
+      CAD: 41
+      AED: 110
+      SGD: 41
+      
+  prioritySupport:
+    name: "Priority Support"
+    price:
+      USD: 199
+      EUR: 183
+      GBP: 157
+      CAD: 271
+      AED: 730
+      SGD: 269
+
+taxZones:
+  US:
+    regions: ["us-east-1", "us-west-2"]
+    type: state
+    rates:
+      default: 0.00  # No federal VAT
+      states:
+        CA: 0.0725  # California
+        NY: 0.08875  # New York
+        TX: 0.0625  # Texas
+        FL: 0.06  # Florida
+        WA: 0.065  # Washington
+    taxInclusive: false
+    
+  EU:
+    regions: ["eu-west-1", "eu-central-1"]
+    type: vat
+    rates:
+      default: 0.20  # Standard EU VAT
+      countries:
+        IE: 0.23  # Ireland
+        DE: 0.19  # Germany
+        FR: 0.20  # France
+        ES: 0.21  # Spain
+        IT: 0.22  # Italy
+        NL: 0.21  # Netherlands
+    taxInclusive: true
+    reverseCharge: true  # For B2B transactions
+    
+  CA:
+    regions: ["ca-central-1"]
+    type: gst-pst
+    rates:
+      GST: 0.05  # Federal GST
+      provinces:
+        ON: 0.13  # HST (combined)
+        BC: 0.12  # GST + PST
+        QC: 0.14975  # GST + QST
+        AB: 0.05  # GST only
+    taxInclusive: false
+    
+  ME:
+    regions: ["me-south-1"]
+    type: vat
+    rates:
+      default: 0.05  # UAE VAT
+    taxInclusive: true
+    
+  APAC:
+    regions: ["ap-southeast-1"]
+    type: gst
+    rates:
+      default: 0.08  # Singapore GST (2024)
+    taxInclusive: true
+
+discounts:
+  annual:
+    name: "Annual Billing Discount"
+    type: percentage
+    value: 0.15  # 15% off
+    applies: ["professional", "enterprise"]
+    
+  volume:
+    name: "Volume Discount"
+    type: tiered
+    tiers:
+      - minTenants: 10
+        discount: 0.10  # 10% off
+      - minTenants: 25
+        discount: 0.15  # 15% off
+      - minTenants: 50
+        discount: 0.20  # 20% off
+      - minTenants: 100
+        discount: 0.25  # 25% off
+    applies: ["partner"]
+    
+  partner:
+    name: "Partner Commission"
+    type: percentage
+    value: 0.20  # 20% commission
+    applies: ["all"]
+
+paymentMethods:
+  creditCard:
+    enabled: true
+    providers: ["stripe", "adyen"]
+    currencies: ["USD", "EUR", "GBP", "CAD", "SGD"]
+    processingFee: 0.029  # 2.9% + $0.30
+    
+  bankTransfer:
+    enabled: true
+    currencies: ["USD", "EUR", "GBP"]
+    processingFee: 0.00
+    settlementDays: 3
+    
+  paypal:
+    enabled: true
+    currencies: ["USD", "EUR", "GBP", "CAD"]
+    processingFee: 0.034  # 3.4% + $0.30
+    
+  invoice:
+    enabled: true
+    minimumAmount: 1000
+    paymentTerms: "NET30"
+    applies: ["enterprise"]
+
+billingCycles:
+  monthly:
+    name: "Monthly"
+    multiplier: 1.0
+    daysInCycle: 30
+    
+  quarterly:
+    name: "Quarterly"
+    multiplier: 3.0
+    discount: 0.05  # 5% off
+    daysInCycle: 90
+    
+  annual:
+    name: "Annual"
+    multiplier: 12.0
+    discount: 0.15  # 15% off
+    daysInCycle: 365
+
+invoicing:
+  format: PDF
+  language: auto  # Based on tenant locale
+  dueDate: 7  # days
+  reminderSchedule:
+    - daysBefore: 3
+    - daysBefore: 1
+    - daysAfter: 1
+    - daysAfter: 7
+  lateFee:
+    enabled: true
+    type: percentage
+    value: 0.015  # 1.5% per month
+    gracePeriod: 5  # days
+    
+  includeLineItems: true
+  includeTaxBreakdown: true
+  includeUsageMetrics: true
+
+compliance:
+  regulations:
+    - GDPR  # EU data protection
+    - CCPA  # California privacy
+    - SOX   # Financial controls
+    - PCI-DSS  # Payment card security
+    
+  retention:
+    invoices: 2555  # 7 years
+    paymentRecords: 2555  # 7 years
+    taxDocuments: 2555  # 7 years
+    
+  auditTrail:
+    enabled: true
+    immutable: true
+    encrypted: true
+
+exchangeRateProvider:
+  primary: "ECB"  # European Central Bank
+  fallback: "OpenExchangeRates"
+  updateFrequency: daily
+  cacheExpiry: 86400  # 24 hours

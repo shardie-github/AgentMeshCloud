@@ -1,0 +1,69 @@
+{
+  "common": {
+    "welcome": "Welcome to Mesh OS",
+    "dashboard": "Dashboard",
+    "agents": "Agents",
+    "users": "Users",
+    "settings": "Settings",
+    "logout": "Logout",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "confirm": "Are you sure?"
+  },
+  "auth": {
+    "login": "Log In",
+    "signup": "Sign Up",
+    "email": "Email Address",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "invalidCredentials": "Invalid email or password",
+    "sessionExpired": "Your session has expired. Please log in again."
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "metrics": "Metrics",
+    "activeAgents": "Active Agents",
+    "totalUsers": "Total Users",
+    "apiCalls": "API Calls",
+    "uptime": "Uptime",
+    "latency": "Latency",
+    "errorRate": "Error Rate"
+  },
+  "agents": {
+    "title": "AI Agents",
+    "createAgent": "Create Agent",
+    "agentName": "Agent Name",
+    "agentType": "Agent Type",
+    "status": "Status",
+    "lastActive": "Last Active",
+    "actions": "Actions",
+    "noAgents": "No agents found. Create your first agent to get started."
+  },
+  "billing": {
+    "title": "Billing",
+    "currentPlan": "Current Plan",
+    "usage": "Usage",
+    "invoices": "Invoices",
+    "paymentMethod": "Payment Method",
+    "billingHistory": "Billing History",
+    "upgradePlan": "Upgrade Plan",
+    "downloadInvoice": "Download Invoice"
+  },
+  "errors": {
+    "networkError": "Network error. Please check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "validationError": "Please check your input and try again."
+  }
+}

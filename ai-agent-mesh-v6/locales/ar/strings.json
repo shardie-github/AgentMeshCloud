@@ -1,0 +1,22 @@
+{
+  "common": {
+    "welcome": "مرحباً بك في Mesh OS",
+    "dashboard": "لوحة التحكم",
+    "agents": "الوكلاء",
+    "users": "المستخدمون",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "search": "بحث",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ",
+    "success": "نجاح",
+    "confirm": "هل أنت متأكد؟"
+  }
+}
