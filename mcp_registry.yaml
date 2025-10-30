@@ -1,0 +1,745 @@
+# AI-Agent Mesh Registry Configuration
+# Model Context Protocol (MCP) v1.0 Compliant
+# Last Updated: 2025-10-30
+
+version: "1.0.0"
+mesh_id: "enterprise-prod-001"
+organization: "acme-corp"
+
+# ============================================================================
+# REGISTERED AI AGENTS
+# ============================================================================
+agents:
+  # Customer-Facing Chatbot
+  - id: "chatgpt-customer-service"
+    name: "Customer Support ChatBot"
+    type: "chatbot"
+    vendor: "openai"
+    model: "gpt-4-turbo-2024-04-09"
+    status: "active"
+    
+    # MCP Configuration
+    mcp_config:
+      protocol_version: "1.0.0"
+      capabilities:
+        - "context_sharing"
+        - "tool_use"
+        - "streaming_responses"
+      context_window: 128000
+      temperature: 0.7
+      top_p: 0.95
+      max_tokens: 2000
+      system_prompt_template: |
+        You are a helpful customer support assistant for Acme Corp.
+        Guidelines:
+        - Be professional and empathetic
+        - Always verify customer identity before sharing account details
+        - Escalate to human agent if unable to resolve
+        - Never share confidential company information
+    
+    # Governance
+    policies:
+      - policy_id: "rbac-customer-data"
+        version: "1.0"
+        enforcement: "blocking"
+      - policy_id: "content-safety-customer-facing"
+        version: "2.1"
+        enforcement: "blocking"
+      - policy_id: "pii-redaction"
+        version: "1.5"
+        enforcement: "blocking"
+      - policy_id: "rate-limit-per-user"
+        version: "1.0"
+        enforcement: "blocking"
+    
+    # Context Sources
+    context_sources:
+      - type: "knowledge_base"
+        id: "customer-faq"
+        priority: 1
+      - type: "knowledge_base"
+        id: "product-catalog"
+        priority: 2
+      - type: "api"
+        id: "customer-order-history"
+        priority: 3
+        requires_auth: true
+    
+    # Ownership
+    owners:
+      - "customer-success@acme.com"
+      - "ai-ops@acme.com"
+    
+    compliance_tier: "high"
+    
+    # Telemetry
+    observability:
+      tracing_enabled: true
+      metrics_enabled: true
+      log_level: "info"
+      log_retention_days: 90
+      alert_on_error_rate: 0.05  # 5%
+    
+    # Deployment
+    deployment:
+      environment: "production"
+      region: "us-east-1"
+      availability_zone: "us-east-1a"
+      replica_count: 3
+      auto_scaling:
+        enabled: true
+        min_replicas: 2
+        max_replicas: 10
+        target_cpu_percent: 70
+    
+    metadata:
+      created_at: "2024-08-15T10:23:00Z"
+      updated_at: "2024-10-30T14:00:00Z"
+      tags:
+        - "customer-facing"
+        - "high-priority"
+        - "pci-compliant"
+
+  # Developer Copilot
+  - id: "github-copilot-enterprise"
+    name: "GitHub Copilot Enterprise"
+    type: "copilot"
+    vendor: "github"
+    model: "codex-cushman-002"
+    status: "active"
+    
+    mcp_config:
+      protocol_version: "1.0.0"
+      capabilities:
+        - "code_completion"
+        - "code_explanation"
+        - "context_sharing"
+      context_window: 8192
+      temperature: 0.2
+      top_p: 0.9
+      max_tokens: 500
+      system_prompt_template: |
+        You are an AI programming assistant.
+        - Follow language-specific best practices
+        - Write secure, maintainable code
+        - Add comments for complex logic
+        - Respect existing code style
+    
+    policies:
+      - policy_id: "rbac-source-code"
+        version: "1.0"
+        enforcement: "blocking"
+      - policy_id: "code-security-scan"
+        version: "1.2"
+        enforcement: "logging"
+      - policy_id: "rate-limit-per-developer"
+        version: "1.0"
+        enforcement: "blocking"
+    
+    context_sources:
+      - type: "code_repository"
+        id: "github-org"
+        priority: 1
+      - type: "documentation"
+        id: "internal-dev-docs"
+        priority: 2
+    
+    owners:
+      - "engineering@acme.com"
+    
+    compliance_tier: "standard"
+    
+    observability:
+      tracing_enabled: true
+      metrics_enabled: true
+      log_level: "warn"
+      log_retention_days: 30
+      alert_on_error_rate: 0.10
+    
+    deployment:
+      environment: "production"
+      region: "us-west-2"
+      availability_zone: "us-west-2b"
+      replica_count: 5
+      auto_scaling:
+        enabled: true
+        min_replicas: 3
+        max_replicas: 20
+        target_cpu_percent: 60
+    
+    metadata:
+      created_at: "2024-09-01T08:00:00Z"
+      updated_at: "2024-10-25T12:30:00Z"
+      tags:
+        - "developer-tools"
+        - "productivity"
+
+  # Financial Analysis Agent
+  - id: "claude-financial-analyst"
+    name: "Financial Analysis Agent"
+    type: "service"
+    vendor: "anthropic"
+    model: "claude-opus-20240229"
+    status: "active"
+    
+    mcp_config:
+      protocol_version: "1.0.0"
+      capabilities:
+        - "context_sharing"
+        - "structured_outputs"
+        - "tool_use"
+      context_window: 200000
+      temperature: 0.3
+      top_p: 0.9
+      max_tokens: 4000
+      system_prompt_template: |
+        You are a financial analysis AI assistant.
+        - Analyze financial data with precision
+        - Always cite data sources
+        - Highlight risks and uncertainties
+        - Use standard financial terminology
+        - Comply with SEC reporting guidelines
+    
+    policies:
+      - policy_id: "rbac-finance-data"
+        version: "1.0"
+        enforcement: "blocking"
+      - policy_id: "sox-compliance"
+        version: "1.0"
+        enforcement: "blocking"
+      - policy_id: "audit-trail-finance"
+        version: "1.0"
+        enforcement: "blocking"
+      - policy_id: "pii-redaction"
+        version: "1.5"
+        enforcement: "blocking"
+    
+    context_sources:
+      - type: "database"
+        id: "financial-warehouse"
+        priority: 1
+        requires_auth: true
+      - type: "knowledge_base"
+        id: "gaap-standards"
+        priority: 2
+      - type: "api"
+        id: "market-data-feed"
+        priority: 3
+        requires_auth: true
+    
+    owners:
+      - "finance@acme.com"
+      - "compliance@acme.com"
+    
+    compliance_tier: "critical"
+    
+    observability:
+      tracing_enabled: true
+      metrics_enabled: true
+      log_level: "info"
+      log_retention_days: 2555  # 7 years (SOX requirement)
+      alert_on_error_rate: 0.01  # 1% (stricter)
+    
+    deployment:
+      environment: "production"
+      region: "us-east-1"
+      availability_zone: "us-east-1c"
+      replica_count: 2
+      auto_scaling:
+        enabled: false  # Predictable workload
+    
+    metadata:
+      created_at: "2024-07-10T14:00:00Z"
+      updated_at: "2024-10-28T09:15:00Z"
+      tags:
+        - "finance"
+        - "sox-compliant"
+        - "high-risk"
+
+  # Data Science Pipeline LLM
+  - id: "llama-data-pipeline"
+    name: "Data Science LLM Pipeline"
+    type: "pipeline"
+    vendor: "custom"
+    model: "llama-3.1-70b-instruct"
+    status: "active"
+    
+    mcp_config:
+      protocol_version: "1.0.0"
+      capabilities:
+        - "context_sharing"
+        - "batch_processing"
+      context_window: 32768
+      temperature: 0.4
+      top_p: 0.95
+      max_tokens: 1000
+      system_prompt_template: |
+        You are a data science assistant.
+        - Generate Python code for data analysis
+        - Explain statistical methods clearly
+        - Validate data assumptions
+        - Follow PEP 8 style guidelines
+    
+    policies:
+      - policy_id: "rbac-data-science"
+        version: "1.0"
+        enforcement: "blocking"
+      - policy_id: "code-security-scan"
+        version: "1.2"
+        enforcement: "logging"
+    
+    context_sources:
+      - type: "knowledge_base"
+        id: "data-science-library"
+        priority: 1
+      - type: "code_repository"
+        id: "ml-models-repo"
+        priority: 2
+    
+    owners:
+      - "data-science@acme.com"
+    
+    compliance_tier: "standard"
+    
+    observability:
+      tracing_enabled: true
+      metrics_enabled: true
+      log_level: "debug"
+      log_retention_days: 30
+      alert_on_error_rate: 0.15
+    
+    deployment:
+      environment: "production"
+      region: "us-west-2"
+      availability_zone: "us-west-2a"
+      replica_count: 1
+      auto_scaling:
+        enabled: false
+    
+    metadata:
+      created_at: "2024-10-01T11:00:00Z"
+      updated_at: "2024-10-29T16:45:00Z"
+      tags:
+        - "ml-ops"
+        - "batch-processing"
+        - "self-hosted"
+
+  # Shadow AI Discovery (Example of discovered but unregistered agent)
+  - id: "unknown-marketing-chatbot"
+    name: "Marketing Department Chatbot (Shadow AI)"
+    type: "chatbot"
+    vendor: "openai"
+    model: "gpt-3.5-turbo"
+    status: "quarantined"  # Discovered but not approved
+    
+    mcp_config:
+      protocol_version: "unknown"
+      capabilities: []
+      context_window: 4096
+      temperature: 0.8
+      top_p: 1.0
+      max_tokens: 500
+      system_prompt_template: "Unknown"
+    
+    policies:
+      - policy_id: "quarantine-shadow-ai"
+        version: "1.0"
+        enforcement: "blocking"
+    
+    context_sources: []
+    
+    owners:
+      - "security@acme.com"  # Assigned to security for review
+    
+    compliance_tier: "none"
+    
+    observability:
+      tracing_enabled: true
+      metrics_enabled: true
+      log_level: "debug"
+      log_retention_days: 90
+      alert_on_error_rate: 0.0  # Alert on ANY usage
+    
+    deployment:
+      environment: "unknown"
+      region: "unknown"
+      availability_zone: "unknown"
+      replica_count: 0
+      auto_scaling:
+        enabled: false
+    
+    metadata:
+      created_at: "2024-10-30T13:45:00Z"
+      updated_at: "2024-10-30T13:45:00Z"
+      discovered_by: "agent-discovery-daemon"
+      tags:
+        - "shadow-ai"
+        - "requires-review"
+        - "quarantined"
+
+# ============================================================================
+# GOVERNANCE POLICIES
+# ============================================================================
+policies:
+  # Access Control
+  - id: "rbac-customer-data"
+    name: "RBAC for Customer Data Access"
+    version: "1.0"
+    type: "access_control"
+    description: "Restricts access to customer PII and order data"
+    framework: "GDPR Article 32"
+    rules:
+      - resource_pattern: "customer/*"
+        allowed_roles:
+          - "customer_support"
+          - "customer_success_manager"
+          - "compliance_officer"
+        allowed_actions: ["read", "query"]
+        denied_actions: ["delete", "export"]
+        conditions:
+          time_of_day: "00:00-23:59 UTC"
+          ip_whitelist: ["10.0.0.0/8", "172.16.0.0/12"]
+          mfa_required: true
+    enforcement: "blocking"
+    created_at: "2024-06-01T00:00:00Z"
+
+  - id: "rbac-finance-data"
+    name: "RBAC for Financial Data"
+    version: "1.0"
+    type: "access_control"
+    description: "Strict controls for financial and SOX-relevant data"
+    framework: "SOX Section 404"
+    rules:
+      - resource_pattern: "finance/*"
+        allowed_roles:
+          - "finance_analyst"
+          - "cfo"
+          - "auditor"
+        allowed_actions: ["read", "query"]
+        denied_actions: ["write", "delete"]
+        conditions:
+          time_of_day: "06:00-20:00 EST"
+          ip_whitelist: ["10.1.0.0/16"]
+          mfa_required: true
+          approval_required: true
+    enforcement: "blocking"
+    created_at: "2024-06-01T00:00:00Z"
+
+  # Content Safety
+  - id: "content-safety-customer-facing"
+    name: "Content Safety for Customer Interactions"
+    version: "2.1"
+    type: "content_safety"
+    description: "Blocks harmful content in customer-facing agents"
+    framework: "OWASP LLM Top 10"
+    rules:
+      - block_harmful_content: true
+        categories:
+          - "violence"
+          - "hate_speech"
+          - "sexual_content"
+          - "self_harm"
+        threshold: 0.7
+        action: "block"
+      - detect_prompt_injection: true
+        patterns:
+          - "ignore previous instructions"
+          - "system: you are now"
+          - "disregard all prior"
+        action: "block"
+    enforcement: "blocking"
+    created_at: "2024-08-15T00:00:00Z"
+
+  # PII Protection
+  - id: "pii-redaction"
+    name: "PII Detection and Redaction"
+    version: "1.5"
+    type: "data_protection"
+    description: "Automatically redacts PII from prompts and logs"
+    framework: "GDPR Article 32, CCPA"
+    rules:
+      - detect_pii: true
+        pii_types:
+          - ssn: '\d{3}-\d{2}-\d{4}'
+          - email: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+          - credit_card: '\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}'
+          - phone: '\+?1?\d{10,15}'
+          - ip_address: '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
+        action: "redact"
+        replacement: "[REDACTED-PII]"
+    enforcement: "blocking"
+    created_at: "2024-07-01T00:00:00Z"
+
+  # Rate Limiting
+  - id: "rate-limit-per-user"
+    name: "Per-User Rate Limiting"
+    version: "1.0"
+    type: "rate_limiting"
+    description: "Prevents abuse and manages costs"
+    framework: "Internal Policy"
+    rules:
+      - max_requests_per_minute: 60
+        max_requests_per_hour: 1000
+        max_requests_per_day: 10000
+        max_tokens_per_day: 500000
+        burst_allowance: 10
+        action: "throttle"
+        error_message: "Rate limit exceeded. Please try again later."
+    enforcement: "blocking"
+    created_at: "2024-06-01T00:00:00Z"
+
+  # Compliance
+  - id: "sox-compliance"
+    name: "SOX Compliance Controls"
+    version: "1.0"
+    type: "compliance"
+    description: "Sarbanes-Oxley compliance for financial AI"
+    framework: "SOX Section 404"
+    rules:
+      - require_audit_trail: true
+        audit_retention_years: 7
+        immutable_logs: true
+      - require_approval: true
+        approval_roles: ["finance_manager", "compliance_officer"]
+        approval_timeout_hours: 24
+      - segregation_of_duties: true
+        restrict_self_approval: true
+    enforcement: "blocking"
+    created_at: "2024-07-10T00:00:00Z"
+
+  # Shadow AI Quarantine
+  - id: "quarantine-shadow-ai"
+    name: "Quarantine Unauthorized Agents"
+    version: "1.0"
+    type: "access_control"
+    description: "Block all requests from unregistered agents"
+    framework: "Internal Security Policy"
+    rules:
+      - block_all_requests: true
+        alert_on_attempt: true
+        escalate_to: ["security@acme.com", "ciso@acme.com"]
+        require_manual_review: true
+    enforcement: "blocking"
+    created_at: "2024-08-01T00:00:00Z"
+
+# ============================================================================
+# CONTEXT SOURCES (Knowledge Bases, APIs, Databases)
+# ============================================================================
+context_sources:
+  - id: "customer-faq"
+    name: "Customer Support FAQ"
+    type: "knowledge_base"
+    description: "Frequently asked questions and answers"
+    storage:
+      type: "vector_database"
+      provider: "pinecone"
+      index_name: "customer-faq"
+      embedding_model: "text-embedding-ada-002"
+      dimension: 1536
+    update_frequency: "daily"
+    last_updated: "2024-10-30T02:00:00Z"
+    owner: "customer-success@acme.com"
+
+  - id: "product-catalog"
+    name: "Product Catalog"
+    type: "knowledge_base"
+    description: "Product descriptions, pricing, specifications"
+    storage:
+      type: "vector_database"
+      provider: "weaviate"
+      index_name: "product-catalog"
+      embedding_model: "text-embedding-ada-002"
+      dimension: 1536
+    update_frequency: "hourly"
+    last_updated: "2024-10-30T14:00:00Z"
+    owner: "product@acme.com"
+
+  - id: "financial-warehouse"
+    name: "Financial Data Warehouse"
+    type: "database"
+    description: "Financial transactions, reports, forecasts"
+    storage:
+      type: "postgresql"
+      host: "finance-db.internal.acme.com"
+      port: 5432
+      database: "finance_prod"
+      ssl_enabled: true
+      read_only: true
+    access_control:
+      authentication: "certificate"
+      authorization: "rbac"
+      encryption: "tls_1_3"
+    owner: "finance@acme.com"
+
+  - id: "github-org"
+    name: "GitHub Organization Repositories"
+    type: "code_repository"
+    description: "Source code for context-aware code completion"
+    storage:
+      type: "git"
+      provider: "github_enterprise"
+      organization: "acme-corp"
+      access_token_secret: "vault://github/copilot-token"
+    access_control:
+      authentication: "oauth"
+      authorization: "repository_permissions"
+    owner: "engineering@acme.com"
+
+# ============================================================================
+# MESH CONFIGURATION
+# ============================================================================
+mesh_configuration:
+  # Control Plane
+  control_plane:
+    api_gateway:
+      enabled: true
+      host: "mesh-api.internal.acme.com"
+      port: 443
+      protocol: "https"
+      auth:
+        type: "jwt"
+        issuer: "https://auth.acme.com"
+        audience: "ai-mesh-api"
+      rate_limit:
+        requests_per_second: 10000
+        burst: 1000
+    
+    mcp_registry:
+      enabled: true
+      database:
+        type: "postgresql"
+        host: "registry-db.internal.acme.com"
+        port: 5432
+        database: "mcp_registry"
+        ssl_mode: "require"
+      cache:
+        type: "redis"
+        host: "registry-cache.internal.acme.com"
+        port: 6379
+        ttl_seconds: 300
+  
+  # Data Plane
+  data_plane:
+    context_federation:
+      enabled: true
+      cache_backend: "redis"
+      vector_store: "faiss"
+      deduplication_threshold: 0.95  # Cosine similarity
+      cache_ttl_hours: 24
+    
+    policy_enforcer:
+      enabled: true
+      engine: "open_policy_agent"
+      opa_server: "http://opa.internal.acme.com:8181"
+      decision_cache_ttl_seconds: 60
+      default_action: "deny"
+    
+    observability:
+      enabled: true
+      tracing:
+        backend: "opentelemetry"
+        endpoint: "otel-collector.internal.acme.com:4317"
+        sampling_rate: 0.1  # 10% sampling
+      metrics:
+        backend: "prometheus"
+        endpoint: "prometheus.internal.acme.com:9090"
+        scrape_interval_seconds: 15
+      logging:
+        backend: "elasticsearch"
+        endpoint: "logs.internal.acme.com:9200"
+        index_pattern: "ai-mesh-logs-*"
+  
+  # Security
+  security:
+    encryption:
+      at_rest:
+        enabled: true
+        algorithm: "aes-256-gcm"
+        key_provider: "aws_kms"
+        key_id: "arn:aws:kms:us-east-1:123456789012:key/abc123"
+      in_transit:
+        enabled: true
+        tls_version: "1.3"
+        cipher_suites:
+          - "TLS_AES_256_GCM_SHA384"
+          - "TLS_CHACHA20_POLY1305_SHA256"
+    
+    authentication:
+      identity_provider: "okta"
+      saml_endpoint: "https://acme.okta.com/app/saml"
+      jwt_validation:
+        issuer: "https://acme.okta.com"
+        audience: "ai-mesh"
+        algorithms: ["RS256"]
+    
+    authorization:
+      model: "rbac"
+      policy_engine: "open_policy_agent"
+      default_deny: true
+  
+  # High Availability
+  high_availability:
+    enabled: true
+    replication:
+      mode: "multi_region"
+      regions: ["us-east-1", "us-west-2", "eu-west-1"]
+      replication_lag_threshold_seconds: 5
+    failover:
+      automatic: true
+      health_check_interval_seconds: 10
+      failure_threshold: 3
+      recovery_time_objective_minutes: 30
+    backup:
+      enabled: true
+      schedule: "0 2 * * *"  # Daily at 2 AM UTC
+      retention_days: 90
+      storage: "s3://acme-mesh-backups"
+
+# ============================================================================
+# SUSTAINABILITY & CARBON TRACKING
+# ============================================================================
+sustainability:
+  carbon_tracking:
+    enabled: true
+    calculation_method: "grid_carbon_intensity"
+    reporting_frequency: "daily"
+    
+  carbon_budget:
+    monthly_limit_kg: 5000
+    alert_threshold_percent: 80
+    enforcement: "advisory"  # "blocking" or "advisory"
+  
+  optimization:
+    green_routing:
+      enabled: true
+      prefer_low_carbon_regions: true
+      max_latency_penalty_ms: 100
+    
+    model_efficiency:
+      prefer_smaller_models: true
+      accuracy_threshold: 0.95  # Only use large model if small model < 95% accuracy
+      cost_vs_carbon_weight: 0.5  # Balance cost and carbon (0=all cost, 1=all carbon)
+
+# ============================================================================
+# METADATA
+# ============================================================================
+metadata:
+  created_at: "2024-06-01T00:00:00Z"
+  updated_at: "2024-10-30T14:30:00Z"
+  version_history:
+    - version: "1.0.0"
+      date: "2024-06-01T00:00:00Z"
+      changes: "Initial registry configuration"
+    - version: "1.1.0"
+      date: "2024-08-15T00:00:00Z"
+      changes: "Added customer service chatbot"
+    - version: "1.2.0"
+      date: "2024-10-30T14:30:00Z"
+      changes: "Added shadow AI quarantine, sustainability tracking"
+  
+  administrators:
+    - "admin@acme.com"
+    - "ai-ops@acme.com"
+  
+  support_contact: "ai-mesh-support@acme.com"
+  documentation_url: "https://docs.internal.acme.com/ai-mesh"

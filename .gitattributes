@@ -1,0 +1,58 @@
+# Git attributes for consistent behavior across platforms
+
+# Auto detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# Explicitly set line endings for specific file types
+*.sh text eol=lf
+*.bash text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.jsx text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.flv binary
+*.fla binary
+*.swf binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Archives
+*.7z binary
+*.gz binary
+*.jar binary
+*.rar binary
+*.tar binary
+*.zip binary
+
+# Lockfiles (never merge)
+package-lock.json -diff -merge
+pnpm-lock.yaml -diff -merge
+yarn.lock -diff -merge
+
+# Generated files
+dist/ linguist-generated=true
+build/ linguist-generated=true
+coverage/ linguist-generated=true
+*.min.js linguist-generated=true
+*.map linguist-generated=true

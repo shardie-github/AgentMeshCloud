@@ -1,36 +1,68 @@
 {
   "compilerOptions": {
+    // Language and Environment
     "target": "ES2022",
     "lib": ["ES2022"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": false,
-    "esModuleInterop": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
     "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/utils/*": ["./src/utils/*"]
-    },
-    "forceConsistentCasingInFileNames": true,
+    
+    // Modules
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    
+    // Emit
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "removeComments": false,
+    "noEmit": false,
+    "importHelpers": true,
+    
+    // Interop Constraints
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    
+    // Type Checking (Strict Mode)
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    
+    // Advanced
+    "skipLibCheck": true,
+    "incremental": true,
+    
+    // Path Aliases
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/registry/*": ["./src/registry/*"],
+      "@/telemetry/*": ["./src/telemetry/*"],
+      "@/policy/*": ["./src/policy/*"],
+      "@/context-bus/*": ["./src/context-bus/*"],
+      "@/uadsi/*": ["./src/uadsi/*"],
+      "@/diagnostics/*": ["./src/diagnostics/*"],
+      "@/api/*": ["./src/api/*"],
+      "@/ui/*": ["./src/ui/*"],
+      "@/adapters/*": ["./src/adapters/*"],
+      "@/security/*": ["./src/security/*"],
+      "@/common/*": ["./src/common/*"]
+    },
+    
+    // Plugins
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "src/**/*",
@@ -40,9 +72,13 @@
   "exclude": [
     "node_modules",
     "dist",
+    "build",
+    "coverage",
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/*.test.tsx",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    ".turbo",
+    ".next"
   ]
 }

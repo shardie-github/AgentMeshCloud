@@ -1,0 +1,366 @@
+# OpenTelemetry Configuration - ORCA Core
+# Version: 1.0.0
+
+version: "1.0.0"
+last_updated: "2025-10-30T00:00:00Z"
+
+# ============================================================================
+# SERVICE IDENTIFICATION
+# ============================================================================
+service:
+  name: "orca-mesh"
+  version: "1.0.0"
+  namespace: "production"
+  instance_id: "${HOSTNAME:-unknown}"
+  
+  attributes:
+    environment: "${ENVIRONMENT:-development}"
+    region: "${AWS_REGION:-us-east-1}"
+    deployment_type: "kubernetes"  # or "ecs", "lambda", "vm"
+
+# ============================================================================
+# EXPORTERS
+# ============================================================================
+exporters:
+  # OTLP Exporter (OpenTelemetry Protocol)
+  otlp:
+    enabled: true
+    endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT:-otel-collector.internal.acme.com:4317}"
+    protocol: "grpc"  # or "http/protobuf"
+    timeout_seconds: 10
+    compression: "gzip"
+    headers:
+      api-key: "${OTEL_API_KEY:-}"
+    retry:
+      enabled: true
+      max_attempts: 3
+      initial_backoff_seconds: 1
+      max_backoff_seconds: 30
+    
+  # Prometheus Exporter
+  prometheus:
+    enabled: true
+    host: "0.0.0.0"
+    port: 9464
+    path: "/metrics"
+    
+  # Console Exporter (for development)
+  console:
+    enabled: true
+    log_level: "debug"  # Only in development
+    
+  # Jaeger Exporter (for distributed tracing)
+  jaeger:
+    enabled: false
+    endpoint: "jaeger-collector.internal.acme.com:14250"
+    agent_host: "localhost"
+    agent_port: 6831
+
+# ============================================================================
+# TRACES
+# ============================================================================
+traces:
+  enabled: true
+  
+  sampling:
+    strategy: "parent_based_trace_id_ratio"
+    ratio: 0.1  # 10% sampling (adjust based on volume)
+    
+    # Always sample certain operations
+    always_sample:
+      - "/api/v1/trust"
+      - "/api/v1/agents/*/compliance-report"
+      - "policy_violation"
+      
+    # Never sample noisy operations
+    never_sample:
+      - "/health"
+      - "/ready"
+      - "/metrics"
+    
+  # Batch Processor
+  batch_processor:
+    enabled: true
+    max_queue_size: 2048
+    schedule_delay_ms: 5000
+    max_export_batch_size: 512
+    export_timeout_ms: 30000
+  
+  # Span Limits
+  span_limits:
+    max_attributes: 128
+    max_events: 128
+    max_links: 128
+    max_attribute_value_length: 1024
+    
+  # Instrumentation
+  instrumentation:
+    http:
+      enabled: true
+      capture_headers: true
+      capture_request_body: false  # Privacy
+      capture_response_body: false  # Privacy
+      
+    database:
+      enabled: true
+      capture_statement: true
+      max_statement_length: 1024
+      
+    grpc:
+      enabled: true
+      
+    redis:
+      enabled: true
+      
+    custom:
+      enabled: true
+
+# ============================================================================
+# METRICS
+# ============================================================================
+metrics:
+  enabled: true
+  
+  # Export Interval
+  export:
+    interval_ms: 60000  # 1 minute
+    timeout_ms: 30000
+  
+  # Aggregation Temporality
+  aggregation_temporality:
+    counter: "cumulative"
+    histogram: "cumulative"
+    
+  # Cardinality Limits (prevent metric explosion)
+  cardinality_limits:
+    max_unique_dimensions: 10000
+    drop_on_limit: true
+    
+  # Custom Metrics
+  custom_metrics:
+    - name: "orca.trust.score"
+      type: "gauge"
+      unit: "1"
+      description: "Trust score for agents"
+      
+    - name: "orca.policy.violations"
+      type: "counter"
+      unit: "1"
+      description: "Policy violations detected"
+      
+    - name: "orca.sync.lag"
+      type: "histogram"
+      unit: "ms"
+      description: "Data synchronization lag"
+      buckets: [10, 50, 100, 500, 1000, 5000, 10000]
+      
+    - name: "orca.healing.success_rate"
+      type: "gauge"
+      unit: "%"
+      description: "Self-healing success rate"
+      
+    - name: "orca.requests.duration"
+      type: "histogram"
+      unit: "ms"
+      description: "Request duration"
+      buckets: [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]
+      
+    - name: "orca.requests.total"
+      type: "counter"
+      unit: "1"
+      description: "Total requests"
+      
+    - name: "orca.errors.total"
+      type: "counter"
+      unit: "1"
+      description: "Total errors"
+
+# ============================================================================
+# LOGS
+# ============================================================================
+logs:
+  enabled: true
+  
+  # Log Level
+  level: "${LOG_LEVEL:-info}"  # trace, debug, info, warn, error, fatal
+  
+  # Export
+  export:
+    interval_ms: 1000
+    timeout_ms: 30000
+    max_queue_size: 2048
+    
+  # Correlation
+  correlation:
+    enabled: true
+    inject_trace_context: true
+    inject_span_context: true
+    
+  # Structured Logging
+  structured:
+    enabled: true
+    format: "json"
+    include_timestamp: true
+    include_level: true
+    include_caller: true
+    include_stack_trace: true  # Only for errors
+    
+  # PII Redaction
+  redaction:
+    enabled: true
+    patterns:
+      - "password"
+      - "api_key"
+      - "token"
+      - "ssn"
+      - "credit_card"
+    replacement: "[REDACTED]"
+    
+  # Log Sampling (for high-volume logs)
+  sampling:
+    enabled: false
+    initial: 10  # Log first 10 messages per second
+    thereafter: 100  # Then log 1 in 100
+
+# ============================================================================
+# RESOURCE ATTRIBUTES
+# ============================================================================
+resource_attributes:
+  # Standard Attributes
+  "service.name": "${SERVICE_NAME:-orca-mesh}"
+  "service.version": "${SERVICE_VERSION:-1.0.0}"
+  "service.namespace": "${SERVICE_NAMESPACE:-production}"
+  "service.instance.id": "${HOSTNAME:-unknown}"
+  
+  # Deployment Attributes
+  "deployment.environment": "${ENVIRONMENT:-production}"
+  "deployment.region": "${AWS_REGION:-us-east-1}"
+  "deployment.zone": "${AWS_AZ:-us-east-1a}"
+  
+  # Infrastructure Attributes
+  "cloud.provider": "aws"
+  "cloud.platform": "eks"
+  "k8s.cluster.name": "${K8S_CLUSTER_NAME:-orca-prod}"
+  "k8s.namespace.name": "${K8S_NAMESPACE:-default}"
+  "k8s.pod.name": "${K8S_POD_NAME:-}"
+  "k8s.node.name": "${K8S_NODE_NAME:-}"
+  
+  # Custom Attributes
+  "orca.mesh.id": "enterprise-prod-001"
+  "orca.agent.type": "core"
+
+# ============================================================================
+# PROCESSORS
+# ============================================================================
+processors:
+  # Batch Processor (groups telemetry for efficient export)
+  batch:
+    enabled: true
+    timeout: "5s"
+    send_batch_size: 512
+    send_batch_max_size: 1024
+    
+  # Memory Limiter (prevents OOM)
+  memory_limiter:
+    enabled: true
+    check_interval: "1s"
+    limit_mib: 512
+    spike_limit_mib: 128
+    
+  # Attributes Processor
+  attributes:
+    enabled: true
+    actions:
+      - action: "insert"
+        key: "orca.processed"
+        value: "true"
+      - action: "upsert"
+        key: "environment"
+        from_attribute: "deployment.environment"
+        
+  # Filter Processor (drop noisy telemetry)
+  filter:
+    enabled: true
+    spans:
+      exclude:
+        match_type: "regexp"
+        span_names:
+          - "^/health$"
+          - "^/ready$"
+    logs:
+      exclude:
+        match_type: "regexp"
+        bodies:
+          - "health check"
+          - "readiness probe"
+
+# ============================================================================
+# CONTEXT PROPAGATION
+# ============================================================================
+propagation:
+  # W3C Trace Context (standard)
+  w3c_trace_context:
+    enabled: true
+    
+  # W3C Baggage
+  w3c_baggage:
+    enabled: true
+    
+  # B3 (Zipkin)
+  b3:
+    enabled: false
+    
+  # AWS X-Ray
+  aws_xray:
+    enabled: false
+    
+  # Custom Headers
+  custom_headers:
+    - "X-Correlation-Id"
+    - "X-Request-Id"
+    - "X-Tenant-Id"
+
+# ============================================================================
+# PERFORMANCE
+# ============================================================================
+performance:
+  # SDK Resource Detection
+  resource_detection:
+    enabled: true
+    detectors:
+      - "env"
+      - "host"
+      - "docker"
+      - "eks"
+      - "ec2"
+    timeout_seconds: 2
+    
+  # Async Export
+  async_export:
+    enabled: true
+    queue_size: 2048
+    worker_threads: 4
+
+# ============================================================================
+# SECURITY
+# ============================================================================
+security:
+  # TLS for OTLP export
+  tls:
+    enabled: true
+    insecure_skip_verify: false
+    ca_file: "${OTEL_TLS_CA_FILE:-}"
+    cert_file: "${OTEL_TLS_CERT_FILE:-}"
+    key_file: "${OTEL_TLS_KEY_FILE:-}"
+    
+  # Authentication
+  authentication:
+    api_key:
+      enabled: true
+      header_name: "X-API-Key"
+      value: "${OTEL_API_KEY:-}"
+    
+    bearer_token:
+      enabled: false
+      header_name: "Authorization"
+      value: "${OTEL_BEARER_TOKEN:-}"
