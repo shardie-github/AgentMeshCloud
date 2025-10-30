@@ -1,0 +1,414 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI-Agent Mesh Research Dataset Schema",
+  "version": "1.0.0",
+  "description": "Schema for open research dataset capturing multi-agent interactions, trust relationships, and ecosystem dynamics",
+  
+  "definitions": {
+    "meshId": {
+      "type": "string",
+      "pattern": "^did:mesh:[a-z]+:[a-z0-9-]+$",
+      "description": "Decentralized identifier for mesh participant"
+    },
+    
+    "timestamp": {
+      "type": "integer",
+      "minimum": 1609459200000,
+      "description": "Unix timestamp in milliseconds"
+    },
+    
+    "region": {
+      "type": "string",
+      "enum": ["us-east-1", "us-west-1", "us-west-2", "eu-central-1", "eu-west-1", "eu-north-1", "apac", "ca-central-1", "global"],
+      "description": "Geographic region"
+    }
+  },
+  
+  "type": "object",
+  "required": ["metadata", "interactions", "trustGraph", "federations", "economic"],
+  
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["version", "generatedAt", "period", "totalRecords"],
+      "properties": {
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "generatedAt": {
+          "$ref": "#/definitions/timestamp"
+        },
+        "period": {
+          "type": "object",
+          "properties": {
+            "start": { "$ref": "#/definitions/timestamp" },
+            "end": { "$ref": "#/definitions/timestamp" }
+          }
+        },
+        "totalRecords": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "anonymization": {
+          "type": "string",
+          "enum": ["none", "pseudonymized", "fully-anonymous"],
+          "default": "pseudonymized"
+        },
+        "license": {
+          "type": "string",
+          "default": "CC-BY-4.0"
+        }
+      }
+    },
+    
+    "interactions": {
+      "type": "array",
+      "description": "Agent-to-agent interactions across mesh network",
+      "items": {
+        "type": "object",
+        "required": ["id", "timestamp", "sourceMeshId", "targetMeshId", "type", "outcome"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "timestamp": {
+            "$ref": "#/definitions/timestamp"
+          },
+          "sourceMeshId": {
+            "$ref": "#/definitions/meshId"
+          },
+          "targetMeshId": {
+            "$ref": "#/definitions/meshId"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "federation_request",
+              "task_delegation",
+              "data_query",
+              "model_inference",
+              "attestation_issuance",
+              "trust_update",
+              "compliance_check"
+            ]
+          },
+          "outcome": {
+            "type": "object",
+            "properties": {
+              "success": { "type": "boolean" },
+              "latencyMs": { "type": "number" },
+              "errorCode": { "type": "string" },
+              "costMESH": { "type": "number" }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "modelUsed": { "type": "string" },
+              "tokensConsumed": { "type": "integer" },
+              "region": { "$ref": "#/definitions/region" }
+            }
+          }
+        }
+      }
+    },
+    
+    "trustGraph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "description": "Mesh participants (anonymized)",
+          "items": {
+            "type": "object",
+            "required": ["meshId", "trustScore", "type", "region"],
+            "properties": {
+              "meshId": {
+                "$ref": "#/definitions/meshId"
+              },
+              "trustScore": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "trustLevel": {
+                "type": "string",
+                "enum": ["unverified", "basic", "validated", "certified", "audited"]
+              },
+              "type": {
+                "type": "string",
+                "enum": ["enterprise", "academic", "public-good", "infrastructure", "startup", "government"]
+              },
+              "region": {
+                "$ref": "#/definitions/region"
+              },
+              "activeAgents": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "totalInteractions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "successRate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "violations": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "uptimePercentage": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "certifications": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "joinedAt": {
+                "$ref": "#/definitions/timestamp"
+              }
+            }
+          }
+        },
+        
+        "edges": {
+          "type": "array",
+          "description": "Trust relationships between mesh participants",
+          "items": {
+            "type": "object",
+            "required": ["from", "to", "weight", "interactions"],
+            "properties": {
+              "from": {
+                "$ref": "#/definitions/meshId"
+              },
+              "to": {
+                "$ref": "#/definitions/meshId"
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Trust strength (0=no trust, 1=full trust)"
+              },
+              "trustType": {
+                "type": "string",
+                "enum": ["bidirectional", "vendor-client", "infrastructure", "research", "compliance-verification"]
+              },
+              "interactions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "successfulInteractions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "violations": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "lastInteraction": {
+                "$ref": "#/definitions/timestamp"
+              },
+              "establishedAt": {
+                "$ref": "#/definitions/timestamp"
+              },
+              "stake": {
+                "type": "number",
+                "description": "MESH tokens staked for this relationship"
+              },
+              "purpose": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        
+        "aggregateMetrics": {
+          "type": "object",
+          "properties": {
+            "avgTrustScore": { "type": "number" },
+            "trustScoreStdDev": { "type": "number" },
+            "networkDensity": { "type": "number" },
+            "clusteringCoefficient": { "type": "number" },
+            "avgPathLength": { "type": "number" },
+            "violationRate": { "type": "number" }
+          }
+        }
+      }
+    },
+    
+    "federations": {
+      "type": "array",
+      "description": "Cross-organizational federation sessions",
+      "items": {
+        "type": "object",
+        "required": ["id", "sourceMeshId", "targetMeshId", "createdAt", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceMeshId": {
+            "$ref": "#/definitions/meshId"
+          },
+          "targetMeshId": {
+            "$ref": "#/definitions/meshId"
+          },
+          "handshakeLatencyMs": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["initiating", "challenged", "authenticated", "active", "suspended", "revoked", "expired"]
+          },
+          "createdAt": {
+            "$ref": "#/definitions/timestamp"
+          },
+          "expiresAt": {
+            "$ref": "#/definitions/timestamp"
+          },
+          "trustScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "messagesRouted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "avgMessageLatencyMs": {
+            "type": "number"
+          },
+          "purposes": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    
+    "economic": {
+      "type": "object",
+      "required": ["transactions", "staking", "compute"],
+      "properties": {
+        "transactions": {
+          "type": "array",
+          "description": "MESH token transactions (anonymized)",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "timestamp": { "$ref": "#/definitions/timestamp" },
+              "amount": { "type": "number" },
+              "fee": { "type": "number" },
+              "type": {
+                "type": "string",
+                "enum": ["transfer", "stake", "unstake", "fee-collection", "burn", "reward"]
+              }
+            }
+          }
+        },
+        
+        "staking": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "meshId": { "$ref": "#/definitions/meshId" },
+              "staked": { "type": "number" },
+              "stakedAt": { "$ref": "#/definitions/timestamp" },
+              "rewards": { "type": "number" },
+              "slashed": { "type": "number" }
+            }
+          }
+        },
+        
+        "compute": {
+          "type": "array",
+          "description": "Compute usage metrics",
+          "items": {
+            "type": "object",
+            "properties": {
+              "meshId": { "$ref": "#/definitions/meshId" },
+              "timestamp": { "$ref": "#/definitions/timestamp" },
+              "computeHours": { "type": "number" },
+              "costMESH": { "type": "number" },
+              "model": { "type": "string" },
+              "region": { "$ref": "#/definitions/region" }
+            }
+          }
+        },
+        
+        "aggregateMetrics": {
+          "type": "object",
+          "properties": {
+            "totalTransactions": { "type": "integer" },
+            "totalVolume": { "type": "number" },
+            "totalFees": { "type": "number" },
+            "totalBurned": { "type": "number" },
+            "totalStaked": { "type": "number" },
+            "uniqueStakers": { "type": "integer" },
+            "computeHoursUsed": { "type": "number" }
+          }
+        }
+      }
+    },
+    
+    "compliance": {
+      "type": "array",
+      "description": "Compliance events and violations",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "timestamp": { "$ref": "#/definitions/timestamp" },
+          "meshId": { "$ref": "#/definitions/meshId" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "unauthorized_transfer",
+              "missing_consent",
+              "retention_limit_exceeded",
+              "prohibited_ai_system",
+              "high_risk_ai_non_compliance",
+              "access_violation"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "regulation": {
+            "type": "string",
+            "enum": ["GDPR", "EU AI Act", "CCPA", "HIPAA", "PIPEDA", "SOC2", "ISO27001"]
+          },
+          "remediated": { "type": "boolean" },
+          "remediationAction": { "type": "string" }
+        }
+      }
+    },
+    
+    "environmental": {
+      "type": "array",
+      "description": "Carbon footprint and sustainability metrics",
+      "items": {
+        "type": "object",
+        "properties": {
+          "meshId": { "$ref": "#/definitions/meshId" },
+          "timestamp": { "$ref": "#/definitions/timestamp" },
+          "carbonEmittedKg": { "type": "number" },
+          "carbonOffsetKg": { "type": "number" },
+          "renewablePercentage": { "type": "number" },
+          "region": { "$ref": "#/definitions/region" }
+        }
+      }
+    }
+  }
+}
