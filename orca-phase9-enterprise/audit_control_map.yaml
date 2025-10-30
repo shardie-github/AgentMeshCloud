@@ -1,0 +1,557 @@
+# ORCA Audit Control Mapping
+# Maps ORCA platform capabilities to compliance framework controls
+# Version 1.0 | October 30, 2025
+
+metadata:
+  version: "1.0"
+  last_updated: "2025-10-30"
+  supported_frameworks:
+    - SOC2_TYPE_II
+    - ISO_27001
+    - ISO_42001
+    - NIST_AI_RMF
+    - HIPAA
+    - FEDRAMP_MODERATE
+    - EU_AI_ACT
+  orca_platform_version: "3.2.0"
+
+# SOC 2 Type II Trust Services Criteria
+soc2_type_ii:
+  common_criteria:
+    CC6_1_logical_access:
+      control_name: "Logical and Physical Access Controls"
+      orca_capabilities:
+        - capability: "Agent-level RBAC (Role-Based Access Control)"
+          evidence_location: "orca://audit/access-logs/agents"
+          automated: true
+          real_time: true
+        - capability: "SSO integration (Okta, Azure AD, Google Workspace)"
+          evidence_location: "orca://config/identity-providers"
+          automated: true
+        - capability: "MFA enforcement for all users"
+          evidence_location: "orca://audit/authentication-events"
+          automated: true
+        - capability: "Immutable audit trail of all access events"
+          evidence_location: "orca://audit/access-audit-trail"
+          automated: true
+          cryptographically_signed: true
+      audit_frequency: "Continuous (real-time)"
+      evidence_export: ["PDF", "CSV", "JSON"]
+      
+    CC7_2_system_monitoring:
+      control_name: "System Monitoring"
+      orca_capabilities:
+        - capability: "Real-time Trust Score monitoring (all agents)"
+          evidence_location: "orca://metrics/trust-score"
+          automated: true
+          real_time: true
+        - capability: "Anomaly detection (3-sigma + ML-based)"
+          evidence_location: "orca://alerts/anomalies"
+          automated: true
+        - capability: "SLA tracking and alerting (uptime, MTTR)"
+          evidence_location: "orca://metrics/sla"
+          automated: true
+        - capability: "Integration with SIEM (Splunk, QRadar)"
+          evidence_location: "orca://integrations/siem"
+          automated: true
+      audit_frequency: "Continuous (real-time)"
+      sla_target: "99.9% uptime"
+      
+    CC8_1_change_management:
+      control_name: "Change Management"
+      orca_capabilities:
+        - capability: "Policy versioning with approval workflows"
+          evidence_location: "orca://policies/version-history"
+          automated: true
+        - capability: "Rollback capability (policy + agent config)"
+          evidence_location: "orca://policies/rollback-log"
+          automated: true
+        - capability: "Change impact analysis (affected agents)"
+          evidence_location: "orca://policies/impact-analysis"
+          automated: true
+        - capability: "Approval audit trail (who, what, when, why)"
+          evidence_location: "orca://audit/policy-changes"
+          automated: true
+          cryptographically_signed: true
+      audit_frequency: "Continuous (every policy change logged)"
+      
+  availability:
+    A1_2_availability_commitments:
+      control_name: "Availability Commitments and System Availability"
+      orca_capabilities:
+        - capability: "99.9% uptime SLA (Control Plane)"
+          evidence_location: "orca://metrics/uptime"
+          automated: true
+          current_performance: "99.93% (trailing 90 days)"
+        - capability: "Self-healing orchestration (89% autonomous)"
+          evidence_location: "orca://incidents/self-healing-rate"
+          automated: true
+        - capability: "Multi-region failover (AWS/GCP/Azure)"
+          evidence_location: "orca://infrastructure/failover-config"
+          automated: true
+        - capability: "Incident response <15 min (P1 severity)"
+          evidence_location: "orca://incidents/response-times"
+          automated: true
+          current_performance: "3.8 min avg MTTR"
+      audit_frequency: "Continuous (real-time)"
+      
+  processing_integrity:
+    PI1_3_processing_integrity:
+      control_name: "Processing Integrity Commitments"
+      orca_capabilities:
+        - capability: "Agent synchronization (conflict detection)"
+          evidence_location: "orca://sync/conflict-log"
+          automated: true
+          real_time: true
+        - capability: "Consensus orchestration (multi-agent)"
+          evidence_location: "orca://sync/consensus-decisions"
+          automated: true
+        - capability: "Data validation at agent boundaries"
+          evidence_location: "orca://validation/agent-inputs"
+          automated: true
+        - capability: "Transaction integrity checks"
+          evidence_location: "orca://audit/transaction-log"
+          automated: true
+          cryptographically_signed: true
+      audit_frequency: "Continuous (every transaction)"
+      integrity_guarantee: "100% (cryptographic)"
+
+# ISO 27001:2022 (Information Security Management)
+iso_27001:
+  A_9_access_control:
+    A_9_2_user_access_management:
+      control_name: "User Access Management"
+      orca_capabilities:
+        - capability: "User provisioning/deprovisioning (automated)"
+          evidence_location: "orca://iam/user-lifecycle"
+          automated: true
+        - capability: "Least-privilege access (default deny)"
+          evidence_location: "orca://iam/access-policies"
+          automated: true
+        - capability: "Access reviews (quarterly automated)"
+          evidence_location: "orca://iam/access-reviews"
+          automated: true
+      audit_frequency: "Quarterly (automated report)"
+      
+  A_12_operations_security:
+    A_12_4_logging_monitoring:
+      control_name: "Logging and Monitoring"
+      orca_capabilities:
+        - capability: "Immutable audit logs (tamper-proof)"
+          evidence_location: "orca://audit/immutable-log"
+          automated: true
+          cryptographically_signed: true
+          retention_period: "7 years"
+        - capability: "Log forwarding (SIEM integration)"
+          evidence_location: "orca://integrations/siem"
+          automated: true
+        - capability: "Real-time alerting (PagerDuty, Opsgenie)"
+          evidence_location: "orca://integrations/incident-mgmt"
+          automated: true
+      audit_frequency: "Continuous"
+      
+  A_14_system_acquisition:
+    A_14_2_security_in_development:
+      control_name: "Security in Development and Support Processes"
+      orca_capabilities:
+        - capability: "Secure SDLC (SAST, DAST, SCA)"
+          evidence_location: "orca://security/sdlc-controls"
+          automated: true
+        - capability: "Dependency vulnerability scanning (Snyk)"
+          evidence_location: "orca://security/dependency-scan"
+          automated: true
+          scan_frequency: "Daily"
+        - capability: "Penetration testing (quarterly)"
+          evidence_location: "orca://security/pentest-reports"
+          automated: false
+          vendor: "Bishop Fox"
+      audit_frequency: "Quarterly (pentests), Daily (scans)"
+      
+  A_18_compliance:
+    A_18_1_compliance_legal:
+      control_name: "Compliance with Legal and Contractual Requirements"
+      orca_capabilities:
+        - capability: "Policy engine (maps to legal requirements)"
+          evidence_location: "orca://policies/legal-mapping"
+          automated: true
+        - capability: "GDPR compliance controls (EU customers)"
+          evidence_location: "orca://compliance/gdpr"
+          automated: true
+        - capability: "Data residency enforcement (US, EU, APAC)"
+          evidence_location: "orca://config/data-residency"
+          automated: true
+      audit_frequency: "Continuous"
+
+# ISO 42001:2023 (AI Management System)
+iso_42001:
+  clause_6_planning:
+    C_6_1_risk_assessment:
+      control_name: "Actions to Address Risks and Opportunities"
+      orca_capabilities:
+        - capability: "Trust Score (composite risk metric)"
+          evidence_location: "orca://metrics/trust-score"
+          automated: true
+          real_time: true
+          formula: "Policy 30% + Workflow 25% + Anomaly 20% + SLA 15% + Audit 10%"
+        - capability: "Risk quantification (Risk Avoided $)"
+          evidence_location: "orca://metrics/risk-avoided"
+          automated: true
+          methodology: "Incident cost modeling (Ponemon + Gartner benchmarks)"
+        - capability: "Agent risk classification (High, Medium, Low)"
+          evidence_location: "orca://agents/risk-classification"
+          automated: true
+      audit_frequency: "Continuous (Trust Score recalculated every 5 min)"
+      
+  clause_7_support:
+    C_7_3_awareness:
+      control_name: "Awareness"
+      orca_capabilities:
+        - capability: "ORCA Academy (training platform)"
+          evidence_location: "orca://training/completion-records"
+          automated: true
+        - capability: "Role-based training paths (Ops, Compliance, Exec)"
+          evidence_location: "orca://training/curriculum"
+          automated: false
+        - capability: "Training completion tracking (LMS integration)"
+          evidence_location: "orca://training/completion-rate"
+          automated: true
+          target: "100% completion within 30 days"
+      audit_frequency: "Monthly"
+      
+  clause_8_operation:
+    C_8_2_ai_system_lifecycle:
+      control_name: "AI System Lifecycle"
+      orca_capabilities:
+        - capability: "Agent versioning (semantic versioning)"
+          evidence_location: "orca://agents/version-history"
+          automated: true
+        - capability: "Policy lifecycle (draft → review → approved → active)"
+          evidence_location: "orca://policies/lifecycle"
+          automated: true
+        - capability: "Deprecation workflows (sunset agents)"
+          evidence_location: "orca://agents/deprecation-log"
+          automated: true
+        - capability: "Retirement audit trail (why, when, who approved)"
+          evidence_location: "orca://audit/agent-retirement"
+          automated: true
+      audit_frequency: "Continuous"
+      
+  clause_9_performance:
+    C_9_1_monitoring_measurement:
+      control_name: "Monitoring, Measurement, Analysis, and Evaluation"
+      orca_capabilities:
+        - capability: "Trust Score trend analysis (90-day)"
+          evidence_location: "orca://analytics/trust-trends"
+          automated: true
+        - capability: "Drift detection (policy vs. behavior)"
+          evidence_location: "orca://alerts/drift"
+          automated: true
+          detection_latency: "<500ms"
+        - capability: "Performance benchmarking (MTTR, uptime, ROI)"
+          evidence_location: "orca://metrics/benchmarks"
+          automated: true
+      audit_frequency: "Continuous"
+
+# NIST AI Risk Management Framework (AI RMF 1.0)
+nist_ai_rmf:
+  govern:
+    GOV_1_accountability:
+      control_name: "Accountability and Responsibility"
+      orca_capabilities:
+        - capability: "Policy framework (ownership, approval workflows)"
+          evidence_location: "orca://policies/governance"
+          automated: true
+        - capability: "Executive dashboard (C-suite visibility)"
+          evidence_location: "orca://dashboards/executive"
+          automated: true
+        - capability: "Incident ownership tracking (DRI per agent)"
+          evidence_location: "orca://incidents/ownership"
+          automated: true
+      audit_frequency: "Continuous"
+      
+  map:
+    MAP_1_context:
+      control_name: "Context Identification"
+      orca_capabilities:
+        - capability: "Agent inventory (name, type, owner, risk)"
+          evidence_location: "orca://agents/inventory"
+          automated: true
+        - capability: "Risk classification (High, Medium, Low)"
+          evidence_location: "orca://agents/risk-classification"
+          automated: true
+        - capability: "Dependency mapping (inter-agent relationships)"
+          evidence_location: "orca://agents/dependency-graph"
+          automated: true
+      audit_frequency: "Continuous (auto-discovery)"
+      
+  measure:
+    MEASURE_1_metrics:
+      control_name: "AI Risk Measurement"
+      orca_capabilities:
+        - capability: "Trust Score (quantified risk metric)"
+          evidence_location: "orca://metrics/trust-score"
+          automated: true
+          real_time: true
+        - capability: "Anomaly detection rate (false positives/negatives)"
+          evidence_location: "orca://metrics/anomaly-accuracy"
+          automated: true
+        - capability: "Compliance uptime (%)"
+          evidence_location: "orca://metrics/compliance-uptime"
+          automated: true
+      audit_frequency: "Continuous"
+      
+  manage:
+    MANAGE_1_risk_response:
+      control_name: "Risk Response and Recovery"
+      orca_capabilities:
+        - capability: "Self-healing orchestration (89% autonomous)"
+          evidence_location: "orca://incidents/self-healing"
+          automated: true
+        - capability: "Conflict resolution (consensus engine)"
+          evidence_location: "orca://sync/conflict-resolution"
+          automated: true
+          resolution_latency: "<500ms avg"
+        - capability: "Policy enforcement (real-time blocking)"
+          evidence_location: "orca://policies/enforcement-log"
+          automated: true
+      audit_frequency: "Continuous"
+
+# HIPAA (Health Insurance Portability and Accountability Act)
+hipaa:
+  administrative_safeguards:
+    section_164_308_a_1:
+      control_name: "Security Management Process"
+      orca_capabilities:
+        - capability: "Risk analysis (Trust Score for healthcare agents)"
+          evidence_location: "orca://metrics/trust-score?vertical=healthcare"
+          automated: true
+        - capability: "Risk management (self-healing + alerts)"
+          evidence_location: "orca://incidents/risk-mitigation"
+          automated: true
+      audit_frequency: "Continuous"
+      
+  physical_safeguards:
+    section_164_310_d:
+      control_name: "Device and Media Controls"
+      orca_capabilities:
+        - capability: "Data residency controls (US-only for PHI)"
+          evidence_location: "orca://config/data-residency?region=us"
+          automated: true
+        - capability: "Encryption at rest (AES-256)"
+          evidence_location: "orca://security/encryption-config"
+          automated: true
+      audit_frequency: "Continuous"
+      
+  technical_safeguards:
+    section_164_312_a_1:
+      control_name: "Access Control"
+      orca_capabilities:
+        - capability: "Agent-level authorization (RBAC + ABAC)"
+          evidence_location: "orca://iam/agent-access-policies"
+          automated: true
+        - capability: "Unique user identification (SSO integration)"
+          evidence_location: "orca://iam/user-directory"
+          automated: true
+      audit_frequency: "Continuous"
+      
+    section_164_312_b:
+      control_name: "Audit Controls"
+      orca_capabilities:
+        - capability: "Immutable audit trail (all ePHI access)"
+          evidence_location: "orca://audit/phi-access-log"
+          automated: true
+          cryptographically_signed: true
+          retention_period: "6 years (HIPAA requirement)"
+        - capability: "Searchable audit log (auditor portal)"
+          evidence_location: "orca://audit/search"
+          automated: true
+      audit_frequency: "Continuous"
+      
+    section_164_312_e_1:
+      control_name: "Transmission Security"
+      orca_capabilities:
+        - capability: "Encryption in transit (TLS 1.3)"
+          evidence_location: "orca://security/tls-config"
+          automated: true
+        - capability: "Network segmentation (PHI isolation)"
+          evidence_location: "orca://infrastructure/network-segmentation"
+          automated: true
+      audit_frequency: "Continuous"
+
+# FedRAMP Moderate (NIST SP 800-53 Rev 5)
+fedramp_moderate:
+  access_control:
+    AC_2_account_management:
+      control_name: "Account Management"
+      orca_capabilities:
+        - capability: "Automated provisioning (federated SSO)"
+          evidence_location: "orca://iam/account-lifecycle"
+          automated: true
+        - capability: "Periodic account reviews (quarterly)"
+          evidence_location: "orca://iam/account-reviews"
+          automated: true
+      audit_frequency: "Quarterly"
+      nist_control: "AC-2"
+      
+  audit_accountability:
+    AU_2_audit_events:
+      control_name: "Audit Events"
+      orca_capabilities:
+        - capability: "Comprehensive audit logging (all events)"
+          evidence_location: "orca://audit/event-log"
+          automated: true
+          events_logged: ["authentication", "authorization", "policy changes", "agent actions", "incidents"]
+        - capability: "Retention (7 years)"
+          evidence_location: "orca://audit/retention-policy"
+          automated: true
+      audit_frequency: "Continuous"
+      nist_control: "AU-2"
+      
+  incident_response:
+    IR_4_incident_handling:
+      control_name: "Incident Handling"
+      orca_capabilities:
+        - capability: "Automated incident detection (<500ms)"
+          evidence_location: "orca://incidents/detection-log"
+          automated: true
+        - capability: "Incident response playbooks (self-healing)"
+          evidence_location: "orca://incidents/playbooks"
+          automated: true
+        - capability: "Incident reporting (PagerDuty, ServiceNow)"
+          evidence_location: "orca://integrations/incident-mgmt"
+          automated: true
+      audit_frequency: "Continuous"
+      nist_control: "IR-4"
+
+# EU AI Act (High-Risk AI Systems)
+eu_ai_act:
+  article_9_risk_management:
+    risk_management_system:
+      control_name: "Risk Management System"
+      orca_capabilities:
+        - capability: "Continuous risk assessment (Trust Score)"
+          evidence_location: "orca://metrics/trust-score"
+          automated: true
+          real_time: true
+        - capability: "Risk mitigation (self-healing, policy enforcement)"
+          evidence_location: "orca://incidents/risk-mitigation"
+          automated: true
+      audit_frequency: "Continuous"
+      article: "Article 9"
+      
+  article_11_technical_documentation:
+    documentation_requirements:
+      control_name: "Technical Documentation"
+      orca_capabilities:
+        - capability: "Auto-generated agent documentation"
+          evidence_location: "orca://agents/documentation"
+          automated: true
+        - capability: "Policy documentation (version-controlled)"
+          evidence_location: "orca://policies/documentation"
+          automated: true
+      audit_frequency: "On-demand (audit export)"
+      article: "Article 11"
+      
+  article_12_record_keeping:
+    record_keeping_obligations:
+      control_name: "Record-Keeping"
+      orca_capabilities:
+        - capability: "Immutable audit trail (all AI system actions)"
+          evidence_location: "orca://audit/immutable-log"
+          automated: true
+          cryptographically_signed: true
+        - capability: "Retention (10 years for high-risk)"
+          evidence_location: "orca://audit/retention-policy"
+          automated: true
+      audit_frequency: "Continuous"
+      article: "Article 12"
+      
+  article_15_accuracy_robustness:
+    accuracy_robustness_cybersecurity:
+      control_name: "Accuracy, Robustness, and Cybersecurity"
+      orca_capabilities:
+        - capability: "Anomaly detection (accuracy monitoring)"
+          evidence_location: "orca://alerts/anomalies"
+          automated: true
+        - capability: "Self-healing (robustness)"
+          evidence_location: "orca://incidents/self-healing"
+          automated: true
+        - capability: "Security controls (SOC 2, ISO 27001)"
+          evidence_location: "orca://security/controls"
+          automated: true
+      audit_frequency: "Continuous"
+      article: "Article 15"
+
+# Evidence Export Configuration
+evidence_export:
+  formats:
+    - pdf: "Auditor-friendly reports with signatures"
+    - csv: "Bulk data export for analysis"
+    - json: "API integration with audit tools"
+    - excel: "Compliance dashboards (pivot tables)"
+  
+  templates:
+    soc2_package:
+      includes: ["CC6.1", "CC7.2", "CC8.1", "A1.2", "PI1.3"]
+      format: "PDF"
+      signature: true
+      
+    iso42001_package:
+      includes: ["C_6_1", "C_7_3", "C_8_2", "C_9_1"]
+      format: "PDF"
+      signature: true
+      
+    hipaa_package:
+      includes: ["164.308(a)(1)", "164.310(d)", "164.312(a)(1)", "164.312(b)", "164.312(e)(1)"]
+      format: "PDF"
+      signature: true
+      retention_proof: true
+      
+  automation:
+    scheduled_reports:
+      frequency: ["daily", "weekly", "monthly", "quarterly"]
+      recipients: ["compliance_team", "auditors", "executives"]
+      
+    on_demand_export:
+      latency: "<5 seconds (most reports)"
+      max_size: "500 MB per export"
+
+# Audit Readiness Metrics
+audit_readiness:
+  soc2_type_ii:
+    control_coverage: "100%"
+    evidence_completeness: "100%"
+    estimated_audit_prep_time: "6 days"
+    last_audit: "June 2025"
+    next_audit: "June 2026"
+    
+  iso_27001:
+    control_coverage: "100%"
+    evidence_completeness: "100%"
+    estimated_audit_prep_time: "8 days"
+    last_audit: "August 2025"
+    next_audit: "August 2026"
+    
+  iso_42001:
+    control_coverage: "85% (in progress)"
+    evidence_completeness: "90%"
+    estimated_audit_prep_time: "9 days"
+    target_certification: "Q1 2026"
+    
+  nist_ai_rmf:
+    control_coverage: "95%"
+    evidence_completeness: "95%"
+    estimated_validation_time: "7 days"
+    target_validation: "Q2 2026"
+    
+  hipaa:
+    control_coverage: "100%"
+    evidence_completeness: "100%"
+    baa_available: true
+    estimated_audit_prep_time: "5 days"
+    
+  fedramp_moderate:
+    control_coverage: "78% (in progress)"
+    evidence_completeness: "80%"
+    estimated_authorization_time: "45 days"
+    target_authorization: "Q3 2026"

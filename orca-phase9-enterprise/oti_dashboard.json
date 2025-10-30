@@ -1,0 +1,474 @@
+{
+  "dashboard_metadata": {
+    "title": "ORCA Trust Index (OTI) Dashboard",
+    "version": "1.0",
+    "quarter": "2025-Q4",
+    "generated_at": "2025-10-30T18:00:00Z",
+    "classification": "Public",
+    "access_url": "https://trustindex.orcaplatform.ai"
+  },
+  "hero_metrics": {
+    "overall_trust_score": {
+      "value": 96.2,
+      "unit": "percent",
+      "label": "Average Trust Score",
+      "trend_7d": "+0.4",
+      "trend_30d": "+1.2",
+      "trend_90d": "+3.8",
+      "status": "EXCELLENT",
+      "description": "Composite metric across 4,200+ agents from 47 enterprises"
+    },
+    "enterprises_monitored": {
+      "value": 47,
+      "label": "Enterprise Customers",
+      "trend_yoy": "+161%",
+      "status": "GROWING"
+    },
+    "agents_under_governance": {
+      "value": 4200,
+      "label": "Agents Monitored",
+      "trend_yoy": "+250%",
+      "status": "RAPID_GROWTH"
+    },
+    "median_roi": {
+      "value": 8.3,
+      "unit": "x",
+      "label": "Median ROI",
+      "period": "18 months",
+      "status": "INDUSTRY_LEADING"
+    }
+  },
+  "industry_leaderboard": {
+    "title": "Trust Score by Industry",
+    "data": [
+      {
+        "rank": 1,
+        "industry": "Healthcare",
+        "trust_score": 98.3,
+        "customer_count": 8,
+        "agent_count": 512,
+        "market_delta": "+21.9",
+        "badge": "TOP_PERFORMER"
+      },
+      {
+        "rank": 2,
+        "industry": "Public Sector",
+        "trust_score": 97.6,
+        "customer_count": 4,
+        "agent_count": 318,
+        "market_delta": "+23.3",
+        "badge": "TOP_PERFORMER"
+      },
+      {
+        "rank": 3,
+        "industry": "Financial Services",
+        "trust_score": 97.1,
+        "customer_count": 12,
+        "agent_count": 1524,
+        "market_delta": "+15.9",
+        "badge": "EXCELLENT"
+      },
+      {
+        "rank": 4,
+        "industry": "Manufacturing",
+        "trust_score": 96.4,
+        "customer_count": 9,
+        "agent_count": 684,
+        "market_delta": "+16.6",
+        "badge": "EXCELLENT"
+      },
+      {
+        "rank": 5,
+        "industry": "Retail & E-Commerce",
+        "trust_score": 95.8,
+        "customer_count": 14,
+        "agent_count": 1162,
+        "market_delta": "+13.7",
+        "badge": "STRONG"
+      }
+    ]
+  },
+  "performance_comparison": {
+    "title": "ORCA vs. Market Average",
+    "metrics": [
+      {
+        "metric": "Trust Score",
+        "orca_value": 96.2,
+        "market_value": 78.4,
+        "unit": "percent",
+        "improvement": "+17.8 pts",
+        "visualization": "bar_chart",
+        "status": "SIGNIFICANTLY_BETTER"
+      },
+      {
+        "metric": "Mean Time to Resolution (MTTR)",
+        "orca_value": 4.2,
+        "market_value": 37,
+        "unit": "minutes",
+        "improvement": "88% faster",
+        "visualization": "bar_chart",
+        "status": "SIGNIFICANTLY_BETTER"
+      },
+      {
+        "metric": "Self-Healing Success Rate",
+        "orca_value": 89,
+        "market_value": 12,
+        "unit": "percent",
+        "improvement": "+77 pts",
+        "visualization": "bar_chart",
+        "status": "SIGNIFICANTLY_BETTER"
+      },
+      {
+        "metric": "Audit Preparation Time",
+        "orca_value": 6,
+        "market_value": 23,
+        "unit": "days",
+        "improvement": "74% faster",
+        "visualization": "bar_chart",
+        "status": "SIGNIFICANTLY_BETTER"
+      },
+      {
+        "metric": "Agent Uptime SLA",
+        "orca_value": 99.7,
+        "market_value": 94.1,
+        "unit": "percent",
+        "improvement": "+5.6 pts",
+        "visualization": "gauge",
+        "status": "BETTER"
+      }
+    ]
+  },
+  "trust_score_distribution": {
+    "title": "Trust Score Distribution (All Customers)",
+    "buckets": [
+      {
+        "range": "95-100",
+        "label": "Excellent",
+        "color": "#2ECC71",
+        "customer_percent": 68,
+        "agent_percent": 71,
+        "count_customers": 32,
+        "count_agents": 2982,
+        "avg_risk_avoided_usd": 2800000,
+        "avg_roi_multiple": 9.1
+      },
+      {
+        "range": "90-94",
+        "label": "Good",
+        "color": "#F39C12",
+        "customer_percent": 23,
+        "agent_percent": 22,
+        "count_customers": 11,
+        "count_agents": 924,
+        "avg_risk_avoided_usd": 2100000,
+        "avg_roi_multiple": 7.4
+      },
+      {
+        "range": "85-89",
+        "label": "Fair",
+        "color": "#E67E22",
+        "customer_percent": 7,
+        "agent_percent": 5,
+        "count_customers": 3,
+        "count_agents": 210,
+        "avg_risk_avoided_usd": 1400000,
+        "avg_roi_multiple": 5.2
+      },
+      {
+        "range": "80-84",
+        "label": "Needs Improvement",
+        "color": "#E74C3C",
+        "customer_percent": 2,
+        "agent_percent": 2,
+        "count_customers": 1,
+        "count_agents": 84,
+        "avg_risk_avoided_usd": 800000,
+        "avg_roi_multiple": 3.1
+      },
+      {
+        "range": "<80",
+        "label": "Critical",
+        "color": "#C0392B",
+        "customer_percent": 0,
+        "agent_percent": 0,
+        "count_customers": 0,
+        "count_agents": 0,
+        "avg_risk_avoided_usd": 0,
+        "avg_roi_multiple": 0
+      }
+    ]
+  },
+  "roi_breakdown": {
+    "title": "ROI Components (Median Customer)",
+    "period": "18 months",
+    "total_roi_multiple": 8.3,
+    "components": [
+      {
+        "component": "Risk Avoided",
+        "value_usd": 3600000,
+        "percent_of_total": 55,
+        "description": "Prevented incidents (regulatory violations, pricing errors, downtime)"
+      },
+      {
+        "component": "Operational Savings",
+        "value_usd": 1900000,
+        "percent_of_total": 29,
+        "description": "Reduced manual interventions, faster MTTR, automated audit prep"
+      },
+      {
+        "component": "Revenue Optimization",
+        "value_usd": 1000000,
+        "percent_of_total": 16,
+        "description": "Better agent synchronization, reduced conflicts, pricing accuracy"
+      }
+    ],
+    "investment": {
+      "orca_licenses": 650000,
+      "integration_services": 120000,
+      "training": 30000,
+      "total": 800000
+    },
+    "net_value": 5700000,
+    "roi_calculation": "(5700000 + 800000) / 800000 = 8.13x"
+  },
+  "compliance_readiness": {
+    "title": "Compliance Framework Coverage",
+    "frameworks": [
+      {
+        "framework": "SOC 2 Type II",
+        "status": "CERTIFIED",
+        "customer_adoption_percent": 89,
+        "avg_audit_prep_days": 6,
+        "market_avg_prep_days": 23,
+        "improvement_percent": 74,
+        "badge": "CERTIFIED"
+      },
+      {
+        "framework": "ISO 27001",
+        "status": "CERTIFIED",
+        "customer_adoption_percent": 62,
+        "avg_audit_prep_days": 8,
+        "market_avg_prep_days": 31,
+        "improvement_percent": 74,
+        "badge": "CERTIFIED"
+      },
+      {
+        "framework": "HIPAA (BAA Available)",
+        "status": "VALIDATED",
+        "customer_adoption_percent": 17,
+        "avg_audit_prep_days": 5,
+        "market_avg_prep_days": 28,
+        "improvement_percent": 82,
+        "badge": "VALIDATED"
+      },
+      {
+        "framework": "ISO 42001 (AI Management)",
+        "status": "IN_PROGRESS",
+        "customer_adoption_percent": 28,
+        "target_completion": "Q1 2026",
+        "badge": "IN_PROGRESS"
+      },
+      {
+        "framework": "NIST AI RMF",
+        "status": "IN_PROGRESS",
+        "customer_adoption_percent": 34,
+        "target_completion": "Q2 2026",
+        "badge": "IN_PROGRESS"
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "status": "IN_PROGRESS",
+        "customer_adoption_percent": 9,
+        "target_completion": "Q3 2026",
+        "badge": "IN_PROGRESS"
+      }
+    ]
+  },
+  "agent_type_performance": {
+    "title": "Performance by Agent Category",
+    "categories": [
+      {
+        "category": "Fraud Detection",
+        "agent_count": 487,
+        "avg_trust_score": 97.8,
+        "avg_mttr_minutes": 3.1,
+        "self_healing_rate_percent": 92,
+        "uptime_percent": 99.9,
+        "top_industry": "Financial Services"
+      },
+      {
+        "category": "Healthcare Workflows",
+        "agent_count": 328,
+        "avg_trust_score": 98.6,
+        "avg_mttr_minutes": 1.9,
+        "self_healing_rate_percent": 95,
+        "uptime_percent": 99.9,
+        "top_industry": "Healthcare"
+      },
+      {
+        "category": "Compliance Automation",
+        "agent_count": 418,
+        "avg_trust_score": 98.4,
+        "avg_mttr_minutes": 2.4,
+        "self_healing_rate_percent": 94,
+        "uptime_percent": 99.9,
+        "top_industry": "Financial Services"
+      },
+      {
+        "category": "Predictive Maintenance",
+        "agent_count": 542,
+        "avg_trust_score": 96.7,
+        "avg_mttr_minutes": 4.1,
+        "self_healing_rate_percent": 88,
+        "uptime_percent": 99.7,
+        "top_industry": "Manufacturing"
+      },
+      {
+        "category": "Trading & Pricing",
+        "agent_count": 312,
+        "avg_trust_score": 96.2,
+        "avg_mttr_minutes": 2.8,
+        "self_healing_rate_percent": 91,
+        "uptime_percent": 99.8,
+        "top_industry": "Financial Services"
+      }
+    ]
+  },
+  "geographical_distribution": {
+    "title": "Trust Score by Region",
+    "regions": [
+      {
+        "region": "North America",
+        "customer_percent": 64,
+        "customer_count": 30,
+        "avg_trust_score": 96.3,
+        "top_deployment": "SaaS",
+        "top_industry": "Financial Services"
+      },
+      {
+        "region": "Europe",
+        "customer_percent": 23,
+        "customer_count": 11,
+        "avg_trust_score": 96.1,
+        "top_deployment": "Hybrid Cloud",
+        "top_industry": "Healthcare"
+      },
+      {
+        "region": "Asia-Pacific",
+        "customer_percent": 11,
+        "customer_count": 5,
+        "avg_trust_score": 95.9,
+        "top_deployment": "On-Premises",
+        "top_industry": "Manufacturing"
+      },
+      {
+        "region": "Latin America",
+        "customer_percent": 2,
+        "customer_count": 1,
+        "avg_trust_score": 96.4,
+        "top_deployment": "SaaS",
+        "top_industry": "Retail"
+      }
+    ]
+  },
+  "trends": {
+    "title": "Year-over-Year Growth (Q4 2024 vs Q4 2025)",
+    "metrics": [
+      {
+        "metric": "Total Customers",
+        "q4_2024": 18,
+        "q4_2025": 47,
+        "growth_percent": 161
+      },
+      {
+        "metric": "Total Agents Under Management",
+        "q4_2024": 1200,
+        "q4_2025": 4200,
+        "growth_percent": 250
+      },
+      {
+        "metric": "Avg Trust Score",
+        "q4_2024": 91.4,
+        "q4_2025": 96.2,
+        "growth_points": 4.8
+      },
+      {
+        "metric": "Avg ROI Multiple",
+        "q4_2024": 6.2,
+        "q4_2025": 8.3,
+        "growth_percent": 34
+      },
+      {
+        "metric": "Customer Retention Rate",
+        "q4_2024": 94,
+        "q4_2025": 98,
+        "growth_points": 4
+      },
+      {
+        "metric": "Net Revenue Retention",
+        "q4_2024": 118,
+        "q4_2025": 142,
+        "growth_points": 24
+      }
+    ]
+  },
+  "customer_testimonials": {
+    "title": "What Customers Say",
+    "quotes": [
+      {
+        "quote": "ORCA transformed our AI from a compliance liability into a competitive advantage.",
+        "role": "Chief Risk Officer",
+        "industry": "Financial Services",
+        "company_size": "85,000 employees",
+        "trust_score": 97.3
+      },
+      {
+        "quote": "Zero HIPAA violations in 18 months. ORCA's real-time governance is the reason.",
+        "role": "CMIO",
+        "industry": "Healthcare",
+        "company_size": "42,000 staff",
+        "trust_score": 98.1
+      },
+      {
+        "quote": "$3.2M in prevented pricing conflicts. The ROI speaks for itself.",
+        "role": "Chief Digital Officer",
+        "industry": "E-Commerce",
+        "company_size": "$12B GMV",
+        "trust_score": 96.8
+      }
+    ]
+  },
+  "call_to_action": {
+    "primary": {
+      "text": "Request Your Trust Score Audit",
+      "description": "See where your agents rank in 48 hours",
+      "url": "https://orcaplatform.ai/audit",
+      "button_color": "#FF6B35"
+    },
+    "secondary": {
+      "text": "Download Full Benchmark Report",
+      "description": "Complete Q4 2025 analysis (PDF)",
+      "url": "https://orcaplatform.ai/benchmark",
+      "button_color": "#0A2F51"
+    },
+    "tertiary": {
+      "text": "Schedule a Demo",
+      "description": "See ORCA in action (30 min)",
+      "url": "https://orcaplatform.ai/demo",
+      "button_color": "#0A2F51"
+    }
+  },
+  "footer": {
+    "data_sources": [
+      "ORCA Platform telemetry (4,200 agents across 47 customers)",
+      "Customer surveys (n=47 enterprises) conducted Q4 2025",
+      "Third-party audit validation (available upon request)",
+      "Market benchmarks: Gartner AIOps survey (n=340 enterprises)"
+    ],
+    "methodology": "Trust Score: Composite metric (policy alignment 30%, workflow conformance 25%, anomaly accuracy 20%, SLA adherence 15%, audit readiness 10%). Risk Avoided: Modeled cost of incidents prevented. ROI: (Total Value / ORCA Investment) over 18-month period.",
+    "contact": "oti@orcaplatform.ai",
+    "classification": "Public",
+    "version": "1.0",
+    "last_updated": "2025-10-30"
+  }
+}
