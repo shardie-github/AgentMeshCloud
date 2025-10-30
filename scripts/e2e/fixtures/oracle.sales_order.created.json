@@ -1,0 +1,69 @@
+{
+  "event": "sales_order.created",
+  "source": "oracle_erp",
+  "ts": "{{now}}",
+  "orderId": "1234567",
+  "orderNumber": "SO-2025-10001",
+  "orderType": "Standard Order",
+  "orderDate": "{{now}}",
+  "requestedShipDate": "2025-11-05",
+  "promisedShipDate": "2025-11-05",
+  "status": "Booked",
+  "customer": {
+    "customerId": "10001",
+    "customerNumber": "CUST-10001",
+    "name": "Global Tech Solutions",
+    "address": {
+      "street": "789 Business Park Dr",
+      "city": "Seattle",
+      "state": "WA",
+      "postalCode": "98101",
+      "country": "USA"
+    },
+    "contact": {
+      "name": "Thomas Anderson",
+      "email": "thomas.anderson@globaltech.com",
+      "phone": "+1-555-0225"
+    }
+  },
+  "currency": "USD",
+  "totalAmount": 185000.00,
+  "taxAmount": 15000.00,
+  "shippingAmount": 2500.00,
+  "netAmount": 167500.00,
+  "lines": [
+    {
+      "lineNumber": 1,
+      "itemNumber": "ITEM-AI-001",
+      "itemDescription": "AI Agent Mesh Enterprise Platform",
+      "quantity": 100,
+      "unitOfMeasure": "EA",
+      "unitPrice": 1500.00,
+      "lineAmount": 150000.00,
+      "scheduleShipDate": "2025-11-05",
+      "warehouse": "MAIN-01"
+    },
+    {
+      "lineNumber": 2,
+      "itemNumber": "ITEM-SUP-001",
+      "itemDescription": "Premium Support - Annual",
+      "quantity": 1,
+      "unitOfMeasure": "EA",
+      "unitPrice": 17500.00,
+      "lineAmount": 17500.00,
+      "scheduleShipDate": "2025-11-05",
+      "warehouse": "MAIN-01"
+    }
+  ],
+  "salesPerson": {
+    "id": "EMP-12345",
+    "name": "Patricia Davis",
+    "email": "patricia.davis@company.com"
+  },
+  "paymentTerms": "Net 30",
+  "shippingMethod": "Standard Ground",
+  "createdBy": "PDAVIS",
+  "creationDate": "{{now}}",
+  "lastUpdatedBy": "PDAVIS",
+  "lastUpdateDate": "{{now}}"
+}

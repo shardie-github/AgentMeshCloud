@@ -57,17 +57,58 @@ async function main() {
 
   try {
     // Fire Zapier webhooks
+    console.log('[e2e] === Zapier Webhooks ===');
     await post('zapier', 'zapier.order.created.json');
     await new Promise(r => setTimeout(r, 500)); // Small delay between events
     await post('zapier', 'zapier.order.fulfilled.json');
 
     // Fire n8n webhooks
+    console.log('\n[e2e] === n8n Webhooks ===');
     await new Promise(r => setTimeout(r, 500));
     await post('n8n', 'n8n.ticket.opened.json');
     await new Promise(r => setTimeout(r, 500));
     await post('n8n', 'n8n.ticket.resolved.json');
 
+    // Fire ServiceNow webhooks
+    console.log('\n[e2e] === ServiceNow Webhooks ===');
+    await new Promise(r => setTimeout(r, 500));
+    await post('servicenow', 'servicenow.incident.created.json');
+    await new Promise(r => setTimeout(r, 500));
+    await post('servicenow', 'servicenow.incident.resolved.json');
+
+    // Fire Salesforce webhooks
+    console.log('\n[e2e] === Salesforce Webhooks ===');
+    await new Promise(r => setTimeout(r, 500));
+    await post('salesforce', 'salesforce.opportunity.won.json');
+    await new Promise(r => setTimeout(r, 500));
+    await post('salesforce', 'salesforce.lead.converted.json');
+
+    // Fire HubSpot webhooks
+    console.log('\n[e2e] === HubSpot Webhooks ===');
+    await new Promise(r => setTimeout(r, 500));
+    await post('hubspot', 'hubspot.deal.created.json');
+    await new Promise(r => setTimeout(r, 500));
+    await post('hubspot', 'hubspot.contact.updated.json');
+
+    // Fire SAP webhooks
+    console.log('\n[e2e] === SAP Webhooks ===');
+    await new Promise(r => setTimeout(r, 500));
+    await post('sap', 'sap.purchase_order.created.json');
+
+    // Fire Oracle webhooks
+    console.log('\n[e2e] === Oracle ERP Webhooks ===');
+    await new Promise(r => setTimeout(r, 500));
+    await post('oracle_erp', 'oracle.sales_order.created.json');
+
+    // Fire Dynamics 365 webhooks
+    console.log('\n[e2e] === Dynamics 365 Webhooks ===');
+    await new Promise(r => setTimeout(r, 500));
+    await post('dynamics365', 'dynamics.account.created.json');
+    await new Promise(r => setTimeout(r, 500));
+    await post('dynamics365', 'dynamics.opportunity.won.json');
+
     console.log('\n[e2e] ✓ All webhooks accepted successfully');
+    console.log('[e2e] Total webhooks fired: 14');
   } catch (error) {
     console.error('\n[e2e] ✗ Webhook firing failed:', error);
     throw error;

@@ -1,0 +1,72 @@
+{
+  "event": "account.created",
+  "source": "dynamics365",
+  "ts": "{{now}}",
+  "accountId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "accountNumber": "ACC-20251030-001",
+  "name": "Innovation Labs Inc",
+  "primaryContact": {
+    "contactId": "c1d2e3f4-a5b6-7890-cdef-ab1234567890",
+    "fullName": "Emily Watson",
+    "emailAddress": "emily.watson@innovationlabs.com",
+    "telephone": "+1-555-0250",
+    "jobTitle": "VP of Operations"
+  },
+  "accountType": "Corporate",
+  "industryCode": "Software & Technology",
+  "subIndustry": "AI & Machine Learning",
+  "address": {
+    "addressType": "Bill To",
+    "line1": "1000 Innovation Drive",
+    "city": "Boston",
+    "stateOrProvince": "MA",
+    "postalCode": "02101",
+    "country": "USA"
+  },
+  "shippingAddress": {
+    "addressType": "Ship To",
+    "line1": "1000 Innovation Drive",
+    "line2": "Building B",
+    "city": "Boston",
+    "stateOrProvince": "MA",
+    "postalCode": "02101",
+    "country": "USA"
+  },
+  "phone": "+1-555-0250",
+  "fax": "+1-555-0251",
+  "websiteUrl": "https://innovationlabs.com",
+  "numberOfEmployees": 250,
+  "annualRevenue": 50000000,
+  "currency": {
+    "isoCurrencyCode": "USD",
+    "currencyName": "US Dollar"
+  },
+  "owner": {
+    "systemUserId": "u1v2w3x4-y5z6-7890-uvwx-yz1234567890",
+    "fullName": "Michael Brown",
+    "internalEmailAddress": "michael.brown@company.com",
+    "title": "Senior Account Manager"
+  },
+  "accountRating": "Hot",
+  "preferredContactMethod": "Email",
+  "creditLimit": 500000.00,
+  "creditOnHold": false,
+  "paymentTerms": {
+    "code": "Net30",
+    "description": "Payment due within 30 days"
+  },
+  "customFields": {
+    "partnerTier": "Platinum",
+    "contractStartDate": "2025-10-30",
+    "contractEndDate": "2026-10-30",
+    "accountManager": "Michael Brown"
+  },
+  "statusCode": "Active",
+  "stateCode": "Active",
+  "createdOn": "{{now}}",
+  "modifiedOn": "{{now}}",
+  "createdBy": {
+    "systemUserId": "u1v2w3x4-y5z6-7890-uvwx-yz1234567890",
+    "fullName": "Michael Brown"
+  }
+}

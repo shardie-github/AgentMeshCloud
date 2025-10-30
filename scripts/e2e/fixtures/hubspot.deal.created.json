@@ -1,0 +1,46 @@
+{
+  "event": "deal.created",
+  "source": "hubspot",
+  "ts": "{{now}}",
+  "dealId": "987654321",
+  "dealName": "AI Integration Services - Global Retail Corp",
+  "dealstage": "qualifiedtobuy",
+  "pipeline": "default",
+  "amount": 75000,
+  "currency": "USD",
+  "closedate": "2025-11-30T00:00:00Z",
+  "createdate": "{{now}}",
+  "hs_lastmodifieddate": "{{now}}",
+  "dealtype": "newbusiness",
+  "hubspot_owner_id": "54321",
+  "owner": {
+    "id": "54321",
+    "email": "robert.johnson@company.com",
+    "firstName": "Robert",
+    "lastName": "Johnson"
+  },
+  "associatedCompanyIds": [123456789],
+  "company": {
+    "companyId": 123456789,
+    "name": "Global Retail Corp",
+    "domain": "globalretail.com",
+    "industry": "Retail"
+  },
+  "associatedContactIds": [111222333],
+  "contact": {
+    "contactId": 111222333,
+    "email": "maria.garcia@globalretail.com",
+    "firstName": "Maria",
+    "lastName": "Garcia",
+    "jobtitle": "Director of Digital Transformation"
+  },
+  "properties": {
+    "deal_currency_code": "USD",
+    "hs_forecast_amount": 75000,
+    "hs_forecast_probability": 0.4,
+    "hs_is_closed": false,
+    "hs_priority": "high",
+    "hs_projected_amount": 75000,
+    "num_associated_contacts": 1
+  }
+}

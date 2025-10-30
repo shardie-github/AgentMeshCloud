@@ -1,0 +1,49 @@
+{
+  "event": "opportunity.closed_won",
+  "source": "salesforce",
+  "ts": "{{now}}",
+  "opportunityId": "0063600001c2D8xAAE",
+  "name": "Enterprise AI Platform - ACME Corp",
+  "accountId": "0013600001D2Y4zAAF",
+  "accountName": "ACME Corporation",
+  "amount": 125000.00,
+  "currency": "USD",
+  "stage": "Closed Won",
+  "probability": 100,
+  "closeDate": "2025-10-30",
+  "type": "New Business",
+  "leadSource": "Partner Referral",
+  "owner": {
+    "id": "0053600000RQG8gAAH",
+    "name": "Michael Chen",
+    "email": "michael.chen@salesorg.com",
+    "title": "Senior Account Executive"
+  },
+  "contact": {
+    "id": "0033600000XYZ123",
+    "name": "Jennifer Wilson",
+    "email": "jennifer.wilson@acme.com",
+    "title": "VP of Technology",
+    "phone": "+1-555-0150"
+  },
+  "products": [
+    {
+      "id": "01t36000003ABCD",
+      "name": "AI Agent Mesh Enterprise License",
+      "quantity": 50,
+      "unitPrice": 2000.00,
+      "totalPrice": 100000.00
+    },
+    {
+      "id": "01t36000003ABCE",
+      "name": "Professional Services - Implementation",
+      "quantity": 1,
+      "unitPrice": 25000.00,
+      "totalPrice": 25000.00
+    }
+  ],
+  "nextSteps": "Schedule implementation kickoff meeting",
+  "description": "50-user enterprise license for AI Agent Mesh platform with professional implementation services",
+  "createdDate": "2025-09-15T14:30:00Z",
+  "lastModifiedDate": "{{now}}"
+}

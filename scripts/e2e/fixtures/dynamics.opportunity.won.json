@@ -1,0 +1,69 @@
+{
+  "event": "opportunity.won",
+  "source": "dynamics365",
+  "ts": "{{now}}",
+  "opportunityId": "o9p8q7r6-s5t4-3210-opqr-st9876543210",
+  "name": "AI Transformation Project - Innovation Labs",
+  "topic": "Enterprise AI Platform Implementation",
+  "customerId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "customerName": "Innovation Labs Inc",
+  "estimatedCloseDate": "2025-10-30",
+  "actualCloseDate": "{{now}}",
+  "estimatedValue": 300000.00,
+  "actualValue": 300000.00,
+  "currency": {
+    "isoCurrencyCode": "USD",
+    "currencyName": "US Dollar"
+  },
+  "probability": 100,
+  "rating": "Hot",
+  "salesStage": "Closed Won",
+  "stepName": "Closed",
+  "description": "Full AI platform implementation with custom integrations and training",
+  "owner": {
+    "systemUserId": "u1v2w3x4-y5z6-7890-uvwx-yz1234567890",
+    "fullName": "Michael Brown",
+    "internalEmailAddress": "michael.brown@company.com"
+  },
+  "products": [
+    {
+      "opportunityProductId": "op123456-7890-abcd-ef12-34567890abcd",
+      "productId": "prod-ai-ent-001",
+      "productName": "AI Agent Mesh Enterprise",
+      "quantity": 200,
+      "pricePerUnit": 1200.00,
+      "baseAmount": 240000.00,
+      "tax": 19200.00,
+      "extendedAmount": 259200.00
+    },
+    {
+      "opportunityProductId": "op234567-8901-bcde-f123-4567890bcdef",
+      "productId": "prod-train-001",
+      "productName": "Professional Training Package",
+      "quantity": 1,
+      "pricePerUnit": 40000.00,
+      "baseAmount": 40000.00,
+      "tax": 3200.00,
+      "extendedAmount": 43200.00
+    }
+  ],
+  "totalAmount": 280000.00,
+  "totalTax": 22400.00,
+  "totalLineItemAmount": 302400.00,
+  "budgetAmount": 350000.00,
+  "timeline": "Q4 2025",
+  "purchaseProcess": "Committee",
+  "purchaseTimeframe": "Immediate",
+  "decisionMaker": {
+    "contactId": "c1d2e3f4-a5b6-7890-cdef-ab1234567890",
+    "fullName": "Emily Watson",
+    "emailAddress": "emily.watson@innovationlabs.com",
+    "jobTitle": "VP of Operations"
+  },
+  "competitors": [],
+  "statusCode": "Won",
+  "stateCode": "Won",
+  "createdOn": "2025-09-01T10:00:00Z",
+  "modifiedOn": "{{now}}",
+  "closedOn": "{{now}}"
+}

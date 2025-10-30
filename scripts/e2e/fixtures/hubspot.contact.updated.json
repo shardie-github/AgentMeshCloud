@@ -1,0 +1,46 @@
+{
+  "event": "contact.updated",
+  "source": "hubspot",
+  "ts": "{{now}}",
+  "contactId": "111222333",
+  "email": "maria.garcia@globalretail.com",
+  "firstName": "Maria",
+  "lastName": "Garcia",
+  "jobtitle": "Director of Digital Transformation",
+  "phone": "+1-555-0200",
+  "mobilephone": "+1-555-0201",
+  "company": "Global Retail Corp",
+  "website": "https://globalretail.com",
+  "city": "Chicago",
+  "state": "Illinois",
+  "country": "United States",
+  "zip": "60601",
+  "lifecyclestage": "opportunity",
+  "hs_lead_status": "CONNECTED",
+  "createdate": "2025-10-01T10:00:00Z",
+  "lastmodifieddate": "{{now}}",
+  "hubspot_owner_id": "54321",
+  "owner": {
+    "id": "54321",
+    "email": "robert.johnson@company.com",
+    "firstName": "Robert",
+    "lastName": "Johnson"
+  },
+  "properties": {
+    "hs_analytics_source": "ORGANIC_SEARCH",
+    "hs_email_domain": "globalretail.com",
+    "hs_is_contact": true,
+    "hs_marketable_status": "true",
+    "hs_marketable_reason_type": "Subscribed"
+  },
+  "changes": {
+    "lifecyclestage": {
+      "from": "lead",
+      "to": "opportunity"
+    },
+    "hs_lead_status": {
+      "from": "OPEN",
+      "to": "CONNECTED"
+    }
+  }
+}
