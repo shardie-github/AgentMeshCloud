@@ -1,0 +1,459 @@
+openapi: 3.0.3
+info:
+  title: ORCA AgentMesh API
+  description: |
+    ORCA AgentMesh API for managing agents, workflows, trust scoring, and observability.
+    
+    Features:
+    - UADSI trust scoring and risk metrics
+    - MCP agent discovery and alignment
+    - Adapter webhooks (Zapier, n8n)
+    - Self-healing diagnostics
+    - Executive reporting
+  version: 1.0.0
+  contact:
+    name: ORCA AgentMesh Team
+    email: support@orca.agentmesh.dev
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.orca.agentmesh.dev
+    description: Production server
+
+tags:
+  - name: status
+    description: System status and health
+  - name: agents
+    description: Agent discovery and management
+  - name: workflows
+    description: Workflow management
+  - name: trust
+    description: Trust scoring and KPIs
+  - name: reports
+    description: Reporting and exports
+  - name: adapters
+    description: External system adapters
+
+paths:
+  /status:
+    get:
+      summary: Get system status
+      tags: [status]
+      responses:
+        '200':
+          description: System status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  version:
+                    type: string
+                  environment:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                  services:
+                    type: object
+                  features:
+                    type: object
+
+  /health:
+    get:
+      summary: Health check endpoint
+      tags: [status]
+      responses:
+        '200':
+          description: System healthy
+        '503':
+          description: System unhealthy
+
+  /agents:
+    get:
+      summary: List all agents
+      tags: [agents]
+      responses:
+        '200':
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  agents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agent'
+
+  /agents/{id}:
+    get:
+      summary: Get agent by ID
+      tags: [agents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDetails'
+        '404':
+          description: Agent not found
+
+  /agents/{id}/telemetry:
+    get:
+      summary: Get agent telemetry
+      tags: [agents]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Agent telemetry data
+
+  /workflows:
+    get:
+      summary: List all workflows
+      tags: [workflows]
+      responses:
+        '200':
+          description: List of workflows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  workflows:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Workflow'
+
+  /workflows/{id}:
+    get:
+      summary: Get workflow by ID
+      tags: [workflows]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Workflow details
+        '404':
+          description: Workflow not found
+
+  /workflows/{id}/events:
+    get:
+      summary: Get workflow events
+      tags: [workflows]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Workflow events
+
+  /trust:
+    get:
+      summary: Get trust metrics and KPIs
+      tags: [trust]
+      responses:
+        '200':
+          description: Trust metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustMetrics'
+
+  /trust/refresh:
+    post:
+      summary: Refresh trust metrics
+      tags: [trust]
+      responses:
+        '200':
+          description: Metrics refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  kpis:
+                    $ref: '#/components/schemas/KPIs'
+
+  /reports/executive-summary:
+    get:
+      summary: Get executive summary report
+      tags: [reports]
+      responses:
+        '200':
+          description: Executive summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutiveSummary'
+
+  /reports/export:
+    post:
+      summary: Export report in specified format
+      tags: [reports]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                format:
+                  type: string
+                  enum: [markdown, csv]
+      responses:
+        '200':
+          description: Report exported
+          content:
+            text/markdown:
+              schema:
+                type: string
+            text/csv:
+              schema:
+                type: string
+
+  /reports/healing:
+    get:
+      summary: Get self-healing diagnostics report
+      tags: [reports]
+      responses:
+        '200':
+          description: Healing report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealingReport'
+
+  /adapters/zapier/webhook:
+    post:
+      summary: Zapier webhook endpoint
+      tags: [adapters]
+      security:
+        - hmacSignature: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZapierWebhook'
+      responses:
+        '200':
+          description: Webhook processed
+        '401':
+          description: Invalid signature
+
+  /adapters/n8n/webhook:
+    post:
+      summary: n8n webhook endpoint
+      tags: [adapters]
+      security:
+        - hmacSignature: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/N8NWebhook'
+      responses:
+        '200':
+          description: Webhook processed
+        '401':
+          description: Invalid signature
+
+components:
+  schemas:
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        owner:
+          type: string
+        access_tier:
+          type: string
+        trust_level:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+
+    AgentDetails:
+      allOf:
+        - $ref: '#/components/schemas/Agent'
+        - type: object
+          properties:
+            health:
+              type: object
+
+    Workflow:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        source:
+          type: string
+        trigger:
+          type: string
+        status:
+          type: string
+        last_run_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    KPIs:
+      type: object
+      properties:
+        trust_score:
+          type: number
+        risk_avoided_usd:
+          type: number
+        sync_freshness_pct:
+          type: number
+        drift_rate_pct:
+          type: number
+        compliance_sla_pct:
+          type: number
+
+    TrustMetrics:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        kpis:
+          $ref: '#/components/schemas/KPIs'
+        components:
+          type: object
+        confidence:
+          type: number
+        counts:
+          type: object
+
+    ExecutiveSummary:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        period:
+          type: string
+        kpis:
+          $ref: '#/components/schemas/KPIs'
+        insights:
+          type: array
+          items:
+            type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+
+    HealingReport:
+      type: object
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        total_actions:
+          type: integer
+        successful_actions:
+          type: integer
+        failed_actions:
+          type: integer
+        skipped_actions:
+          type: integer
+        actions:
+          type: array
+          items:
+            type: object
+
+    ZapierWebhook:
+      type: object
+      properties:
+        zap_id:
+          type: string
+        zap_name:
+          type: string
+        event_type:
+          type: string
+        data:
+          type: object
+        timestamp:
+          type: string
+
+    N8NWebhook:
+      type: object
+      properties:
+        workflow_id:
+          type: string
+        workflow_name:
+          type: string
+        execution_id:
+          type: string
+        event:
+          type: string
+        data:
+          type: object
+        timestamp:
+          type: string
+
+  securitySchemes:
+    hmacSignature:
+      type: apiKey
+      in: header
+      name: x-signature
+      description: HMAC SHA-256 signature of request body
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,116 +1,107 @@
-/**
- * Trust API Routes
- */
-
-import { Router, Request, Response, NextFunction } from 'express';
-import { trustScoringEngine, syncAnalyzer, reportEngine } from '@/uadsi';
-import { withSpan } from '@/telemetry/tracer';
+import { Router } from 'express';
 
 export const trustRouter = Router();
 
-/**
- * GET /api/v1/trust
- * Get Trust KPIs for current period
- */
-trustRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
+trustRouter.get('/', async (req, res) => {
   try {
-    await withSpan('get_trust_kpis', async () => {
-      const periodEnd = new Date();
-      const periodStart = new Date(periodEnd.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    const { trustScoring, syncAnalyzer, contextBus } = req.app.locals;
 
-      const kpis = await trustScoringEngine.computeTrustKPIs(periodStart, periodEnd);
+    // Compute trust metrics
+    const trustMetrics = await trustScoring.computeTrustScore();
+    const syncAnalysis = await syncAnalyzer.analyze();
+    
+    // Get latest metric from database
+    const latestMetric = await contextBus.getLatestMetric();
 
-      res.json({
-        success: true,
-        data: kpis,
-      });
+    // Compute compliance SLA
+    const complianceSla =
+      (trustMetrics.components.policy_adherence_score +
+        trustMetrics.components.agent_uptime_score) *
+      50;
+
+    // Get counts
+    const agents = await contextBus.getAgents();
+    const workflows = await contextBus.getWorkflows();
+    const events = await contextBus.getEvents(1000);
+
+    res.json({
+      timestamp: new Date().toISOString(),
+      kpis: {
+        trust_score: trustMetrics.trust_score,
+        risk_avoided_usd: trustMetrics.risk_avoided_usd,
+        sync_freshness_pct: syncAnalysis.sync_freshness_pct,
+        drift_rate_pct: syncAnalysis.summary.drift_rate_pct,
+        compliance_sla_pct: Math.round(complianceSla * 100) / 100,
+      },
+      components: trustMetrics.components,
+      confidence: trustMetrics.confidence,
+      counts: {
+        active_agents: agents.length,
+        active_workflows: workflows.length,
+        total_events: events.length,
+      },
+      sync_analysis: {
+        fresh_workflows: syncAnalysis.summary.fresh_workflows,
+        stale_workflows: syncAnalysis.summary.stale_workflows,
+        drift_detections: syncAnalysis.drift_detections.length,
+      },
+      latest_metric: latestMetric,
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 });
 
-/**
- * GET /api/v1/trust/score/:agentId
- * Get trust score for specific agent
- */
-trustRouter.get('/score/:agentId', async (req: Request, res: Response, next: NextFunction) => {
+trustRouter.post('/refresh', async (req, res) => {
   try {
-    await withSpan('get_agent_trust_score', async () => {
-      const trustScore = await trustScoringEngine.computeTrustScore(req.params.agentId);
+    const { trustScoring, syncAnalyzer, contextBus } = req.app.locals;
 
-      res.json({
-        success: true,
-        data: trustScore,
-      });
+    // Update agent trust levels
+    await trustScoring.updateAgentTrustLevels();
+
+    // Compute fresh metrics
+    const trustMetrics = await trustScoring.computeTrustScore();
+    const syncAnalysis = await syncAnalyzer.analyze();
+
+    // Compute compliance SLA
+    const complianceSla =
+      (trustMetrics.components.policy_adherence_score +
+        trustMetrics.components.agent_uptime_score) *
+      50;
+
+    // Get counts
+    const agents = await contextBus.getAgents();
+    const workflows = await contextBus.getWorkflows();
+    const events = await contextBus.getEvents(1000);
+
+    // Store metric snapshot
+    await contextBus.createMetric({
+      ts: new Date(),
+      trust_score: trustMetrics.trust_score,
+      risk_avoided_usd: trustMetrics.risk_avoided_usd,
+      sync_freshness_pct: syncAnalysis.sync_freshness_pct,
+      drift_rate_pct: syncAnalysis.summary.drift_rate_pct,
+      compliance_sla_pct: complianceSla,
+      active_agents: agents.length,
+      active_workflows: workflows.length,
+      total_events: events.length,
+    });
+
+    res.json({
+      message: 'Trust metrics refreshed and stored',
+      kpis: {
+        trust_score: trustMetrics.trust_score,
+        risk_avoided_usd: trustMetrics.risk_avoided_usd,
+        sync_freshness_pct: syncAnalysis.sync_freshness_pct,
+        drift_rate_pct: syncAnalysis.summary.drift_rate_pct,
+        compliance_sla_pct: Math.round(complianceSla * 100) / 100,
+      },
     });
   } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * GET /api/v1/trust/sync-gaps
- * Get synchronization gaps
- */
-trustRouter.get('/sync-gaps', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await withSpan('get_sync_gaps', async () => {
-      const severity = req.query.severity as 'low' | 'medium' | 'high' | 'critical' | undefined;
-      const gaps = syncAnalyzer.getAllSyncGaps(severity);
-
-      res.json({
-        success: true,
-        data: {
-          gaps,
-          count: gaps.length,
-          sync_freshness_percent: syncAnalyzer.getSyncFreshnessPercent(),
-          drift_rate_percent: syncAnalyzer.getDriftRatePercent(),
-        },
-      });
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * GET /api/v1/trust/report/executive
- * Generate executive summary
- */
-trustRouter.get('/report/executive', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await withSpan('generate_executive_report', async () => {
-      const periodEnd = new Date();
-      const periodStart = new Date(periodEnd.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      const report = await reportEngine.generateExecutiveSummary(periodStart, periodEnd);
-
-      res.set('Content-Type', 'text/markdown');
-      res.send(report);
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * POST /api/v1/trust/incident
- * Record an incident for risk calculation
- */
-trustRouter.post('/incident', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await withSpan('record_incident', async () => {
-      const { agent_id, severity, loss_usd } = req.body;
-
-      trustScoringEngine.recordIncident(agent_id, severity, loss_usd);
-
-      res.status(201).json({
-        success: true,
-        message: 'Incident recorded',
-      });
-    });
-  } catch (error) {
-    next(error);
   }
 });

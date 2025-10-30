@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orca.agentmesh.dev/schemas/mesh-event.json",
+  "title": "ORCA AgentMesh Event",
+  "description": "Normalized event schema for ORCA AgentMesh system",
+  "type": "object",
+  "required": ["source", "event_type", "timestamp", "correlation_id"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Source system that generated the event",
+      "enum": ["zapier", "n8n", "mcp", "make", "integromat", "manual", "system"]
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Type of event",
+      "examples": ["webhook", "execution", "error", "scheduled", "manual"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when event occurred"
+    },
+    "correlation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID for correlating related events"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID for ensuring event idempotency"
+    },
+    "workflow_id": {
+      "type": "string",
+      "description": "External workflow/zap identifier"
+    },
+    "workflow_name": {
+      "type": "string",
+      "description": "Human-readable workflow name"
+    },
+    "execution_id": {
+      "type": "string",
+      "description": "Execution instance identifier"
+    },
+    "data": {
+      "type": "object",
+      "description": "Event-specific payload data",
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata about the event",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Event schema version"
+        },
+        "source_version": {
+          "type": "string",
+          "description": "Source system version"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Event tags for categorization"
+        }
+      },
+      "additionalProperties": true
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "pending", "cancelled"],
+      "description": "Event processing status"
+    },
+    "error": {
+      "type": "object",
+      "description": "Error details if status is error",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Error code"
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable error message"
+        },
+        "stack": {
+          "type": "string",
+          "description": "Stack trace (development only)"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

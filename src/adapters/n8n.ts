@@ -3,15 +3,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { ContextBus } from '../context-bus/context_bus.js';
 import { RegistryService } from '../registry/registry.service.js';
 
-export interface ZapierWebhookPayload {
-  zap_id?: string;
-  zap_name?: string;
-  event_type?: string;
+export interface N8NWebhookPayload {
+  workflow_id?: string;
+  workflow_name?: string;
+  execution_id?: string;
+  event?: string;
   data?: Record<string, unknown>;
   timestamp?: string;
 }
 
-export class ZapierAdapter {
+export class N8NAdapter {
   private contextBus: ContextBus;
   private registry: RegistryService;
 
@@ -22,16 +23,17 @@ export class ZapierAdapter {
 
   async handleWebhook(req: Request, res: Response): Promise<void> {
     try {
-      const payload = req.body as ZapierWebhookPayload;
+      const payload = req.body as N8NWebhookPayload;
       const correlationId = (req.headers['x-correlation-id'] as string) || uuidv4();
       const idempotencyKey = (req.headers['x-idempotency-key'] as string) || uuidv4();
 
       // Normalize to mesh event schema
       const meshEvent = {
-        source: 'zapier',
-        event_type: payload.event_type || 'webhook',
-        zap_id: payload.zap_id,
-        zap_name: payload.zap_name,
+        source: 'n8n',
+        event_type: payload.event || 'webhook',
+        workflow_id: payload.workflow_id,
+        workflow_name: payload.workflow_name,
+        execution_id: payload.execution_id,
         timestamp: payload.timestamp || new Date().toISOString(),
         data: payload.data || {},
         correlation_id: correlationId,
@@ -40,12 +42,12 @@ export class ZapierAdapter {
 
       // Ensure agent exists
       const agents = await this.contextBus.getAgents();
-      let zapierAgent = agents.find(a => a.name === 'zapier-adapter' && a.type === 'zapier');
+      let n8nAgent = agents.find(a => a.name === 'n8n-adapter' && a.type === 'n8n');
 
-      if (!zapierAgent) {
-        zapierAgent = await this.registry.registerAgent({
-          name: 'zapier-adapter',
-          type: 'zapier',
+      if (!n8nAgent) {
+        n8nAgent = await this.registry.registerAgent({
+          name: 'n8n-adapter',
+          type: 'n8n',
           owner: 'system',
           access_tier: 'standard',
           trust_level: 0.75,
@@ -58,17 +60,18 @@ export class ZapierAdapter {
       // Ensure workflow exists
       const workflows = await this.contextBus.getWorkflows();
       let workflow = workflows.find(
-        w => w.source === 'zapier' && w.name === (payload.zap_name || 'unnamed-zap')
+        w => w.source === 'n8n' && w.name === (payload.workflow_name || 'unnamed-workflow')
       );
 
       if (!workflow) {
         workflow = await this.registry.registerWorkflow({
-          name: payload.zap_name || 'unnamed-zap',
-          source: 'zapier',
+          name: payload.workflow_name || 'unnamed-workflow',
+          source: 'n8n',
           trigger: 'webhook',
           status: 'active',
           metadata: {
-            zap_id: payload.zap_id,
+            workflow_id: payload.workflow_id,
+            execution_id: payload.execution_id,
           },
         });
       } else {
@@ -88,14 +91,15 @@ export class ZapierAdapter {
 
       // Record telemetry
       await this.contextBus.createTelemetry({
-        agent_id: zapierAgent.id,
+        agent_id: n8nAgent.id,
         ts: new Date(),
         latency_ms: 0,
         errors: 0,
         policy_violations: 0,
         success_count: 1,
         metadata: {
-          event_type: payload.event_type,
+          event: payload.event,
+          execution_id: payload.execution_id,
         },
       });
 
@@ -103,10 +107,10 @@ export class ZapierAdapter {
         status: 'success',
         correlation_id: correlationId,
         idempotency_key: idempotencyKey,
-        message: 'Zapier webhook processed',
+        message: 'n8n webhook processed',
       });
     } catch (error) {
-      console.error('Zapier webhook error:', error);
+      console.error('n8n webhook error:', error);
       res.status(500).json({
         status: 'error',
         message: error instanceof Error ? error.message : 'Unknown error',
