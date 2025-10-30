@@ -1,0 +1,21 @@
+{
+  "event": "ticket.opened",
+  "source": "n8n",
+  "ts": "{{now}}",
+  "ticketId": "T-77",
+  "severity": "high",
+  "priority": "P1",
+  "topic": "PII access request",
+  "description": "Customer requesting access to personal data under GDPR Article 15",
+  "reporter": {
+    "id": "AGENT-42",
+    "name": "Support Agent",
+    "email": "support@example.com"
+  },
+  "customer": {
+    "id": "CUST-9",
+    "email": "alice@example.com"
+  },
+  "tags": ["gdpr", "compliance", "pii"],
+  "slaDeadline": "2025-10-31T23:59:59Z"
+}

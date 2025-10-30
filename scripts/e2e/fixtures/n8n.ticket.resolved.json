@@ -1,0 +1,16 @@
+{
+  "event": "ticket.resolved",
+  "source": "n8n",
+  "ts": "{{now}}",
+  "ticketId": "T-77",
+  "resolution": "Data access report generated and sent to customer. Permissions corrected in CRM.",
+  "resolvedBy": {
+    "id": "AGENT-42",
+    "name": "Support Agent",
+    "email": "support@example.com"
+  },
+  "duration_min": 14,
+  "resolvedAt": "{{now}}",
+  "satisfactionScore": 5,
+  "tags": ["resolved", "gdpr", "compliant"]
+}

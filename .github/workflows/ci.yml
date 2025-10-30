@@ -53,7 +53,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       
       - name: Run TypeScript type check
-        run: pnpm run type-check
+        run: pnpm run typecheck
 
   test:
     name: Test
@@ -151,10 +151,100 @@ jobs:
           fi
         continue-on-error: true
 
+  e2e:
+    name: E2E Synthetic Tests
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      postgres:
+        image: ankane/pgvector:latest
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: agentmesh
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        run: npm install -g pnpm@8.15.0
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build API
+        run: pnpm run build
+        continue-on-error: false
+      
+      - name: Start API Server
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agentmesh
+          PORT: 3000
+          NODE_ENV: test
+          ADAPTER_SECRET: changeme
+        run: |
+          nohup node dist/api/server.js > server.log 2>&1 &
+          echo $! > server.pid
+          sleep 5
+          # Verify server is running
+          curl -f http://localhost:3000/health || (cat server.log && exit 1)
+      
+      - name: Seed baselines
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agentmesh
+          API_BASE_URL: http://localhost:3000
+        run: pnpm run e2e:seed
+      
+      - name: Fire synthetic webhooks
+        env:
+          API_BASE_URL: http://localhost:3000
+          ADAPTER_SECRET: changeme
+        run: pnpm run e2e:fire
+      
+      - name: Assert KPI thresholds
+        env:
+          API_BASE_URL: http://localhost:3000
+          E2E_TIMEOUT_MS: 60000
+        run: pnpm run e2e:assert
+      
+      - name: Upload server logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-server-logs
+          path: server.log
+      
+      - name: Upload executive summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: executive-summary
+          path: executive_summary.md
+          if-no-files-found: warn
+      
+      - name: Stop API Server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+          fi
+
   all-checks:
     name: All Checks Passed
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test, build, security]
+    needs: [lint, typecheck, test, build, security, e2e]
     if: always()
     steps:
       - name: Check job results
@@ -163,5 +253,8 @@ jobs:
              [ "${{ needs.typecheck.result }}" != "success" ]; then
             echo "One or more required checks failed"
             exit 1
+          fi
+          if [ "${{ needs.e2e.result }}" == "failure" ]; then
+            echo "E2E tests failed (warning only)"
           fi
           echo "All required checks passed"

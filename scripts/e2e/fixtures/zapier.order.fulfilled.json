@@ -1,0 +1,16 @@
+{
+  "event": "order.fulfilled",
+  "source": "zapier",
+  "ts": "{{now}}",
+  "orderId": "Z-1001",
+  "tracking": "1Z999AA10123456784",
+  "carrier": "UPS",
+  "shippedAt": "{{now}}",
+  "estimatedDelivery": "2025-11-05T17:00:00Z",
+  "items": [
+    {
+      "sku": "WIDGET-001",
+      "quantity": 2
+    }
+  ]
+}
