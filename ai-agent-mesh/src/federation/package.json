@@ -1,0 +1,25 @@
+{
+  "name": "@ai-mesh/federation",
+  "version": "1.0.0",
+  "description": "AI-Agent Mesh Context Federation Service - Shared knowledge and session state",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs",
+    "dev": "node --watch index.mjs"
+  },
+  "keywords": [
+    "federation",
+    "context",
+    "embedding",
+    "knowledge-graph"
+  ],
+  "author": "AI-Agent Mesh",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

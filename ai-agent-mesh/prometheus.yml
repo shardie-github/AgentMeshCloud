@@ -1,0 +1,65 @@
+# Prometheus Configuration for AI-Agent Mesh
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ai-mesh-prod'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - 'alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:3000']
+    metrics_path: '/metrics'
+
+  # Registry Service
+  - job_name: 'registry'
+    static_configs:
+      - targets: ['registry:3001']
+    metrics_path: '/metrics'
+
+  # Telemetry Service
+  - job_name: 'telemetry'
+    static_configs:
+      - targets: ['telemetry:3002']
+    metrics_path: '/metrics'
+
+  # Policy Service
+  - job_name: 'policy'
+    static_configs:
+      - targets: ['policy:3003']
+    metrics_path: '/metrics'
+
+  # Federation Service
+  - job_name: 'federation'
+    static_configs:
+      - targets: ['federation:3004']
+    metrics_path: '/metrics'
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Node Exporter (system metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
