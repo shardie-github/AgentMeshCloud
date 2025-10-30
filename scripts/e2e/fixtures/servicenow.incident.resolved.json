@@ -1,0 +1,49 @@
+{
+  "event": "incident.resolved",
+  "source": "servicenow",
+  "ts": "{{now}}",
+  "incidentId": "INC0010001",
+  "number": "INC0010001",
+  "priority": "2 - High",
+  "urgency": "2 - High",
+  "impact": "2 - High",
+  "state": "Resolved",
+  "category": "Software",
+  "subcategory": "Application",
+  "short_description": "Production API service down",
+  "description": "The production API service is experiencing downtime. Multiple users are unable to access critical business functions.",
+  "resolution_code": "Fix Applied",
+  "resolution_notes": "Restarted the API gateway service and cleared the connection pool. Service is now operational and all health checks are passing.",
+  "close_code": "Solved (Permanently)",
+  "caller": {
+    "sys_id": "5137153cc611227c000bbd1bd8cd2005",
+    "name": "John Martinez",
+    "email": "john.martinez@example.com",
+    "phone": "+1-555-0100"
+  },
+  "assigned_to": {
+    "sys_id": "46c6f3b5c611227c000bbd1bd8cd2087",
+    "name": "Sarah Thompson",
+    "email": "sarah.thompson@example.com",
+    "team": "Infrastructure Team"
+  },
+  "resolved_by": {
+    "sys_id": "46c6f3b5c611227c000bbd1bd8cd2087",
+    "name": "Sarah Thompson",
+    "email": "sarah.thompson@example.com"
+  },
+  "configuration_item": {
+    "sys_id": "27d32778c0a8000b00db970eeaa60f16",
+    "name": "Production API Gateway",
+    "category": "Server"
+  },
+  "company": {
+    "sys_id": "31bea3d53790200044e0bfc8bcbe5dec",
+    "name": "ACME Corporation"
+  },
+  "opened_at": "2025-10-30T10:00:00Z",
+  "resolved_at": "{{now}}",
+  "time_to_resolve_minutes": 45,
+  "sys_created_on": "2025-10-30T10:00:00Z",
+  "sys_updated_on": "{{now}}"
+}

@@ -1,0 +1,64 @@
+{
+  "event": "purchase_order.created",
+  "source": "sap",
+  "ts": "{{now}}",
+  "purchaseOrderId": "4500012345",
+  "documentType": "NB",
+  "documentCategory": "F",
+  "purchaseOrderDate": "{{now}}",
+  "vendor": {
+    "vendorId": "100001",
+    "name": "Tech Supplies International Inc",
+    "accountGroup": "DOME",
+    "street": "456 Industrial Blvd",
+    "city": "Austin",
+    "region": "TX",
+    "postalCode": "78701",
+    "country": "US"
+  },
+  "purchasingOrganization": "1000",
+  "purchasingGroup": "001",
+  "companyCode": "1000",
+  "currency": "USD",
+  "totalValue": 250000.00,
+  "netValue": 250000.00,
+  "items": [
+    {
+      "itemNumber": "00010",
+      "material": "MAT-12345",
+      "materialDescription": "AI Processing Server Cluster",
+      "quantity": 5,
+      "unit": "EA",
+      "netPrice": 40000.00,
+      "netValue": 200000.00,
+      "deliveryDate": "2025-11-15",
+      "plant": "1000",
+      "storageLocation": "0001"
+    },
+    {
+      "itemNumber": "00020",
+      "material": "MAT-67890",
+      "materialDescription": "Network Infrastructure Equipment",
+      "quantity": 10,
+      "unit": "EA",
+      "netPrice": 5000.00,
+      "netValue": 50000.00,
+      "deliveryDate": "2025-11-15",
+      "plant": "1000",
+      "storageLocation": "0001"
+    }
+  ],
+  "createdBy": "SMITHJ",
+  "createdOn": "{{now}}",
+  "changedBy": "SMITHJ",
+  "changedOn": "{{now}}",
+  "releaseStatus": "Approved",
+  "deliveryAddress": {
+    "name": "ACME Corporation HQ",
+    "street": "123 Enterprise Way",
+    "city": "San Francisco",
+    "region": "CA",
+    "postalCode": "94102",
+    "country": "US"
+  }
+}

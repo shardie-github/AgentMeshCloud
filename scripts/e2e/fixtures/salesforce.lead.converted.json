@@ -1,0 +1,31 @@
+{
+  "event": "lead.converted",
+  "source": "salesforce",
+  "ts": "{{now}}",
+  "leadId": "00Q3600000ABC123",
+  "firstName": "David",
+  "lastName": "Anderson",
+  "company": "TechStart Inc",
+  "email": "david.anderson@techstart.com",
+  "phone": "+1-555-0175",
+  "title": "CTO",
+  "status": "Converted",
+  "rating": "Hot",
+  "leadSource": "Web",
+  "industry": "Technology",
+  "numberOfEmployees": 150,
+  "annualRevenue": 15000000,
+  "convertedDate": "{{now}}",
+  "convertedAccountId": "0013600001D2Y5AAAV",
+  "convertedContactId": "0033600000XYZ456",
+  "convertedOpportunityId": "0063600001c2D9AAAE",
+  "owner": {
+    "id": "0053600000RQG9hAAH",
+    "name": "Lisa Martinez",
+    "email": "lisa.martinez@salesorg.com",
+    "title": "Business Development Representative"
+  },
+  "description": "Interested in AI automation platform for customer service operations",
+  "createdDate": "2025-10-15T09:00:00Z",
+  "lastModifiedDate": "{{now}}"
+}

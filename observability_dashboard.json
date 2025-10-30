@@ -1,0 +1,701 @@
+{
+  "dashboard": {
+    "title": "ORCA AI-Agent Mesh - E2E Observability",
+    "tags": ["orca", "e2e", "observability", "metrics"],
+    "timezone": "browser",
+    "editable": true,
+    "graphTooltip": 1,
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "type": "row",
+        "title": "E2E Test Metrics",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+        "collapsed": false
+      },
+      {
+        "id": 2,
+        "type": "stat",
+        "title": "E2E Test Pass Rate",
+        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 1 },
+        "targets": [
+          {
+            "expr": "(sum(rate(e2e_test_passed_total[5m])) / sum(rate(e2e_test_total[5m]))) * 100",
+            "refId": "A",
+            "legendFormat": "Pass Rate"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 80, "color": "yellow" },
+                { "value": 95, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": "stat",
+        "title": "E2E Test Success Count",
+        "gridPos": { "h": 8, "w": 6, "x": 6, "y": 1 },
+        "targets": [
+          {
+            "expr": "sum(increase(e2e_test_passed_total[1h]))",
+            "refId": "A",
+            "legendFormat": "Passed Tests"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": "stat",
+        "title": "E2E Test Failure Count",
+        "gridPos": { "h": 8, "w": 6, "x": 12, "y": 1 },
+        "targets": [
+          {
+            "expr": "sum(increase(e2e_test_failed_total[1h]))",
+            "refId": "A",
+            "legendFormat": "Failed Tests"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 1, "color": "yellow" },
+                { "value": 5, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": "stat",
+        "title": "Average E2E Latency",
+        "gridPos": { "h": 8, "w": 6, "x": 18, "y": 1 },
+        "targets": [
+          {
+            "expr": "avg(e2e_test_duration_seconds)",
+            "refId": "A",
+            "legendFormat": "Avg Latency"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "green" },
+                { "value": 5, "color": "yellow" },
+                { "value": 10, "color": "red" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": "graph",
+        "title": "E2E Test Duration Over Time",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 9 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(e2e_test_duration_seconds_bucket[5m])) by (le, test_name))",
+            "refId": "A",
+            "legendFormat": "p50 - {{test_name}}"
+          },
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(e2e_test_duration_seconds_bucket[5m])) by (le, test_name))",
+            "refId": "B",
+            "legendFormat": "p95 - {{test_name}}"
+          },
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(e2e_test_duration_seconds_bucket[5m])) by (le, test_name))",
+            "refId": "C",
+            "legendFormat": "p99 - {{test_name}}"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Duration",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "type": "graph",
+        "title": "E2E Test Pass/Fail Rate",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 9 },
+        "targets": [
+          {
+            "expr": "sum(rate(e2e_test_passed_total[5m])) by (test_name)",
+            "refId": "A",
+            "legendFormat": "Passed - {{test_name}}"
+          },
+          {
+            "expr": "sum(rate(e2e_test_failed_total[5m])) by (test_name)",
+            "refId": "B",
+            "legendFormat": "Failed - {{test_name}}"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "ops",
+            "label": "Tests/sec",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "type": "row",
+        "title": "API Performance Metrics",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 17 },
+        "collapsed": false
+      },
+      {
+        "id": 9,
+        "type": "graph",
+        "title": "HTTP Request Rate",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+        "targets": [
+          {
+            "expr": "sum(rate(http_requests_total[5m])) by (method, status)",
+            "refId": "A",
+            "legendFormat": "{{method}} {{status}}"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "reqps",
+            "label": "Requests/sec",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "type": "graph",
+        "title": "HTTP Request Duration (p95)",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+            "refId": "A",
+            "legendFormat": "p95 - {{endpoint}}"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Duration",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0.7],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "params": [],
+                "type": "avg"
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "name": "HTTP Request Duration Alert",
+          "noDataState": "no_data",
+          "notifications": []
+        }
+      },
+      {
+        "id": 11,
+        "type": "row",
+        "title": "Connector Health",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 },
+        "collapsed": false
+      },
+      {
+        "id": 12,
+        "type": "stat",
+        "title": "ServiceNow Connector Health",
+        "gridPos": { "h": 6, "w": 4, "x": 0, "y": 27 },
+        "targets": [
+          {
+            "expr": "connector_health_status{connector=\"servicenow\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "value": "1", "text": "Healthy" },
+              { "type": "value", "value": "0", "text": "Unhealthy" }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 13,
+        "type": "stat",
+        "title": "Salesforce Connector Health",
+        "gridPos": { "h": 6, "w": 4, "x": 4, "y": 27 },
+        "targets": [
+          {
+            "expr": "connector_health_status{connector=\"salesforce\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "value": "1", "text": "Healthy" },
+              { "type": "value", "value": "0", "text": "Unhealthy" }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 14,
+        "type": "stat",
+        "title": "HubSpot Connector Health",
+        "gridPos": { "h": 6, "w": 4, "x": 8, "y": 27 },
+        "targets": [
+          {
+            "expr": "connector_health_status{connector=\"hubspot\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "value": "1", "text": "Healthy" },
+              { "type": "value", "value": "0", "text": "Unhealthy" }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 15,
+        "type": "stat",
+        "title": "SAP Connector Health",
+        "gridPos": { "h": 6, "w": 4, "x": 12, "y": 27 },
+        "targets": [
+          {
+            "expr": "connector_health_status{connector=\"sap\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "value": "1", "text": "Healthy" },
+              { "type": "value", "value": "0", "text": "Unhealthy" }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 16,
+        "type": "stat",
+        "title": "Oracle Connector Health",
+        "gridPos": { "h": 6, "w": 4, "x": 16, "y": 27 },
+        "targets": [
+          {
+            "expr": "connector_health_status{connector=\"oracle\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "value": "1", "text": "Healthy" },
+              { "type": "value", "value": "0", "text": "Unhealthy" }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 17,
+        "type": "stat",
+        "title": "Dynamics 365 Connector Health",
+        "gridPos": { "h": 6, "w": 4, "x": 20, "y": 27 },
+        "targets": [
+          {
+            "expr": "connector_health_status{connector=\"dynamics365\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value",
+          "colorMode": "background"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "value": "1", "text": "Healthy" },
+              { "type": "value", "value": "0", "text": "Unhealthy" }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 1, "color": "green" }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 18,
+        "type": "graph",
+        "title": "Connector Request Rate",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 33 },
+        "targets": [
+          {
+            "expr": "sum(rate(connector_requests_total[5m])) by (connector)",
+            "refId": "A",
+            "legendFormat": "{{connector}}"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "reqps",
+            "label": "Requests/sec",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 19,
+        "type": "graph",
+        "title": "Connector Error Rate",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 33 },
+        "targets": [
+          {
+            "expr": "sum(rate(connector_errors_total[5m])) by (connector, error_type)",
+            "refId": "A",
+            "legendFormat": "{{connector}} - {{error_type}}"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "ops",
+            "label": "Errors/sec",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "type": "row",
+        "title": "System Resources",
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+        "collapsed": false
+      },
+      {
+        "id": 21,
+        "type": "graph",
+        "title": "CPU Usage",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 42 },
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total[5m]) * 100",
+            "refId": "A",
+            "legendFormat": "CPU %"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "percent",
+            "label": "CPU",
+            "show": true,
+            "max": 100
+          },
+          {
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "type": "graph",
+        "title": "Memory Usage",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 42 },
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes / 1024 / 1024",
+            "refId": "A",
+            "legendFormat": "Memory (MB)"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "decmbytes",
+            "label": "Memory",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ]
+      },
+      {
+        "id": 23,
+        "type": "graph",
+        "title": "Event Loop Lag",
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 42 },
+        "targets": [
+          {
+            "expr": "nodejs_eventloop_lag_seconds",
+            "refId": "A",
+            "legendFormat": "Event Loop Lag"
+          }
+        ],
+        "xaxis": {
+          "mode": "time",
+          "show": true
+        },
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Lag",
+            "show": true
+          },
+          {
+            "show": true
+          }
+        ]
+      }
+    ]
+  },
+  "overwrite": true,
+  "inputs": [],
+  "folderId": 0
+}
