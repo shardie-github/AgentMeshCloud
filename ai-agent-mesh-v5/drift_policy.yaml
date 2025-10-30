@@ -1,0 +1,267 @@
+---
+# Autonomous Mesh OS - Drift Detection Policy
+# Defines rules and thresholds for detecting and remediating agent drift
+
+policy:
+  name: "Mesh OS Drift Policy"
+  version: "1.0.0"
+  enabled: true
+  lastUpdated: "2025-10-30"
+
+detection:
+  # How long before considering an agent stalled (ms)
+  stalledThreshold: 300000      # 5 minutes
+  
+  # How long before considering an agent unresponsive (ms)
+  unresponsiveThreshold: 120000 # 2 minutes
+  
+  # Frequency of drift detection checks (ms)
+  checkInterval: 30000          # 30 seconds
+  
+  # Minimum samples before establishing baseline
+  minSamplesForBaseline: 10
+  
+  # Baseline recalibration interval (ms)
+  baselineRefreshInterval: 3600000  # 1 hour
+
+thresholds:
+  # Performance thresholds
+  performance:
+    latency: 5000               # Max avg latency in ms
+    successRate: 95             # Min success rate %
+    errorRate: 5                # Max error rate %
+    throughput: 100             # Min requests per minute
+  
+  # Resource thresholds
+  resources:
+    cpu: 90                     # Max CPU usage %
+    memory: 85                  # Max memory usage %
+    disk: 80                    # Max disk usage %
+    network: 1000               # Max network bandwidth MB/s
+  
+  # Health thresholds
+  health:
+    missedHeartbeats: 3         # Consecutive missed heartbeats
+    failedHealthChecks: 3       # Consecutive failed health checks
+    degradedDuration: 600000    # Time in degraded state before action (ms)
+
+drift:
+  # Percentage drift from baseline before alerting
+  latencyPercent: 50            # 50% increase in latency
+  throughputPercent: 30         # 30% decrease in throughput
+  errorRateAbsolute: 5          # 5% absolute increase in error rate
+  successRateAbsolute: 10       # 10% absolute decrease in success rate
+  
+  # Resource drift thresholds
+  cpuPercent: 40                # 40% increase in CPU usage
+  memoryPercent: 30             # 30% increase in memory usage
+  
+  # Time window for drift detection
+  detectionWindow: 600000       # 10 minutes
+  
+  # Number of consecutive drift detections before action
+  consecutiveDrifts: 3
+
+remediation:
+  # Auto-healing configuration
+  autoHeal: true
+  
+  # Actions to take based on issue severity
+  actions:
+    critical:
+      - quarantine
+      - alert
+      - escalate
+    
+    high:
+      - restart
+      - alert
+      - investigate
+    
+    medium:
+      - recalibrate
+      - monitor
+      - log
+    
+    low:
+      - log
+      - monitor
+  
+  # Quarantine policy
+  quarantine:
+    enabled: true
+    duration: 900000            # 15 minutes
+    maxQuarantines: 3           # Max times to quarantine before permanent removal
+    releaseConditions:
+      - healthCheckPass: true
+      - stableDuration: 300000  # 5 minutes of stability
+  
+  # Restart policy
+  restart:
+    enabled: true
+    maxRestarts: 5              # Max restarts per hour
+    restartDelay: 5000          # Delay before restart (ms)
+    gracePeriod: 30000          # Grace period for shutdown (ms)
+  
+  # Recalibration policy
+  recalibration:
+    enabled: true
+    resetBaseline: true
+    samplingPeriod: 600000      # 10 minutes
+  
+  # Cooldown periods between actions (ms)
+  cooldowns:
+    restart: 300000             # 5 minutes
+    quarantine: 600000          # 10 minutes
+    recalibrate: 1800000        # 30 minutes
+
+alerting:
+  # Alert on drift detection
+  enabled: true
+  
+  # Alert channels
+  channels:
+    - type: webhook
+      url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+      severities: ["critical", "high"]
+    
+    - type: email
+      recipients: ["ops@example.com"]
+      severities: ["critical"]
+    
+    - type: pagerduty
+      serviceKey: "YOUR_PAGERDUTY_KEY"
+      severities: ["critical"]
+  
+  # Alert rules
+  rules:
+    - name: "Agent Unresponsive"
+      condition: "unresponsive"
+      severity: critical
+      cooldown: 0
+      message: "Agent {agentId} is unresponsive"
+    
+    - name: "Performance Degradation"
+      condition: "latency_drift > 50%"
+      severity: high
+      cooldown: 300000
+      message: "Agent {agentId} performance degraded by {drift}%"
+    
+    - name: "Resource Violation"
+      condition: "cpu > 90% OR memory > 85%"
+      severity: high
+      cooldown: 600000
+      message: "Agent {agentId} resource usage critical"
+    
+    - name: "Baseline Drift"
+      condition: "consecutive_drifts >= 3"
+      severity: medium
+      cooldown: 1800000
+      message: "Agent {agentId} drifting from baseline"
+
+monitoring:
+  # Metrics to track for drift detection
+  metrics:
+    - name: latency
+      type: gauge
+      unit: ms
+      aggregation: avg
+    
+    - name: throughput
+      type: counter
+      unit: req/min
+      aggregation: sum
+    
+    - name: errorRate
+      type: gauge
+      unit: percent
+      aggregation: avg
+    
+    - name: successRate
+      type: gauge
+      unit: percent
+      aggregation: avg
+    
+    - name: cpuUsage
+      type: gauge
+      unit: percent
+      aggregation: avg
+    
+    - name: memoryUsage
+      type: gauge
+      unit: percent
+      aggregation: avg
+  
+  # Baseline calculation
+  baseline:
+    method: "exponential_moving_average"  # Options: mean, median, ema
+    windowSize: 100                       # Number of samples
+    emaAlpha: 0.2                         # EMA smoothing factor
+    excludeOutliers: true
+    outlierStdDev: 3                      # Std deviations for outlier detection
+
+reporting:
+  # Report generation
+  enabled: true
+  frequency: 3600000            # Generate report every hour
+  format: markdown
+  outputPath: "./healing_report.md"
+  
+  # Report contents
+  include:
+    - summary
+    - incidents
+    - healingActions
+    - quarantinedAgents
+    - statistics
+    - trends
+  
+  # Retention
+  retention:
+    incidents: 10080            # Keep 7 days (in minutes)
+    healingActions: 10080       # Keep 7 days
+    reports: 30                 # Keep 30 reports
+
+compliance:
+  # Compliance checks for self-healing actions
+  requireApproval:
+    - permanent_removal
+    - data_deletion
+  
+  # Audit trail
+  auditLog:
+    enabled: true
+    path: "./audit/self_healing.log"
+    includeDetails: true
+  
+  # Change management
+  changeControl:
+    requireTicket: false
+    approvers: ["sre-team@example.com"]
+    notificationList: ["ops@example.com"]
+
+advanced:
+  # Machine learning for anomaly detection
+  mlAnomalyDetection:
+    enabled: false              # Future feature
+    model: "isolation_forest"
+    trainingInterval: 86400000  # 24 hours
+    confidenceThreshold: 0.95
+  
+  # Predictive healing
+  predictiveHealing:
+    enabled: false              # Future feature
+    lookAheadWindow: 300000     # 5 minutes
+    preventiveActions: true
+  
+  # Cascading failure detection
+  cascadeDetection:
+    enabled: true
+    correlationWindow: 60000    # 1 minute
+    minAffectedAgents: 3
+  
+  # Auto-scaling integration
+  autoScaling:
+    enabled: true
+    scaleUpOnQuarantine: true
+    maintainMinCapacity: true

@@ -1,0 +1,294 @@
+---
+# Autonomous Mesh OS - Adaptive Learning Configuration
+# Configuration for the reinforcement learning loop
+
+learning:
+  enabled: true
+  mode: "continuous"  # Options: continuous, batch, on-demand
+  version: "1.0.0"
+
+model:
+  type: "policy_optimizer"
+  algorithm: "q-learning"  # Future: deep_q, ppo, a3c
+  
+  # Hyperparameters
+  hyperparameters:
+    learningRate: 0.01
+    discountFactor: 0.95
+    explorationRate: 0.1
+    explorationDecay: 0.995
+    minExploration: 0.01
+    
+  # Reward function weights (must sum to 1.0)
+  rewardWeights:
+    cost: 0.30              # Cost optimization
+    uptime: 0.40            # System availability
+    performance: 0.20       # Latency and throughput
+    compliance: 0.10        # Policy adherence
+  
+  # Reward shaping
+  rewardShaping:
+    minReward: -100
+    maxReward: 100
+    
+    # Bonuses
+    bonuses:
+      underBudget: 20
+      perfectUptime: 30
+      zeroViolations: 15
+    
+    # Penalties
+    penalties:
+      perViolation: -10
+      perIncident: -20
+      budgetExceeded: -50
+      sloMiss: -30
+
+training:
+  # Training schedule
+  schedule:
+    frequency: "hourly"     # Options: hourly, daily, weekly, continuous
+    batchSize: 32
+    minSamples: 100         # Minimum samples before training
+    maxSamples: 10000       # Maximum samples to keep in memory
+  
+  # Training epochs
+  epochs: 10
+  validationSplit: 0.2
+  
+  # Early stopping
+  earlyS topping:
+    enabled: true
+    patience: 5
+    minDelta: 0.001
+
+state:
+  # State space definition
+  features:
+    - name: costPerformance
+      type: continuous
+      range: [0, 1]
+      description: "Cost efficiency metric"
+    
+    - name: systemUptime
+      type: continuous
+      range: [0, 1]
+      description: "Overall system availability"
+    
+    - name: avgLatency
+      type: continuous
+      range: [0, 10000]
+      description: "Average request latency in ms"
+    
+    - name: complianceScore
+      type: continuous
+      range: [0, 100]
+      description: "Compliance audit score"
+    
+    - name: queueDepth
+      type: continuous
+      range: [0, 1000]
+      description: "Pending job count"
+    
+    - name: healthyAgents
+      type: integer
+      range: [0, 100]
+      description: "Number of healthy agents"
+  
+  # State preprocessing
+  preprocessing:
+    normalize: true
+    removeOutliers: true
+    outlierThreshold: 3     # Standard deviations
+
+actions:
+  # Action space definition
+  available:
+    - name: scale_up
+      description: "Increase resource allocation"
+      parameters:
+        step: 1               # Scale by 1 agent
+    
+    - name: scale_down
+      description: "Decrease resource allocation"
+      parameters:
+        step: 1
+    
+    - name: adjust_threshold
+      description: "Modify auto-scaling thresholds"
+      parameters:
+        increment: 5          # Adjust by 5%
+    
+    - name: optimize_scheduling
+      description: "Change job scheduling strategy"
+      parameters:
+        strategies: ["round-robin", "least-loaded", "priority"]
+    
+    - name: tune_monitoring
+      description: "Adjust monitoring frequency"
+      parameters:
+        intervals: [15, 30, 60, 120]  # seconds
+    
+    - name: no_action
+      description: "Maintain current configuration"
+      parameters: {}
+
+recommendations:
+  # Recommendation generation
+  enabled: true
+  
+  # Confidence thresholds
+  confidence:
+    high: 0.8
+    medium: 0.6
+    low: 0.4
+  
+  # Only recommend actions with confidence above this
+  minimumConfidence: 0.5
+  
+  # Categories
+  categories:
+    - scaling
+    - scheduling
+    - monitoring
+    - cost
+    - performance
+    - compliance
+  
+  # Impact assessment
+  impactAssessment:
+    enabled: true
+    simulateChanges: true
+    riskTolerance: "medium"  # Options: low, medium, high
+
+prediction:
+  # Anomaly prediction
+  enabled: true
+  
+  # Prediction window
+  forecastHorizon: 48         # Hours
+  updateInterval: 3600000     # 1 hour
+  
+  # Prediction types
+  types:
+    - cost_spike
+    - performance_degradation
+    - cascading_failure
+    - compliance_violation
+    - resource_exhaustion
+  
+  # Confidence thresholds
+  alertThresholds:
+    critical: 0.8
+    high: 0.6
+    medium: 0.4
+
+monitoring:
+  # Model performance monitoring
+  enabled: true
+  
+  # Metrics to track
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1Score
+    - avgReward
+    - convergenceRate
+  
+  # Performance thresholds
+  thresholds:
+    minAccuracy: 0.7
+    minPrecision: 0.65
+    minF1Score: 0.7
+  
+  # Model drift detection
+  driftDetection:
+    enabled: true
+    window: 1000              # Samples
+    threshold: 0.1            # Performance degradation %
+
+experimentation:
+  # A/B testing for policy changes
+  enabled: false              # Future feature
+  
+  # Experiment parameters
+  testGroups: 2
+  trafficSplit: [0.9, 0.1]    # 90% control, 10% test
+  minSampleSize: 1000
+  significanceLevel: 0.05
+
+dataCollection:
+  # Training data collection
+  enabled: true
+  
+  # Sampling strategy
+  sampling:
+    strategy: "stratified"    # Options: random, stratified, importance
+    rate: 1.0                 # Sample 100% of observations
+  
+  # Data retention
+  retention:
+    maxAge: 2592000000        # 30 days
+    maxSamples: 100000
+  
+  # Privacy and compliance
+  anonymize: true
+  encryption: true
+  auditTrail: true
+
+integration:
+  # Integration with other systems
+  costOptimizer:
+    enabled: true
+    weight: 0.3
+  
+  selfHealing:
+    enabled: true
+    weight: 0.4
+  
+  compliance:
+    enabled: true
+    weight: 0.1
+  
+  scheduling:
+    enabled: true
+    weight: 0.2
+
+evaluation:
+  # Model evaluation
+  frequency: "weekly"
+  
+  # Evaluation metrics
+  metrics:
+    - cumulative_reward
+    - average_reward
+    - success_rate
+    - recommendation_adoption_rate
+    - prediction_accuracy
+  
+  # Benchmarks
+  benchmarks:
+    baseline_reward: 0
+    target_reward: 80
+    target_accuracy: 0.8
+
+export:
+  # Model export
+  enabled: true
+  format: "onnx"              # Options: onnx, tensorflow, pytorch
+  path: "./ops_rl_model.onnx"
+  includeWeights: true
+  includeMetadata: true
+
+debugging:
+  # Debug mode
+  enabled: false
+  verbose: false
+  logLevel: "info"            # Options: debug, info, warn, error
+  
+  # Visualization
+  visualization:
+    enabled: false
+    plots: ["rewards", "weights", "predictions"]
+    updateInterval: 3600000   # 1 hour

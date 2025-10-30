@@ -1,0 +1,369 @@
+---
+# Autonomous Mesh OS - Cost Optimizer Rules
+# Defines budgets, thresholds, and optimization policies
+
+optimizer:
+  name: "Mesh OS Cost Optimizer"
+  version: "1.0.0"
+  enabled: true
+
+budgets:
+  # Monthly budget limits (USD)
+  monthly: 10000
+  quarterly: 28000
+  annual: 100000
+  
+  # Per-category budgets
+  categories:
+    compute: 4000
+    storage: 1500
+    network: 1000
+    models: 3000
+    other: 500
+  
+  # Alert thresholds
+  alerts:
+    warning: 75        # Alert at 75% budget usage
+    critical: 90       # Critical alert at 90%
+    exceeded: 100      # Budget exceeded alert
+
+pricing:
+  # Infrastructure pricing (USD)
+  cpuPerCoreHour: 0.05
+  memoryPerGBHour: 0.01
+  storagePerGBMonth: 0.10
+  networkPerGB: 0.12
+  
+  # Model pricing (USD per 1K tokens)
+  models:
+    gpt-4: 0.03
+    gpt-4-turbo: 0.01
+    gpt-3.5-turbo: 0.0015
+    claude-3-opus: 0.04
+    claude-3-sonnet: 0.012
+    claude-3-haiku: 0.0008
+    llama-2-70b: 0.0007
+    mistral-large: 0.008
+  
+  # Reserved instance discounts
+  reservedInstances:
+    oneYear: 0.35      # 35% discount
+    threeYear: 0.55    # 55% discount
+
+idleDetection:
+  # Idle resource detection
+  enabled: true
+  thresholdMinutes: 60         # Consider idle after 60 minutes
+  cpuThreshold: 10             # CPU usage below 10%
+  memoryThreshold: 20          # Memory usage below 20%
+  networkThreshold: 1          # Network traffic below 1 MB/min
+  
+  # Actions for idle resources
+  actions:
+    lowCost:                   # < $50/month
+      action: "scale_down"
+      delay: 120               # Wait 120 minutes before action
+    
+    mediumCost:                # $50-100/month
+      action: "alert"
+      delay: 60
+    
+    highCost:                  # > $100/month
+      action: "terminate"
+      delay: 30
+  
+  # Exclusions
+  exclude:
+    - critical_infrastructure
+    - database_primary
+    - load_balancer
+
+rightSizing:
+  # Right-sizing recommendations
+  enabled: true
+  
+  # Thresholds for oversized resources
+  oversized:
+    cpuUsage: 30               # CPU usage below 30% for 7 days
+    memoryUsage: 40            # Memory usage below 40% for 7 days
+    observationDays: 7
+  
+  # Thresholds for undersized resources
+  undersized:
+    cpuUsage: 90               # CPU usage above 90%
+    memoryUsage: 85            # Memory usage above 85%
+    frequencyPercent: 20       # Threshold exceeded 20% of the time
+  
+  # Resize recommendations
+  recommendations:
+    minCpu: 1                  # Minimum CPU cores
+    minMemory: 1024            # Minimum memory MB
+    scaleStepCpu: 1            # Scale by 1 core
+    scaleStepMemory: 1024      # Scale by 1 GB
+
+reservedInstances:
+  # Reserved instance recommendations
+  enabled: true
+  
+  # Criteria for RI recommendation
+  criteria:
+    minUptimeDays: 30          # Running for at least 30 days
+    minStability: 0.95         # 95% uptime
+    minInstances: 3            # At least 3 similar instances
+  
+  # RI purchase parameters
+  purchaseStrategy:
+    term: "oneYear"            # Options: oneYear, threeYear
+    paymentOption: "partial"   # Options: all, partial, none
+    utilizationTarget: 0.80    # Target 80% RI utilization
+
+spotInstances:
+  # Spot instance optimization
+  enabled: true
+  
+  # Workload suitability
+  suitableWorkloads:
+    - batch_processing
+    - analytics
+    - testing
+    - development
+  
+  unsuitableWorkloads:
+    - production_critical
+    - database
+    - stateful_services
+  
+  # Spot instance parameters
+  maxPriceMultiplier: 0.5      # Max 50% of on-demand price
+  diversification: true         # Use multiple instance types
+  checkpointingEnabled: true    # Enable automatic checkpointing
+
+anomalyDetection:
+  # Cost anomaly detection
+  enabled: true
+  
+  # Statistical thresholds
+  stdDevThreshold: 2           # Standard deviations from mean
+  minDataPoints: 7             # Minimum data points required
+  windowDays: 30               # Analysis window
+  
+  # Anomaly types
+  detectTypes:
+    - cost_spike                # Sudden cost increase
+    - sustained_increase        # Gradual cost increase
+    - usage_spike               # Sudden usage increase
+    - new_resource              # Unexpected new resource
+  
+  # Alert configuration
+  alerts:
+    critical:
+      threshold: 50            # > 50% deviation
+      action: immediate
+    
+    high:
+      threshold: 30            # > 30% deviation
+      action: alert
+    
+    medium:
+      threshold: 15            # > 15% deviation
+      action: notify
+
+greenCompute:
+  # Green computing optimization
+  enabled: true
+  
+  # Carbon intensity targets
+  carbonIntensityThreshold: 100  # gCO2/kWh
+  preferLowCarbonRegions: true
+  
+  # Carbon-aware scheduling
+  carbonAwareScheduling:
+    enabled: false               # Future feature
+    deferrableWorkloads:
+      - batch_processing
+      - data_processing
+      - model_training
+    maxDeferralHours: 12
+  
+  # Green metrics
+  metrics:
+    trackCarbonFootprint: true
+    reportingFrequency: monthly
+    targetReduction: 20          # 20% reduction goal
+
+costAllocation:
+  # Cost allocation and tagging
+  enabled: true
+  
+  # Required tags
+  requiredTags:
+    - environment
+    - team
+    - project
+    - cost_center
+  
+  # Allocation strategy
+  strategy: "proportional"       # Options: proportional, fixed, custom
+  
+  # Chargeback
+  chargeback:
+    enabled: false
+    frequency: monthly
+    recipients:
+      - finance@example.com
+      - team-leads@example.com
+
+optimization:
+  # Optimization strategies
+  strategies:
+    # Automatic actions
+    automatic:
+      terminateIdle: false       # Require manual approval
+      rightSize: false           # Require manual approval
+      purchaseRI: false          # Require manual approval
+    
+    # Recommendation thresholds
+    recommendations:
+      minMonthlySavings: 50      # Recommend if savings > $50/month
+      minAnnualSavings: 500      # Prioritize if annual savings > $500
+      roi Threshold: 0.2         # ROI > 20%
+    
+    # Action approval
+    requireApproval:
+      terminate: true
+      resize: true
+      purchaseRI: true
+      modifyProduction: true
+  
+  # Schedule optimization
+  schedule:
+    frequency: daily
+    time: "02:00"                # 2 AM daily
+    timezone: "UTC"
+    
+  # Exclusion rules
+  exclude:
+    tags:
+      - never_terminate
+      - critical
+      - production_database
+    resourceTypes:
+      - rds_primary
+      - elasticsearch_master
+      - load_balancer
+
+reporting:
+  # Report generation
+  enabled: true
+  frequency: monthly
+  format: ["markdown", "json", "pdf"]
+  
+  # Report recipients
+  recipients:
+    finance: ["cfo@example.com", "finance@example.com"]
+    engineering: ["cto@example.com", "engineering-leads@example.com"]
+    executive: ["ceo@example.com", "board@example.com"]
+  
+  # Report contents
+  include:
+    - executive_summary
+    - cost_breakdown
+    - trends
+    - model_usage
+    - idle_resources
+    - anomalies
+    - recommendations
+    - savings_achieved
+  
+  # Retention
+  retention:
+    reports: 24                  # Keep 24 months
+    rawData: 36                  # Keep 36 months
+
+alerts:
+  # Alert configuration
+  enabled: true
+  
+  # Alert channels
+  channels:
+    - type: email
+      recipients: ["ops@example.com", "finops@example.com"]
+      severities: ["critical", "high"]
+    
+    - type: slack
+      webhook: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+      channel: "#cost-alerts"
+      severities: ["critical", "high", "medium"]
+    
+    - type: pagerduty
+      serviceKey: "YOUR_PAGERDUTY_KEY"
+      severities: ["critical"]
+  
+  # Alert rules
+  rules:
+    - name: "Budget Exceeded"
+      condition: "cost > budget"
+      severity: critical
+      cooldown: 0
+    
+    - name: "Approaching Budget Limit"
+      condition: "cost > budget * 0.9"
+      severity: high
+      cooldown: 86400000         # 24 hours
+    
+    - name: "Cost Anomaly Detected"
+      condition: "anomaly_detected"
+      severity: high
+      cooldown: 3600000          # 1 hour
+    
+    - name: "High Idle Resource Cost"
+      condition: "idle_cost > 500"
+      severity: medium
+      cooldown: 86400000         # 24 hours
+    
+    - name: "Optimization Opportunity"
+      condition: "potential_savings > 1000"
+      severity: medium
+      cooldown: 604800000        # 7 days
+
+compliance:
+  # Cost compliance rules
+  enabled: true
+  
+  # Spending limits per team
+  teamLimits:
+    engineering: 4000
+    data_science: 3000
+    operations: 2000
+    research: 1000
+  
+  # Enforce tagging
+  enforceTagging: true
+  
+  # Audit trail
+  auditLog:
+    enabled: true
+    path: "./audit/cost_optimizer.log"
+    retention: 2592000000        # 30 days
+
+integration:
+  # External integrations
+  cloudProviders:
+    aws:
+      enabled: false
+      costExplorerAPI: true
+      savingsPlansAPI: true
+    
+    azure:
+      enabled: false
+      costManagementAPI: true
+    
+    gcp:
+      enabled: false
+      billingAPI: true
+  
+  # FinOps tools
+  finopsTools:
+    cloudHealth: false
+    cloudCheckr: false
+    apptio: false

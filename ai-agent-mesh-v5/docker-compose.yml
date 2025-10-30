@@ -1,0 +1,241 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: mesh-os-db
+    environment:
+      POSTGRES_DB: mesh_os
+      POSTGRES_USER: mesh_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_me_in_production}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mesh_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mesh-network
+
+  # Mesh Kernel - Core Orchestrator
+  mesh-kernel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mesh-os-kernel
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://mesh_user:${DB_PASSWORD:-change_me_in_production}@postgres:5432/mesh_os
+      MESH_CLUSTER: ${MESH_CLUSTER:-default}
+      OTEL_API_KEY: ${OTEL_API_KEY:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/var/log/mesh-os
+      - ./audit:/var/audit
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: node mesh_kernel.mjs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Self-Healing Engine
+  self-healing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mesh-os-healing
+    environment:
+      NODE_ENV: production
+      MESH_KERNEL_URL: http://mesh-kernel:8080
+    volumes:
+      - ./logs:/var/log/mesh-os
+    depends_on:
+      - mesh-kernel
+    command: node self_healing_engine.mjs
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Cost Optimizer
+  cost-optimizer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mesh-os-cost-optimizer
+    environment:
+      NODE_ENV: production
+      MESH_KERNEL_URL: http://mesh-kernel:8080
+    volumes:
+      - ./logs:/var/log/mesh-os
+      - ./reports:/var/reports
+    depends_on:
+      - mesh-kernel
+    command: node cost_optimizer.mjs
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Compliance Auditor
+  compliance-auditor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mesh-os-compliance
+    environment:
+      NODE_ENV: production
+      MESH_KERNEL_URL: http://mesh-kernel:8080
+      AUDIT_SECRET: ${AUDIT_SECRET:-change_me_in_production}
+    volumes:
+      - ./logs:/var/log/mesh-os
+      - ./audit:/var/audit
+    depends_on:
+      - mesh-kernel
+    command: node compliance_auditor.mjs
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Executive Dashboard
+  exec-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mesh-os-dashboard
+    environment:
+      NODE_ENV: production
+      MESH_KERNEL_URL: http://mesh-kernel:8080
+    volumes:
+      - ./logs:/var/log/mesh-os
+      - ./reports:/var/reports
+    depends_on:
+      - mesh-kernel
+    command: node exec_dashboard.mjs
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Redis for caching and pub/sub
+  redis:
+    image: redis:7-alpine
+    container_name: mesh-os-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mesh-os-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mesh-os-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability_dashboard.json:/etc/grafana/provisioning/dashboards/mesh-os.json
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: mesh-os-jaeger
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: :9411
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    container_name: mesh-os-otel
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Prometheus metrics
+      - "8889:8889"   # Prometheus exporter
+      - "13133:13133" # Health check
+    volumes:
+      - ./otel_config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    depends_on:
+      - jaeger
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - mesh-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  mesh-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

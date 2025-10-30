@@ -1,0 +1,1 @@
+{"format":"ONNX","version":"1.0.0","description":"Placeholder for operational RL model - In production, this would be a trained ONNX model file","note":"Use onnxruntime or similar libraries to load actual trained models"}
