@@ -1,0 +1,130 @@
+name: Evidence Collection
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      period_days:
+        description: 'Number of days to collect evidence for'
+        required: false
+        default: '30'
+
+jobs:
+  collect-evidence:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create evidence directory
+        run: mkdir -p evidence/collected
+
+      - name: Collect CI/CD Logs
+        run: |
+          tsx evidence/collectors/ci_logs.ts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect Backup Evidence
+        run: |
+          tsx evidence/collectors/backups.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Collect CodeQL Evidence
+        run: |
+          tsx evidence/collectors/codeql.ts
+
+      - name: Collect OPA Policy Evidence
+        run: |
+          tsx evidence/collectors/opa.ts
+
+      - name: Generate Evidence Report
+        run: |
+          cat > evidence/collected/evidence_summary.md << 'EOF'
+          # Evidence Collection Summary
+          
+          **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Period:** Last ${{ github.event.inputs.period_days || '30' }} days
+          
+          ## Files Collected
+          - CI/CD deployment logs
+          - Backup and recovery records
+          - CodeQL security scan results
+          - OPA policy decision logs
+          
+          ## Compliance Controls
+          - CC5.2: System Operations (CI/CD)
+          - CC7.3: Backup & Recovery
+          - CC3.2: Risk Assessment (CodeQL)
+          - CC5.1: Logical Access (OPA)
+          
+          ## Next Collection
+          Scheduled for $(date -u -d "+1 day" +"%Y-%m-%d 02:00 UTC")
+          EOF
+
+      - name: Create Evidence Archive
+        run: |
+          cd evidence/collected
+          tar -czf ../evidence_$(date +%Y%m%d).tar.gz *.json *.md
+          cd ../..
+
+      - name: Upload Evidence Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-collection-${{ github.run_number }}
+          path: evidence/evidence_*.tar.gz
+          retention-days: 90
+
+      - name: Upload to S3 (if configured)
+        if: env.AWS_S3_BUCKET != ''
+        run: |
+          aws s3 cp evidence/evidence_*.tar.gz \
+            s3://${{ secrets.AWS_S3_BUCKET }}/compliance/evidence/ \
+            --storage-class STANDARD_IA
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+
+      - name: Notify Success
+        if: success()
+        run: |
+          echo "✅ Evidence collection completed successfully"
+          echo "Files collected: $(ls -1 evidence/collected/*.json | wc -l)"
+
+      - name: Notify Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "Evidence Collection Failed - ${{ github.repository }}"
+          body: |
+            Evidence collection workflow failed on $(date -u).
+            
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            Please investigate and re-run manually if needed.
+          to: compliance@orca-mesh.io
+          from: github-actions@orca-mesh.io

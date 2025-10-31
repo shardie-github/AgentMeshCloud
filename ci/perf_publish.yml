@@ -1,0 +1,142 @@
+name: Performance Test & Publish
+
+on:
+  schedule:
+    # Run nightly at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'tests/perf/**'
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run performance tests
+        run: |
+          k6 run tests/perf/k6_public.js \
+            --out json=tests/perf/results.json \
+            --env BASE_URL=${{ secrets.PERF_TEST_URL }} \
+            --env API_KEY=${{ secrets.PERF_TEST_API_KEY }}
+        continue-on-error: true
+
+      - name: Parse results
+        id: results
+        run: |
+          if [ -f tests/perf/results.json ]; then
+            # Extract key metrics
+            P95=$(jq -r '.metrics.http_req_duration.values."p(95)"' tests/perf/results.json)
+            P99=$(jq -r '.metrics.http_req_duration.values."p(99)"' tests/perf/results.json)
+            ERROR_RATE=$(jq -r '.metrics.errors.values.rate' tests/perf/results.json)
+            
+            echo "p95=$P95" >> $GITHUB_OUTPUT
+            echo "p99=$P99" >> $GITHUB_OUTPUT
+            echo "error_rate=$ERROR_RATE" >> $GITHUB_OUTPUT
+            
+            # Check if passed SLA
+            PASSED=true
+            if (( $(echo "$P95 > 700" | bc -l) )); then
+              echo "❌ P95 latency exceeded: ${P95}ms"
+              PASSED=false
+            fi
+            if (( $(echo "$ERROR_RATE > 0.015" | bc -l) )); then
+              echo "❌ Error rate exceeded: ${ERROR_RATE}"
+              PASSED=false
+            fi
+            
+            echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate performance report
+        run: |
+          cat > docs/PERFORMANCE_REPORT_LATEST.md << 'EOF'
+          # Performance Test Results - Latest Run
+          
+          **Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Status:** ${{ steps.results.outputs.passed == 'true' && '✅ Passed' || '❌ Failed' }}
+          
+          ## Summary
+          
+          | Metric | Value | Target | Status |
+          |--------|-------|--------|--------|
+          | P95 Latency | ${{ steps.results.outputs.p95 }}ms | <700ms | ${{ steps.results.outputs.p95 < 700 && '✅' || '❌' }} |
+          | P99 Latency | ${{ steps.results.outputs.p99 }}ms | <1200ms | ${{ steps.results.outputs.p99 < 1200 && '✅' || '❌' }} |
+          | Error Rate | ${{ steps.results.outputs.error_rate }}% | <1.5% | ${{ steps.results.outputs.error_rate < 0.015 && '✅' || '❌' }} |
+          
+          ## Full Report
+          
+          See [PERFORMANCE_REPORT.md](./PERFORMANCE_REPORT.md) for complete analysis.
+          
+          ## Raw Data
+          
+          Available in test artifacts.
+          EOF
+
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ github.run_number }}
+          path: |
+            tests/perf/results.json
+            docs/PERFORMANCE_REPORT_LATEST.md
+          retention-days: 90
+
+      - name: Commit and push report
+        if: steps.results.outputs.passed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/PERFORMANCE_REPORT_LATEST.md
+          git commit -m "chore: update performance report [skip ci]" || echo "No changes to commit"
+          git push
+
+      - name: Create performance badge
+        if: steps.results.outputs.passed == 'true'
+        run: |
+          # Generate badge JSON for shields.io
+          cat > performance-badge.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "performance",
+            "message": "P95: ${{ steps.results.outputs.p95 }}ms",
+            "color": "${{ steps.results.outputs.p95 < 700 && 'green' || 'red' }}"
+          }
+          EOF
+
+      - name: Notify on failure
+        if: steps.results.outputs.passed != 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "Performance Test Failed - ${{ github.repository }}"
+          body: |
+            Performance tests failed on $(date -u).
+            
+            P95 Latency: ${{ steps.results.outputs.p95 }}ms (target: <700ms)
+            P99 Latency: ${{ steps.results.outputs.p99 }}ms (target: <1200ms)
+            Error Rate: ${{ steps.results.outputs.error_rate }}% (target: <1.5%)
+            
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          to: sre@orca-mesh.io
+          from: github-actions@orca-mesh.io
