@@ -1,0 +1,58 @@
+name: Gitleaks Secret Scanning
+
+on:
+  push:
+    branches: [ main, develop, '**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comprehensive scan
+
+      - name: Run Gitleaks
+        id: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}  # Optional: for Gitleaks Pro
+
+      - name: Upload Gitleaks Report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          retention-days: 30
+
+      - name: Comment on PR (if secrets found)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚨 **Gitleaks detected potential secrets in this PR!**\n\nPlease review the Gitleaks report and remove any sensitive information.\n\n⚠️ **DO NOT** merge until this is resolved.\n\n📄 [View Report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+            })
+
+      - name: Fail build if secrets found
+        if: failure()
+        run: |
+          echo "🚨 Secrets detected! Review the Gitleaks report."
+          exit 1

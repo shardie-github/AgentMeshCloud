@@ -1,0 +1,485 @@
+{
+  "$schema": "./event-catalog.schema.json",
+  "version": "1.0.0",
+  "lastUpdated": "2025-10-31",
+  "events": [
+    {
+      "name": "user.signed_up",
+      "description": "User completed registration",
+      "category": "activation",
+      "tier": "product",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "pii": true,
+          "description": "Unique user identifier"
+        },
+        "email": {
+          "type": "string",
+          "required": true,
+          "pii": true,
+          "description": "User email address"
+        },
+        "signup_method": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["email", "google", "github", "sso"],
+          "description": "Authentication method used"
+        },
+        "referral_code": {
+          "type": "string",
+          "required": false,
+          "pii": false,
+          "description": "Referral code used during signup"
+        },
+        "plan": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["free", "pro", "enterprise"],
+          "description": "Initial plan selected"
+        }
+      },
+      "triggeredBy": "user_action",
+      "destination": ["analytics", "crm", "billing"]
+    },
+    {
+      "name": "agent.registered",
+      "description": "Agent successfully registered in the mesh",
+      "category": "activation",
+      "tier": "product",
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Unique agent identifier"
+        },
+        "agent_name": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Human-readable agent name"
+        },
+        "agent_type": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["chatbot", "workflow", "analytics", "custom"],
+          "description": "Type of agent"
+        },
+        "mcp_version": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "MCP protocol version"
+        },
+        "capabilities": {
+          "type": "array",
+          "required": true,
+          "pii": false,
+          "description": "List of agent capabilities"
+        },
+        "discovery_method": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["manual", "auto_discovery", "api", "zapier", "n8n"],
+          "description": "How the agent was discovered"
+        }
+      },
+      "triggeredBy": "system",
+      "destination": ["analytics", "monitoring"]
+    },
+    {
+      "name": "workflow.executed",
+      "description": "Workflow execution completed",
+      "category": "engagement",
+      "tier": "product",
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Unique workflow identifier"
+        },
+        "execution_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Unique execution identifier"
+        },
+        "status": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["completed", "failed", "timeout", "cancelled"],
+          "description": "Execution outcome"
+        },
+        "duration_ms": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Execution duration in milliseconds"
+        },
+        "steps_count": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Number of steps in workflow"
+        },
+        "agents_involved": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Number of agents involved"
+        },
+        "error_type": {
+          "type": "string",
+          "required": false,
+          "pii": false,
+          "description": "Error type if failed"
+        }
+      },
+      "triggeredBy": "system",
+      "destination": ["analytics", "monitoring", "billing"]
+    },
+    {
+      "name": "trust_score.calculated",
+      "description": "Trust score computed for an agent",
+      "category": "engagement",
+      "tier": "product",
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Agent identifier"
+        },
+        "trust_score": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Trust score (0-100)"
+        },
+        "score_delta": {
+          "type": "number",
+          "required": false,
+          "pii": false,
+          "description": "Change from previous score"
+        },
+        "risk_avoided_usd": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Risk avoided in USD"
+        },
+        "sync_freshness_pct": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Sync freshness percentage"
+        },
+        "drift_rate_pct": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Drift rate percentage"
+        }
+      },
+      "triggeredBy": "system",
+      "destination": ["analytics", "dashboard"]
+    },
+    {
+      "name": "subscription.upgraded",
+      "description": "User upgraded to a higher plan",
+      "category": "conversion",
+      "tier": "business",
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "pii": true,
+          "description": "User identifier"
+        },
+        "from_plan": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["free", "pro", "enterprise"],
+          "description": "Previous plan"
+        },
+        "to_plan": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["pro", "enterprise"],
+          "description": "New plan"
+        },
+        "mrr_change": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Monthly recurring revenue change"
+        },
+        "billing_period": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["monthly", "yearly"],
+          "description": "Billing period"
+        }
+      },
+      "triggeredBy": "user_action",
+      "destination": ["analytics", "crm", "billing"]
+    },
+    {
+      "name": "api.error",
+      "description": "API request resulted in an error",
+      "category": "reliability",
+      "tier": "technical",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "API endpoint path"
+        },
+        "method": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+          "description": "HTTP method"
+        },
+        "status_code": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "HTTP status code"
+        },
+        "error_type": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Error category"
+        },
+        "latency_ms": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Request latency in milliseconds"
+        },
+        "correlation_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Request correlation ID for tracing"
+        }
+      },
+      "triggeredBy": "system",
+      "destination": ["monitoring", "alerting"]
+    },
+    {
+      "name": "page.viewed",
+      "description": "User viewed a page",
+      "category": "engagement",
+      "tier": "product",
+      "properties": {
+        "page_name": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Page identifier"
+        },
+        "page_url": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Full page URL"
+        },
+        "referrer": {
+          "type": "string",
+          "required": false,
+          "pii": false,
+          "description": "Referrer URL"
+        },
+        "session_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Session identifier"
+        },
+        "load_time_ms": {
+          "type": "number",
+          "required": false,
+          "pii": false,
+          "description": "Page load time"
+        }
+      },
+      "triggeredBy": "user_action",
+      "destination": ["analytics"]
+    },
+    {
+      "name": "feature.adopted",
+      "description": "User first time use of a feature",
+      "category": "engagement",
+      "tier": "product",
+      "properties": {
+        "feature_name": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Feature identifier"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "pii": true,
+          "description": "User identifier"
+        },
+        "days_since_signup": {
+          "type": "number",
+          "required": true,
+          "pii": false,
+          "description": "Days since user signed up"
+        },
+        "context": {
+          "type": "string",
+          "required": false,
+          "pii": false,
+          "description": "Feature adoption context"
+        }
+      },
+      "triggeredBy": "user_action",
+      "destination": ["analytics", "product"]
+    },
+    {
+      "name": "incident.detected",
+      "description": "System incident detected",
+      "category": "reliability",
+      "tier": "technical",
+      "properties": {
+        "incident_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Incident identifier"
+        },
+        "severity": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Incident severity"
+        },
+        "affected_services": {
+          "type": "array",
+          "required": true,
+          "pii": false,
+          "description": "List of affected services"
+        },
+        "detection_method": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["auto", "manual", "user_reported"],
+          "description": "How incident was detected"
+        }
+      },
+      "triggeredBy": "system",
+      "destination": ["monitoring", "alerting", "oncall"]
+    },
+    {
+      "name": "feedback.submitted",
+      "description": "User submitted feedback",
+      "category": "retention",
+      "tier": "product",
+      "properties": {
+        "feedback_id": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "description": "Feedback identifier"
+        },
+        "user_id": {
+          "type": "string",
+          "required": true,
+          "pii": true,
+          "description": "User identifier"
+        },
+        "feedback_type": {
+          "type": "string",
+          "required": true,
+          "pii": false,
+          "enum": ["bug", "feature_request", "ux_issue", "performance", "praise"],
+          "description": "Type of feedback"
+        },
+        "sentiment": {
+          "type": "string",
+          "required": false,
+          "pii": false,
+          "enum": ["positive", "neutral", "negative"],
+          "description": "AI-detected sentiment"
+        },
+        "urgency_score": {
+          "type": "number",
+          "required": false,
+          "pii": false,
+          "description": "AI-calculated urgency (0-100)"
+        }
+      },
+      "triggeredBy": "user_action",
+      "destination": ["analytics", "product", "support"]
+    }
+  ],
+  "destinations": {
+    "analytics": {
+      "name": "Analytics Platform",
+      "type": "warehouse",
+      "retention_days": 730
+    },
+    "monitoring": {
+      "name": "Monitoring System",
+      "type": "metrics",
+      "retention_days": 90
+    },
+    "alerting": {
+      "name": "Alert Manager",
+      "type": "notification",
+      "retention_days": 30
+    },
+    "crm": {
+      "name": "CRM System",
+      "type": "application",
+      "retention_days": -1
+    },
+    "billing": {
+      "name": "Billing System",
+      "type": "application",
+      "retention_days": 2555
+    },
+    "dashboard": {
+      "name": "User Dashboard",
+      "type": "ui",
+      "retention_days": 30
+    },
+    "product": {
+      "name": "Product Team",
+      "type": "internal",
+      "retention_days": 365
+    },
+    "support": {
+      "name": "Support System",
+      "type": "application",
+      "retention_days": 730
+    },
+    "oncall": {
+      "name": "On-Call System",
+      "type": "notification",
+      "retention_days": 90
+    }
+  }
+}

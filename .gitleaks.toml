@@ -1,0 +1,94 @@
+# Gitleaks configuration for ORCA AgentMesh
+# Prevents secrets from being committed to the repository
+
+title = "Gitleaks Configuration - ORCA AgentMesh"
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey|api_key_id|api_secret|apiSecret)['"]?\s*(:|=|:=)\s*['"]?[0-9a-zA-Z\-_]{20,}'''
+tags = ["api", "key", "secret"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws", "key"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Key"
+regex = '''(?i)aws(.{0,20})?['\"][0-9a-zA-Z\/+]{40}['\"]'''
+tags = ["aws", "secret"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub Token"
+regex = '''ghp_[0-9a-zA-Z]{36}|gho_[0-9a-zA-Z]{36}|ghu_[0-9a-zA-Z]{36}|ghs_[0-9a-zA-Z]{36}|ghr_[0-9a-zA-Z]{36}'''
+tags = ["github", "token"]
+
+[[rules]]
+id = "supabase-key"
+description = "Supabase Key"
+regex = '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+'''
+tags = ["supabase", "jwt"]
+
+[[rules]]
+id = "openai-api-key"
+description = "OpenAI API Key"
+regex = '''sk-[a-zA-Z0-9]{48}'''
+tags = ["openai", "api"]
+
+[[rules]]
+id = "stripe-key"
+description = "Stripe API Key"
+regex = '''(?i)stripe(.{0,20})?['\"][sk|pk]_(test|live)_[0-9a-zA-Z]{24,}['\"]'''
+tags = ["stripe", "payment"]
+
+[[rules]]
+id = "postgres-connection"
+description = "PostgreSQL Connection String"
+regex = '''postgres(ql)?:\/\/[a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+(:[0-9]+)?\/[a-zA-Z0-9_.-]+'''
+tags = ["database", "postgres"]
+
+[[rules]]
+id = "jwt-secret"
+description = "JWT Secret"
+regex = '''(?i)(jwt[_-]?secret|jwtsecret)['"]?\s*(:|=|:=)\s*['"]?[0-9a-zA-Z\-_]{20,}'''
+tags = ["jwt", "secret"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+id = "slack-webhook"
+description = "Slack Webhook"
+regex = '''https://hooks\.slack\.com/services/T[a-zA-Z0-9_]+/B[a-zA-Z0-9_]+/[a-zA-Z0-9_]+'''
+tags = ["slack", "webhook"]
+
+[[rules]]
+id = "vercel-token"
+description = "Vercel Token"
+regex = '''(?i)vercel(.{0,20})?['\"][0-9a-zA-Z]{24}['\"]'''
+tags = ["vercel", "token"]
+
+[allowlist]
+description = "Allowlist for false positives"
+paths = [
+  ".gitleaks.toml",
+  ".env.example",
+  "docs/",
+  "*.md",
+  "*.test.ts",
+  "*.spec.ts",
+  "pnpm-lock.yaml"
+]
+regexes = [
+  '''(example|sample|test|fake|mock|dummy)''',
+  '''your-.*-key-here''',
+  '''sk-your-openai-key-here''',
+  '''SUPABASE_.*_KEY=your-.*-key-here'''
+]
