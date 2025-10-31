@@ -1,3 +1,6 @@
+# EditorConfig - consistent coding styles across editors
+# https://editorconfig.org
+
 root = true
 
 [*]
@@ -11,11 +14,28 @@ indent_size = 2
 [*.{ts,tsx,js,jsx,mjs,cjs}]
 indent_size = 2
 
-[*.{json,yaml,yml}]
+[*.{json,jsonc}]
+indent_size = 2
+
+[*.{yml,yaml}]
 indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
+max_line_length = 80
+
+[*.sql]
+indent_size = 2
+
+[*.{sh,bash}]
+indent_size = 2
 
 [Makefile]
 indent_style = tab
+
+[*.py]
+indent_size = 4
+
+[*.go]
+indent_style = tab
+indent_size = 4

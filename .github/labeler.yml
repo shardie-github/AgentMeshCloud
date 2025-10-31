@@ -1,0 +1,80 @@
+# Auto-labeler configuration
+# Automatically add labels based on file patterns
+
+# Area labels
+area/registry:
+  - changed-files:
+    - any-glob-to-any-file: 'src/registry/**/*'
+
+area/trust:
+  - changed-files:
+    - any-glob-to-any-file: 'src/uadsi/**/*'
+
+area/policy:
+  - changed-files:
+    - any-glob-to-any-file: 'src/policy/**/*'
+
+area/api:
+  - changed-files:
+    - any-glob-to-any-file: 'src/api/**/*'
+
+area/telemetry:
+  - changed-files:
+    - any-glob-to-any-file: 'src/telemetry/**/*'
+
+area/security:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - 'src/security/**/*'
+      - 'security/**/*'
+
+area/ui:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - 'apps/**/*'
+      - '**/*.tsx'
+      - '**/*.jsx'
+
+area/database:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - 'supabase/**/*'
+      - 'prisma/**/*'
+      - '**/*.sql'
+
+area/deployment:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - 'deploy/**/*'
+      - 'vercel.json'
+      - 'Dockerfile'
+      - 'docker-compose*.yml'
+
+area/docs:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - 'docs/**/*'
+      - '**/*.md'
+
+area/ci:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**/*'
+
+# Type labels
+type/docs:
+  - changed-files:
+    - any-glob-to-any-file: '**/*.md'
+
+type/test:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - '**/*.test.ts'
+      - '**/*.spec.ts'
+      - 'tests/**/*'
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: 
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'package-lock.json'

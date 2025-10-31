@@ -1,0 +1,38 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/index.ts"],
+  "out": "../../docs/api",
+  "name": "ORCA Core API Reference",
+  "readme": "README.md",
+  "theme": "default",
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "plugin": [],
+  "gitRevision": "main",
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Agent Registry",
+    "Trust Scoring",
+    "Policy Engine",
+    "Telemetry",
+    "Common",
+    "*"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "visibilityFilters": {
+    "protected": false,
+    "private": false,
+    "inherited": true,
+    "external": false
+  },
+  "searchInComments": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": true
+  }
+}

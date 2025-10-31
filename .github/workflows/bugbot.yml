@@ -1,0 +1,255 @@
+name: BugBot
+
+on:
+  workflow_run:
+    workflows: ["CI", "Housekeeping"]
+    types:
+      - completed
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  triage-failures:
+    name: Triage CI Failures
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download workflow artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: test-results
+          path: ./test-results
+        continue-on-error: true
+
+      - name: Run triage script
+        id: triage
+        run: |
+          if [ -f "test-results/test-output.txt" ] || [ -f "test-results/lint-output.txt" ]; then
+            tsx scripts/bugbot/triage.ts \
+              test-results/test-output.txt \
+              test-results/lint-output.txt > triage-output.json
+            echo "has_issues=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_issues=false" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Create/Update Issues
+        if: steps.triage.outputs.has_issues == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let issues = [];
+            try {
+              issues = JSON.parse(fs.readFileSync('triage-output.json', 'utf-8'));
+            } catch (error) {
+              console.log('No triage output found');
+              return;
+            }
+
+            for (const issue of issues) {
+              // Search for existing issue
+              const existing = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: ['automation', 'status/triage'],
+                state: 'open',
+              });
+
+              const duplicate = existing.data.find(i => 
+                i.title.includes(issue.title.split(':')[1]?.trim())
+              );
+
+              if (duplicate) {
+                // Update existing issue
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: duplicate.number,
+                  body: `## Updated Failure Report\n\n${issue.body}\n\n---\nWorkflow: ${context.workflow} #${context.runNumber}`,
+                });
+              } else {
+                // Create new issue
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: issue.title,
+                  body: issue.body,
+                  labels: issue.labels,
+                  assignees: issue.assignees,
+                });
+              }
+            }
+
+  pr-summary:
+    name: PR Summary
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate PR Summary
+        id: summary
+        run: |
+          tsx scripts/bugbot/explain_pr.ts ${{ github.event.pull_request.base.ref }} > pr-summary.md
+          echo "summary_generated=true" >> $GITHUB_OUTPUT
+
+      - name: Get AI Insights (Optional)
+        id: ai
+        if: env.OPENAI_API_KEY != ''
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          tsx scripts/bugbot/ai_assist.ts pr_review > ai-insights.md
+          echo "ai_enabled=true" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Post PR Comment
+        if: steps.summary.outputs.summary_generated == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let summary = fs.readFileSync('pr-summary.md', 'utf-8');
+            
+            // Append AI insights if available
+            if (process.env.AI_ENABLED === 'true') {
+              try {
+                const aiInsights = fs.readFileSync('ai-insights.md', 'utf-8');
+                summary += '\n\n' + aiInsights;
+              } catch (error) {
+                console.log('AI insights not available');
+              }
+            }
+
+            // Find existing BugBot comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const bugbotComment = comments.find(c => 
+              c.user.login === 'github-actions[bot]' && 
+              c.body.includes('🤖 BugBot PR Analysis')
+            );
+
+            if (bugbotComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: bugbotComment.id,
+                body: summary,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary,
+              });
+            }
+        env:
+          AI_ENABLED: ${{ steps.ai.outputs.ai_enabled }}
+
+  pr-labeler:
+    name: Auto-label PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze changes and add labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const labels = new Set();
+
+            // Analyze file changes
+            const hasTests = files.some(f => f.filename.includes('.test.') || f.filename.includes('.spec.'));
+            const hasDocs = files.some(f => f.filename.endsWith('.md'));
+            const hasDB = files.some(f => f.filename.includes('supabase/') || f.filename.includes('prisma/'));
+            const hasSecurity = files.some(f => f.filename.includes('security/'));
+
+            if (hasTests) labels.add('has-tests');
+            if (hasDocs) labels.add('has-docs');
+            if (hasDB) labels.add('requires-db-review');
+            if (hasSecurity) labels.add('requires-security-review');
+
+            // Size labels
+            const totalChanges = files.reduce((sum, f) => sum + f.changes, 0);
+            if (totalChanges < 10) {
+              labels.add('size/xs');
+            } else if (totalChanges < 100) {
+              labels.add('size/s');
+            } else if (totalChanges < 500) {
+              labels.add('size/m');
+            } else if (totalChanges < 1000) {
+              labels.add('size/l');
+            } else {
+              labels.add('size/xl');
+            }
+
+            // Add labels
+            if (labels.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: Array.from(labels),
+              });
+            }

@@ -1,5 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Run lint-staged
+# Lint-staged
 npx lint-staged
+
+# No secrets check (optional - requires secrets scanning tool)
+# pnpm run secrets:scan --staged
