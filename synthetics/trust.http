@@ -1,0 +1,58 @@
+###
+# ORCA Trust Score Synthetic Monitor
+# Validates trust score calculation and thresholds
+###
+
+### Get Trust Score
+GET {{baseUrl}}/api/trust
+Content-Type: application/json
+
+> {%
+    client.test("Trust endpoint returns 200", function() {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+
+    client.test("Response time under 500ms", function() {
+        client.assert(response.responseTime < 500, "Response time: " + response.responseTime + "ms");
+    });
+
+    client.test("Trust score is valid", function() {
+        client.assert(response.body.hasOwnProperty("trustScore"), "Missing trustScore");
+        const ts = response.body.trustScore;
+        client.assert(ts >= 0 && ts <= 100, "Trust score out of range: " + ts);
+    });
+
+    client.test("KPIs are present", function() {
+        client.assert(response.body.hasOwnProperty("riskAvoided"), "Missing riskAvoided");
+        client.assert(response.body.hasOwnProperty("syncFreshness"), "Missing syncFreshness");
+        client.assert(response.body.hasOwnProperty("driftRate"), "Missing driftRate");
+    });
+
+    client.test("Trust score meets minimum threshold", function() {
+        const minThreshold = 70;
+        client.assert(response.body.trustScore >= minThreshold, 
+            "Trust score below threshold: " + response.body.trustScore);
+    });
+%}
+
+### Get Sync Status
+GET {{baseUrl}}/api/sync/status
+Content-Type: application/json
+
+> {%
+    client.test("Sync status returns 200", function() {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+
+    client.test("Freshness is acceptable", function() {
+        client.assert(response.body.hasOwnProperty("freshness"), "Missing freshness");
+        // Freshness should be > 95%
+        client.assert(response.body.freshness >= 95, "Freshness below 95%: " + response.body.freshness);
+    });
+
+    client.test("Drift rate is acceptable", function() {
+        client.assert(response.body.hasOwnProperty("driftRate"), "Missing driftRate");
+        // Drift rate should be < 5%
+        client.assert(response.body.driftRate < 5, "Drift rate above 5%: " + response.body.driftRate);
+    });
+%}

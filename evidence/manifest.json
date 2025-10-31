@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "description": "ORCA Evidence Pack Manifest - declarative list of compliance artifacts",
+  "structure": {
+    "release": {
+      "description": "Release information and notes",
+      "required_files": [
+        "notes.md",
+        "tag-info.txt",
+        "commit-sha.txt",
+        "CHANGELOG.md"
+      ]
+    },
+    "tests": {
+      "description": "Test results (SLO, load, chaos, DR)",
+      "required_files": [
+        "slo-results.json",
+        "load-test.json",
+        "chaos-test.json"
+      ]
+    },
+    "security": {
+      "description": "Security scans and audits",
+      "required_files": [
+        "codeql.json",
+        "dependency-audit.json",
+        "opa-validation.txt",
+        "openapi-diff.json"
+      ]
+    },
+    "infrastructure": {
+      "description": "Infrastructure and deployment artifacts",
+      "required_files": [
+        "db-backup.json",
+        "migration-preflight.txt",
+        "deployment.json"
+      ]
+    },
+    "frontend": {
+      "description": "Frontend quality reports",
+      "required_files": [
+        "lighthouse.json",
+        "a11y.json",
+        "visual-regression.txt"
+      ]
+    },
+    "screenshots": {
+      "description": "UI screenshots for stakeholder review",
+      "required_files": [
+        "c-suite-overview.png",
+        "trust-deep-dive.png",
+        "admin-console.png"
+      ]
+    },
+    "signatures": {
+      "description": "Sign-off documentation",
+      "required_files": [
+        "GO_LIVE_SIGNATURE.md"
+      ]
+    }
+  },
+  "compliance_standards": [
+    "SOC 2 Type II",
+    "ISO 27001",
+    "GDPR",
+    "CCPA"
+  ],
+  "audit_trail": {
+    "generated_by": "evidence/generate.ts",
+    "automated": true,
+    "manual_review_required": true
+  }
+}
