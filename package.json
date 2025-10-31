@@ -20,6 +20,12 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "typecheck": "tsc --noEmit",
     "test": "echo \"Tests not yet implemented\" && exit 0",
+    "ops:forecast": "tsx reliability/forecast.ts",
+    "ops:finops": "tsx finops/recommend_actions.ts",
+    "ops:triage": "tsx feedback/src/services/TriageBotService.ts --batch",
+    "ops:insights": "tsx feedback/src/services/InsightsReportService.ts",
+    "ops:retention": "tsx audit/retention_enforcer.ts --run",
+    "ops:report": "tsx reports/monthly_health.ts",
     "test:e2e": "pnpm run e2e",
     "test:resilience": "tsx scripts/resilience_test.ts",
     "doctor": "tsx scripts/doctor.ts",
@@ -92,6 +98,7 @@
     "@opentelemetry/instrumentation": "^0.46.0",
     "@opentelemetry/instrumentation-http": "^0.46.0",
     "@opentelemetry/instrumentation-express": "^0.34.0",
+    "@supabase/supabase-js": "^2.38.4",
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "helmet": "^7.1.0",
@@ -99,7 +106,11 @@
     "js-yaml": "^4.1.0",
     "pg": "^8.11.3",
     "dotenv": "^16.3.1",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "axios": "^1.6.2",
+    "cron": "^3.1.6",
+    "openai": "^4.20.1",
+    "handlebars": "^4.7.8"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
