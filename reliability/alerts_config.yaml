@@ -1,0 +1,151 @@
+# Dynamic Alert Configuration
+# Auto-tuned based on capacity forecasting
+
+version: "1.0"
+
+# Alert routing
+routing:
+  channels:
+    - name: slack_ops
+      type: slack
+      webhook_url: ${SLACK_OPS_WEBHOOK}
+      severity_filter: ["high", "critical"]
+    
+    - name: pagerduty
+      type: pagerduty
+      integration_key: ${PAGERDUTY_KEY}
+      severity_filter: ["critical"]
+    
+    - name: email_team
+      type: email
+      recipients: ["ops@company.com"]
+      severity_filter: ["medium", "high", "critical"]
+
+# Metric thresholds (dynamically updated)
+thresholds:
+  request_rate:
+    warning: 8000
+    critical: 10000
+    auto_scale: true
+    evaluation_window: "5m"
+    
+  error_rate:
+    warning: 0.005  # 0.5%
+    critical: 0.01  # 1%
+    auto_scale: false
+    evaluation_window: "1m"
+    
+  p95_latency_ms:
+    warning: 400
+    critical: 500
+    auto_scale: true
+    evaluation_window: "5m"
+    
+  p99_latency_ms:
+    warning: 800
+    critical: 1000
+    auto_scale: true
+    evaluation_window: "5m"
+    
+  db_connections:
+    warning: 64
+    critical: 80
+    auto_scale: true
+    evaluation_window: "1m"
+    
+  db_size_gb:
+    warning: 80
+    critical: 100
+    auto_scale: true
+    evaluation_window: "1h"
+    
+  memory_usage_percent:
+    warning: 75
+    critical: 85
+    auto_scale: true
+    evaluation_window: "5m"
+    
+  cpu_usage_percent:
+    warning: 75
+    critical: 85
+    auto_scale: true
+    evaluation_window: "5m"
+
+# Alert rules
+rules:
+  - name: high_error_rate
+    condition: error_rate > thresholds.error_rate.warning
+    severity: high
+    message: "Error rate {{ $value }}% exceeds {{ $threshold }}%"
+    runbook_url: "https://docs/runbooks/high-error-rate"
+    
+  - name: critical_error_rate
+    condition: error_rate > thresholds.error_rate.critical
+    severity: critical
+    message: "CRITICAL: Error rate {{ $value }}% exceeds {{ $threshold }}%"
+    runbook_url: "https://docs/runbooks/high-error-rate"
+    
+  - name: high_latency_p95
+    condition: p95_latency_ms > thresholds.p95_latency_ms.warning
+    severity: medium
+    message: "P95 latency {{ $value }}ms exceeds {{ $threshold }}ms"
+    runbook_url: "https://docs/runbooks/high-latency"
+    
+  - name: capacity_warning
+    condition: forecast.breach_probability_30d > 0.5
+    severity: high
+    message: "Capacity warning: {{ $metric }} has {{ $probability }}% chance of breaching in 30 days"
+    runbook_url: "https://docs/runbooks/capacity-planning"
+    
+  - name: rapid_growth
+    condition: forecast.trend == 'increasing' AND forecast.forecast_30d > current * 1.5
+    severity: medium
+    message: "Rapid growth detected for {{ $metric }}: projected {{ $increase }}% increase"
+    runbook_url: "https://docs/runbooks/scaling"
+
+# Alert grouping and deduplication
+grouping:
+  enabled: true
+  group_by: ["service", "metric"]
+  group_interval: "5m"
+  repeat_interval: "1h"
+
+# Maintenance windows (alerts suppressed)
+maintenance_windows:
+  - name: weekly_maintenance
+    schedule: "0 2 * * 0"  # Every Sunday 2 AM
+    duration: "2h"
+    
+  - name: deployment_window
+    schedule: "on_demand"
+    duration: "30m"
+
+# Auto-remediation
+auto_remediation:
+  enabled: true
+  actions:
+    - trigger: high_db_connections
+      action: restart_idle_connections
+      max_retries: 3
+      
+    - trigger: high_memory_usage
+      action: clear_cache
+      max_retries: 2
+      
+    - trigger: high_cpu_usage
+      action: scale_horizontally
+      max_retries: 1
+
+# Escalation policy
+escalation:
+  - level: 1
+    wait: "5m"
+    notify: ["slack_ops"]
+    
+  - level: 2
+    wait: "15m"
+    notify: ["slack_ops", "email_team"]
+    
+  - level: 3
+    wait: "30m"
+    notify: ["pagerduty", "email_team"]
