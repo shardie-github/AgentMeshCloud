@@ -1,0 +1,75 @@
+name: Accessibility Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  a11y:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build
+        run: pnpm run build
+        env:
+          PRISMA_CLIENT_ENGINE_TYPE: wasm
+
+      - name: Start server
+        run: pnpm run start &
+        env:
+          PORT: 3000
+          NODE_ENV: test
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000/health --timeout 60000
+
+      - name: Run Axe accessibility tests
+        run: pnpm exec playwright test tests/a11y/*.spec.ts
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-test-results
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Comment PR with A11y Results
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚨 **Accessibility issues detected!**\n\nPlease review the test results and fix WCAG 2.2 AA violations.\n\n[View Report](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+            });

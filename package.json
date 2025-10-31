@@ -24,7 +24,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"Tests not yet implemented\" && exit 0",
+    "test": "vitest run",
+    "test:ci": "vitest run --coverage",
+    "test:watch": "vitest watch",
+    "test:ui": "vitest --ui",
     "align:scan": "tsx alignment/inventory_scan.ts && tsx alignment/wiring_check.ts && tsx alignment/generate_report.ts",
     "catalog:gen": "tsx scripts/generate_catalogs.ts",
     "catalog:check": "git diff --exit-code catalog || (echo 'Catalog drift detected. Run npm run catalog:gen' && exit 1)",
@@ -168,7 +171,11 @@
     "playwright": "^1.40.0",
     "k6": "^0.0.0",
     "husky": "^8.0.3",
-    "lint-staged": "^15.2.0"
+    "lint-staged": "^15.2.0",
+    "vitest": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "@axe-core/playwright": "^4.8.0",
+    "lighthouse": "^11.0.0"
   },
   "engines": {
     "node": ">=20 <21",
