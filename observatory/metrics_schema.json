@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Repository Metrics",
+  "description": "Schema for repository health and quality metrics",
+  "type": "object",
+  "required": ["timestamp", "codeMetrics", "qualityMetrics", "projectMetrics", "dependencyMetrics"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when metrics were collected"
+    },
+    "codeMetrics": {
+      "type": "object",
+      "description": "Source code statistics",
+      "required": ["totalLOC", "productionLOC", "testLOC", "commentLines", "blankLines", "fileCount"],
+      "properties": {
+        "totalLOC": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total lines of code (excluding comments and blanks)"
+        },
+        "productionLOC": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Lines of production code"
+        },
+        "testLOC": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Lines of test code"
+        },
+        "commentLines": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of comment lines"
+        },
+        "blankLines": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of blank lines"
+        },
+        "fileCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of source files"
+        }
+      }
+    },
+    "qualityMetrics": {
+      "type": "object",
+      "description": "Code quality indicators",
+      "required": ["lintErrors", "lintWarnings", "complexity", "commentCoverage"],
+      "properties": {
+        "lintErrors": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of linting errors"
+        },
+        "lintWarnings": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of linting warnings"
+        },
+        "complexity": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Average cyclomatic complexity"
+        },
+        "commentCoverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage of code with comments"
+        },
+        "testCoverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Test coverage percentage (optional)"
+        }
+      }
+    },
+    "projectMetrics": {
+      "type": "object",
+      "description": "Project management metrics",
+      "required": ["openIssues", "openPRs", "ciPassRate"],
+      "properties": {
+        "openIssues": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of open GitHub issues"
+        },
+        "openPRs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of open pull requests"
+        },
+        "ciPassRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "CI/CD success rate percentage"
+        },
+        "lastDeployment": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of last deployment (optional)"
+        }
+      }
+    },
+    "dependencyMetrics": {
+      "type": "object",
+      "description": "Dependency health metrics",
+      "required": ["totalDependencies", "outdatedCount", "vulnerableCount"],
+      "properties": {
+        "totalDependencies": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of dependencies"
+        },
+        "outdatedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of outdated dependencies"
+        },
+        "vulnerableCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of dependencies with vulnerabilities"
+        }
+      }
+    }
+  }
+}

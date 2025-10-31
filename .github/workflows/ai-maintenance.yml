@@ -1,0 +1,182 @@
+name: AI-Assisted Maintenance
+
+on:
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: '0 2 * * 1' # Monday 2 AM
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  ai-lint:
+    name: AI Lint & Refactor Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run AI Lint
+        run: npm run ai:lint --if-present || echo "ai:lint not configured"
+        continue-on-error: true
+
+      - name: Detect Dead Code
+        run: npm run ai:dead-code --if-present || echo "ai:dead-code not configured"
+        continue-on-error: true
+
+      - name: Summarize Diff (PRs only)
+        if: github.event_name == 'pull_request'
+        run: npm run ai:summarize --if-present || echo "ai:summarize not configured"
+        continue-on-error: true
+
+      - name: Upload AI Lint Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-lint-report
+          path: |
+            AI_LINT_REPORT.md
+            DEAD_CODE_REPORT.md
+            PR_SUMMARY.md
+          if-no-files-found: ignore
+
+  comment-coverage:
+    name: Comment Coverage Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check Comment Coverage
+        run: npm run comment:check --if-present || echo "comment:check not configured"
+        continue-on-error: true
+
+      - name: Upload Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: comment-coverage-report
+          path: COMMENT_COVERAGE_REPORT.md
+          if-no-files-found: ignore
+
+  env-sync:
+    name: Environment Sync Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check Environment Sync
+        run: npm run env:sync --if-present || echo "env:sync not configured"
+        env:
+          # Only validate structure, don't expose secrets
+          SKIP_REMOTE_CHECK: 'true'
+        continue-on-error: true
+
+      - name: Upload Sync Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: env-sync-report
+          path: ENV_SYNC_REPORT.md
+          if-no-files-found: ignore
+
+  generate-report:
+    name: Generate Maintenance Report
+    needs: [ai-lint, comment-coverage, env-sync]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Combine Reports
+        run: |
+          echo "# 🤖 AI-Assisted Maintenance Report" > AI_MAINTENANCE_REPORT.md
+          echo "" >> AI_MAINTENANCE_REPORT.md
+          echo "> Generated: $(date)" >> AI_MAINTENANCE_REPORT.md
+          echo "" >> AI_MAINTENANCE_REPORT.md
+          
+          # Add AI Lint Report
+          if [ -f "artifacts/ai-lint-report/AI_LINT_REPORT.md" ]; then
+            echo "## 🎯 AI Lint Results" >> AI_MAINTENANCE_REPORT.md
+            cat "artifacts/ai-lint-report/AI_LINT_REPORT.md" >> AI_MAINTENANCE_REPORT.md
+            echo "" >> AI_MAINTENANCE_REPORT.md
+          fi
+          
+          # Add Dead Code Report
+          if [ -f "artifacts/ai-lint-report/DEAD_CODE_REPORT.md" ]; then
+            echo "## 🗑️ Dead Code Detection" >> AI_MAINTENANCE_REPORT.md
+            cat "artifacts/ai-lint-report/DEAD_CODE_REPORT.md" >> AI_MAINTENANCE_REPORT.md
+            echo "" >> AI_MAINTENANCE_REPORT.md
+          fi
+          
+          # Add Comment Coverage
+          if [ -f "artifacts/comment-coverage-report/COMMENT_COVERAGE_REPORT.md" ]; then
+            echo "## 📚 Comment Coverage" >> AI_MAINTENANCE_REPORT.md
+            cat "artifacts/comment-coverage-report/COMMENT_COVERAGE_REPORT.md" >> AI_MAINTENANCE_REPORT.md
+            echo "" >> AI_MAINTENANCE_REPORT.md
+          fi
+          
+          # Add Env Sync
+          if [ -f "artifacts/env-sync-report/ENV_SYNC_REPORT.md" ]; then
+            echo "## 🔄 Environment Sync" >> AI_MAINTENANCE_REPORT.md
+            cat "artifacts/env-sync-report/ENV_SYNC_REPORT.md" >> AI_MAINTENANCE_REPORT.md
+            echo "" >> AI_MAINTENANCE_REPORT.md
+          fi
+
+      - name: Upload Combined Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-maintenance-report
+          path: AI_MAINTENANCE_REPORT.md
+          retention-days: 30
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request' && hashFiles('artifacts/ai-lint-report/PR_SUMMARY.md') != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('artifacts/ai-lint-report/PR_SUMMARY.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🤖 AI-Generated PR Summary\n\n${summary}`
+            });
