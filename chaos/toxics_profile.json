@@ -1,0 +1,151 @@
+{
+  "name": "orca-chaos-profile",
+  "description": "Chaos engineering toxics for API ↔ DB resilience testing",
+  "version": "1.0.0",
+  
+  "proxies": [
+    {
+      "name": "database-proxy",
+      "listen": "localhost:5433",
+      "upstream": "localhost:5432",
+      "enabled": true,
+      "toxics": [
+        {
+          "name": "db-latency",
+          "type": "latency",
+          "stream": "downstream",
+          "toxicity": 0.5,
+          "attributes": {
+            "latency": 1000,
+            "jitter": 500
+          }
+        },
+        {
+          "name": "db-slow-close",
+          "type": "slicer",
+          "stream": "downstream",
+          "toxicity": 0.3,
+          "attributes": {
+            "average_size": 1024,
+            "size_variation": 512,
+            "delay": 100
+          }
+        },
+        {
+          "name": "db-timeout",
+          "type": "timeout",
+          "stream": "downstream",
+          "toxicity": 0.1,
+          "attributes": {
+            "timeout": 5000
+          }
+        }
+      ]
+    },
+    {
+      "name": "api-proxy",
+      "listen": "localhost:3001",
+      "upstream": "localhost:3000",
+      "enabled": true,
+      "toxics": [
+        {
+          "name": "api-latency",
+          "type": "latency",
+          "stream": "downstream",
+          "toxicity": 0.3,
+          "attributes": {
+            "latency": 500,
+            "jitter": 200
+          }
+        },
+        {
+          "name": "api-bandwidth-limit",
+          "type": "bandwidth",
+          "stream": "downstream",
+          "toxicity": 0.2,
+          "attributes": {
+            "rate": 100
+          }
+        },
+        {
+          "name": "api-connection-drop",
+          "type": "limit_data",
+          "stream": "downstream",
+          "toxicity": 0.05,
+          "attributes": {
+            "bytes": 1024
+          }
+        }
+      ]
+    }
+  ],
+  
+  "scenarios": [
+    {
+      "name": "database-latency-spike",
+      "description": "Simulate database slow query",
+      "duration_seconds": 60,
+      "toxics": ["db-latency"],
+      "expected_behavior": {
+        "circuit_breaker": "open",
+        "degraded_mode": true,
+        "error_rate_max": 5.0,
+        "recovery_time_max": 30
+      }
+    },
+    {
+      "name": "database-connection-loss",
+      "description": "Simulate connection pool exhaustion",
+      "duration_seconds": 30,
+      "toxics": ["db-timeout"],
+      "expected_behavior": {
+        "circuit_breaker": "open",
+        "fallback_to_cache": true,
+        "error_rate_max": 10.0,
+        "recovery_time_max": 45
+      }
+    },
+    {
+      "name": "api-network-degradation",
+      "description": "Simulate poor network conditions",
+      "duration_seconds": 120,
+      "toxics": ["api-latency", "api-bandwidth-limit"],
+      "expected_behavior": {
+        "response_time_increase": "2x",
+        "error_rate_max": 2.0,
+        "no_cascading_failures": true
+      }
+    },
+    {
+      "name": "partial-outage",
+      "description": "Simulate partial service degradation",
+      "duration_seconds": 90,
+      "toxics": ["db-slow-close", "api-connection-drop"],
+      "expected_behavior": {
+        "graceful_degradation": true,
+        "error_rate_max": 3.0,
+        "recovery_time_max": 60
+      }
+    }
+  ],
+  
+  "validation": {
+    "health_endpoint": "http://localhost:3000/health",
+    "trust_endpoint": "http://localhost:3000/api/trust",
+    "acceptable_error_rate": 5.0,
+    "max_recovery_time": 60,
+    "circuit_breaker_expected": true
+  },
+  
+  "reporting": {
+    "output_dir": "./chaos/reports",
+    "metrics": [
+      "response_time_p95",
+      "response_time_p99",
+      "error_rate",
+      "circuit_breaker_state",
+      "cache_hit_rate",
+      "recovery_time"
+    ]
+  }
+}

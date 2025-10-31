@@ -1,0 +1,102 @@
+###
+# ORCA Adapter Ingest Synthetic Monitor
+# Tests webhook ingestion with sample payloads
+###
+
+@timestamp = {{$timestamp}}
+@signature = test-signature-{{$randomInt}}
+
+### Zapier Webhook Ingest
+POST {{baseUrl}}/api/adapters/zapier/webhook
+Content-Type: application/json
+X-Hook-Signature: {{signature}}
+
+{
+  "event": "task.completed",
+  "task_id": "test-{{timestamp}}",
+  "zap_id": "synthetic-monitor",
+  "timestamp": "{{$isoTimestamp}}",
+  "data": {
+    "title": "Synthetic test task",
+    "status": "completed",
+    "result": "success"
+  }
+}
+
+> {%
+    client.test("Webhook ingest returns 200 or 202", function() {
+        client.assert(response.status === 200 || response.status === 202, 
+            "Expected 200 or 202, got " + response.status);
+    });
+
+    client.test("Response time under 800ms", function() {
+        client.assert(response.responseTime < 800, "Response time: " + response.responseTime + "ms");
+    });
+
+    client.test("Response has event ID", function() {
+        client.assert(response.body.hasOwnProperty("eventId"), "Missing eventId");
+    });
+%}
+
+### Generic Adapter Ingest
+POST {{baseUrl}}/api/adapters/generic/ingest
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "source": "synthetic-monitor",
+  "timestamp": "{{$isoTimestamp}}",
+  "events": [
+    {
+      "type": "agent.heartbeat",
+      "agent_id": "test-agent-001",
+      "data": {
+        "status": "healthy",
+        "uptime": 3600
+      }
+    }
+  ]
+}
+
+> {%
+    client.test("Ingest endpoint returns 200", function() {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+
+    client.test("Events processed", function() {
+        client.assert(response.body.hasOwnProperty("processed"), "Missing processed count");
+        client.assert(response.body.processed > 0, "No events processed");
+    });
+%}
+
+### Batch Ingest (load test sample)
+POST {{baseUrl}}/api/adapters/generic/ingest
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "source": "synthetic-load-test",
+  "timestamp": "{{$isoTimestamp}}",
+  "events": [
+    {"type": "agent.heartbeat", "agent_id": "agent-001", "data": {"status": "healthy"}},
+    {"type": "agent.heartbeat", "agent_id": "agent-002", "data": {"status": "healthy"}},
+    {"type": "agent.heartbeat", "agent_id": "agent-003", "data": {"status": "healthy"}},
+    {"type": "workflow.completed", "workflow_id": "wf-001", "data": {"duration_ms": 1234}},
+    {"type": "workflow.completed", "workflow_id": "wf-002", "data": {"duration_ms": 2345}}
+  ]
+}
+
+> {%
+    client.test("Batch ingest successful", function() {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+
+    client.test("All events processed", function() {
+        client.assert(response.body.processed === 5, "Expected 5 events processed");
+    });
+
+    client.test("No errors", function() {
+        client.assert(response.body.errors === 0 || !response.body.hasOwnProperty("errors"), 
+            "Should have no errors");
+    });
+%}

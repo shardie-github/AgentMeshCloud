@@ -1,0 +1,229 @@
+# ORCA SLO Manifest
+# 
+# Service Level Objectives for all critical endpoints
+# Used by canary deployments and monitoring systems
+
+version: "1.0"
+
+global_targets:
+  p95_latency_ms: 500
+  p99_latency_ms: 1000
+  error_rate_percent: 1.0
+  uptime_percent: 99.9
+  freshness_hours: 24
+  drift_rate_percent: 5.0
+
+slos:
+  # Health & Status Endpoints
+  - name: health_check
+    endpoint: GET /health
+    targets:
+      p95_latency_ms: 100
+      p99_latency_ms: 200
+      error_rate_percent: 0.1
+      uptime_percent: 99.99
+    priority: critical
+    alerting:
+      breach_threshold: 3  # consecutive failures
+      notification_channels:
+        - slack
+        - pagerduty
+      runbook: https://docs.orca-mesh.io/runbooks/health-check
+
+  - name: status
+    endpoint: GET /status
+    targets:
+      p95_latency_ms: 200
+      p99_latency_ms: 400
+      error_rate_percent: 0.5
+      uptime_percent: 99.95
+    priority: high
+    alerting:
+      breach_threshold: 5
+      notification_channels:
+        - slack
+
+  # Trust Score Endpoints
+  - name: trust_score
+    endpoint: GET /api/trust
+    targets:
+      p95_latency_ms: 500
+      p99_latency_ms: 1000
+      error_rate_percent: 1.0
+      uptime_percent: 99.9
+      freshness_hours: 1  # Trust scores must be fresh
+    priority: critical
+    alerting:
+      breach_threshold: 3
+      notification_channels:
+        - slack
+        - email
+      runbook: https://docs.orca-mesh.io/runbooks/trust-score
+
+  - name: trust_deep_dive
+    endpoint: GET /api/trust/:id
+    targets:
+      p95_latency_ms: 800
+      p99_latency_ms: 1500
+      error_rate_percent: 2.0
+      uptime_percent: 99.5
+    priority: high
+
+  # Agent Management
+  - name: list_agents
+    endpoint: GET /api/agents
+    targets:
+      p95_latency_ms: 400
+      p99_latency_ms: 800
+      error_rate_percent: 1.0
+      uptime_percent: 99.9
+    priority: high
+
+  - name: register_agent
+    endpoint: POST /api/agents
+    targets:
+      p95_latency_ms: 600
+      p99_latency_ms: 1200
+      error_rate_percent: 2.0
+      uptime_percent: 99.5
+    priority: high
+    alerting:
+      breach_threshold: 5
+      notification_channels:
+        - slack
+
+  - name: agent_details
+    endpoint: GET /api/agents/:id
+    targets:
+      p95_latency_ms: 300
+      p99_latency_ms: 600
+      error_rate_percent: 1.0
+      uptime_percent: 99.9
+    priority: medium
+
+  # Workflow Endpoints
+  - name: list_workflows
+    endpoint: GET /api/workflows
+    targets:
+      p95_latency_ms: 500
+      p99_latency_ms: 1000
+      error_rate_percent: 1.5
+      uptime_percent: 99.5
+    priority: medium
+
+  - name: execute_workflow
+    endpoint: POST /api/workflows/:id/execute
+    targets:
+      p95_latency_ms: 2000  # Workflows can be longer
+      p99_latency_ms: 5000
+      error_rate_percent: 3.0
+      uptime_percent: 99.0
+    priority: medium
+
+  # Adapter Endpoints
+  - name: adapter_ingest
+    endpoint: POST /api/adapters/:type/ingest
+    targets:
+      p95_latency_ms: 800
+      p99_latency_ms: 1500
+      error_rate_percent: 2.0
+      uptime_percent: 99.5
+      drift_rate_percent: 3.0  # Data freshness is critical
+    priority: high
+    alerting:
+      breach_threshold: 5
+      notification_channels:
+        - slack
+      runbook: https://docs.orca-mesh.io/runbooks/adapter-ingest
+
+  - name: adapter_webhook
+    endpoint: POST /api/adapters/:type/webhook
+    targets:
+      p95_latency_ms: 500
+      p99_latency_ms: 1000
+      error_rate_percent: 1.5
+      uptime_percent: 99.9
+    priority: critical  # External webhooks are critical
+    alerting:
+      breach_threshold: 3
+      notification_channels:
+        - slack
+        - pagerduty
+
+  # Sync & Analytics
+  - name: sync_status
+    endpoint: GET /api/sync/status
+    targets:
+      p95_latency_ms: 400
+      p99_latency_ms: 800
+      error_rate_percent: 1.0
+      uptime_percent: 99.5
+      freshness_hours: 6
+    priority: medium
+
+  - name: analytics_kpis
+    endpoint: GET /api/analytics/kpis
+    targets:
+      p95_latency_ms: 1000
+      p99_latency_ms: 2000
+      error_rate_percent: 2.0
+      uptime_percent: 99.0
+      freshness_hours: 24
+    priority: low
+
+# Composite SLOs (calculated from multiple endpoints)
+composite_slos:
+  - name: overall_api_health
+    description: Aggregate health of all API endpoints
+    calculation: weighted_average
+    targets:
+      p95_latency_ms: 500
+      error_rate_percent: 1.0
+      uptime_percent: 99.9
+    priority: critical
+    alerting:
+      breach_threshold: 1
+      notification_channels:
+        - slack
+        - pagerduty
+        - email
+
+  - name: trust_pipeline_health
+    description: Health of trust score calculation pipeline
+    endpoints:
+      - trust_score
+      - sync_status
+      - analytics_kpis
+    targets:
+      freshness_hours: 1
+      drift_rate_percent: 2.0
+      error_rate_percent: 1.0
+    priority: critical
+
+# Notification channels configuration
+notification_channels:
+  slack:
+    webhook_url_env: SLACK_WEBHOOK_URL
+    default_channel: "#orca-alerts"
+    mention_on_critical: "@oncall"
+  
+  pagerduty:
+    integration_key_env: PAGERDUTY_INTEGRATION_KEY
+    severity: high
+    
+  email:
+    recipients_env: ALERT_EMAIL_RECIPIENTS
+    from: "alerts@orca-mesh.io"
+
+# Measurement configuration
+measurement:
+  window_seconds: 300  # 5-minute rolling window
+  aggregation_method: percentile
+  sample_rate: 1.0  # 100% sampling (adjust for high traffic)
+
+# Breach handling
+breach_handling:
+  canary_rollback: true  # Auto-rollback on SLO breach during canary
+  alert_immediately: true
+  escalation_delay_minutes: 15
+  auto_incident_creation: true

@@ -1,0 +1,56 @@
+###
+# ORCA Uptime Synthetic Monitor
+# Verifies core health endpoint is responding
+###
+
+### Health Check
+GET {{baseUrl}}/health
+Content-Type: application/json
+
+> {%
+    client.test("Health endpoint returns 200", function() {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+
+    client.test("Response time under 200ms", function() {
+        client.assert(response.responseTime < 200, "Response time: " + response.responseTime + "ms");
+    });
+
+    client.test("Response has status field", function() {
+        client.assert(response.body.hasOwnProperty("status"), "Missing status field");
+        client.assert(response.body.status === "ok", "Status should be 'ok'");
+    });
+%}
+
+### Status Check (detailed)
+GET {{baseUrl}}/status
+Content-Type: application/json
+
+> {%
+    client.test("Status endpoint returns 200", function() {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+
+    client.test("Has database status", function() {
+        client.assert(response.body.hasOwnProperty("database"), "Missing database status");
+        client.assert(response.body.database === "connected", "Database not connected");
+    });
+
+    client.test("Has version info", function() {
+        client.assert(response.body.hasOwnProperty("version"), "Missing version");
+    });
+
+    client.test("Uptime is positive", function() {
+        client.assert(response.body.uptime > 0, "Uptime should be positive");
+    });
+%}
+
+### API Root
+GET {{baseUrl}}/
+Content-Type: application/json
+
+> {%
+    client.test("Root endpoint accessible", function() {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+%}
