@@ -1,0 +1,330 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orca.agentmesh.dev/schemas/context-bus/v1",
+  "title": "ORCA Context Bus Message Schema",
+  "version": "1.0.0",
+  
+  "definitions": {
+    "MessageEnvelope": {
+      "type": "object",
+      "required": ["message_id", "event_type", "version", "timestamp", "tenant_id", "source", "payload"],
+      "properties": {
+        "message_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique message identifier (UUID v4)"
+        },
+        "event_type": {
+          "type": "string",
+          "pattern": "^[a-z]+\\.[a-z_]+\\.[a-z_]+$",
+          "description": "Event type in format: domain.entity.action",
+          "examples": ["agent.created", "workflow.completed", "policy.evaluated"]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+          "description": "Schema version (semantic versioning)",
+          "examples": ["1.0", "2.1.0"]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 UTC timestamp"
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Multi-tenant identifier"
+        },
+        "trace_id": {
+          "type": "string",
+          "description": "OpenTelemetry trace ID"
+        },
+        "span_id": {
+          "type": "string",
+          "description": "OpenTelemetry span ID"
+        },
+        "parent_message_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Parent message ID for chaining"
+        },
+        "correlation_id": {
+          "type": "string",
+          "description": "Business process correlation ID"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "description": "Client-provided deduplication key"
+        },
+        "source": {
+          "type": "object",
+          "required": ["service", "version"],
+          "properties": {
+            "service": {
+              "type": "string",
+              "description": "Producer service name"
+            },
+            "version": {
+              "type": "string",
+              "description": "Producer service version"
+            },
+            "instance_id": {
+              "type": "string",
+              "description": "Pod or instance identifier"
+            }
+          }
+        },
+        "classification": {
+          "type": "string",
+          "enum": ["public", "internal", "confidential", "restricted"],
+          "default": "internal"
+        },
+        "contains_pii": {
+          "type": "boolean",
+          "default": false
+        },
+        "encryption_key_id": {
+          "type": "string",
+          "description": "KMS key ID for encrypted payload"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "normal", "high", "critical"],
+          "default": "normal"
+        },
+        "ttl_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "description": "Time-to-live in seconds"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Event-specific data"
+        }
+      }
+    },
+    
+    "AgentRegisteredPayload": {
+      "type": "object",
+      "required": ["agent_id", "name", "type"],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "type": {
+          "type": "string",
+          "enum": ["chatbot", "copilot", "pipeline", "service"]
+        },
+        "vendor": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "azure", "aws", "google", "custom"]
+        },
+        "model": {
+          "type": "string"
+        },
+        "owner_id": {
+          "type": "string",
+          "pii": true
+        },
+        "compliance_tier": {
+          "type": "string",
+          "enum": ["none", "standard", "high", "critical"]
+        }
+      }
+    },
+    
+    "WorkflowCompletedPayload": {
+      "type": "object",
+      "required": ["workflow_id", "status", "started_at", "completed_at"],
+      "properties": {
+        "workflow_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "workflow_name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["success", "failed", "cancelled", "timeout"]
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "steps_completed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error_message": {
+          "type": "string"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "size_bytes": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    
+    "PolicyViolatedPayload": {
+      "type": "object",
+      "required": ["policy_id", "violation_type", "severity"],
+      "properties": {
+        "policy_id": {
+          "type": "string"
+        },
+        "policy_name": {
+          "type": "string"
+        },
+        "violation_type": {
+          "type": "string",
+          "enum": ["unauthorized_access", "data_leak", "compliance_breach", "rate_limit", "quota_exceeded"]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "agent_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "action_taken": {
+          "type": "string",
+          "enum": ["blocked", "logged", "alerted", "throttled"]
+        },
+        "details": {
+          "type": "object"
+        }
+      }
+    },
+    
+    "AnomalyDetectedPayload": {
+      "type": "object",
+      "required": ["anomaly_id", "anomaly_type", "confidence"],
+      "properties": {
+        "anomaly_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "anomaly_type": {
+          "type": "string",
+          "enum": ["drift", "latency_spike", "error_rate", "cost_spike", "unusual_pattern"]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "affected_resources": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "metrics": {
+          "type": "object"
+        },
+        "remediation_suggested": {
+          "type": "boolean"
+        }
+      }
+    },
+    
+    "ContextSharedPayload": {
+      "type": "object",
+      "required": ["context_id", "shared_by", "shared_with"],
+      "properties": {
+        "context_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shared_by": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Agent ID that shared context"
+        },
+        "shared_with": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "description": "Agent IDs receiving context"
+        },
+        "context_type": {
+          "type": "string",
+          "enum": ["knowledge", "state", "embedding", "config"]
+        },
+        "context_data": {
+          "type": "object"
+        },
+        "ttl_hours": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 720
+        }
+      }
+    }
+  },
+  
+  "oneOf": [
+    {
+      "properties": {
+        "event_type": { "const": "agent.registered" },
+        "payload": { "$ref": "#/definitions/AgentRegisteredPayload" }
+      }
+    },
+    {
+      "properties": {
+        "event_type": { "const": "workflow.completed" },
+        "payload": { "$ref": "#/definitions/WorkflowCompletedPayload" }
+      }
+    },
+    {
+      "properties": {
+        "event_type": { "const": "policy.violated" },
+        "payload": { "$ref": "#/definitions/PolicyViolatedPayload" }
+      }
+    },
+    {
+      "properties": {
+        "event_type": { "const": "anomaly.detected" },
+        "payload": { "$ref": "#/definitions/AnomalyDetectedPayload" }
+      }
+    },
+    {
+      "properties": {
+        "event_type": { "const": "context.shared" },
+        "payload": { "$ref": "#/definitions/ContextSharedPayload" }
+      }
+    }
+  ]
+}

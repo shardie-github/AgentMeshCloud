@@ -1,0 +1,182 @@
+{
+  "version": "1.0",
+  "checklist": [
+    {
+      "id": "create_account",
+      "title": "Create Account",
+      "description": "Sign up and verify your email",
+      "category": "setup",
+      "required": true,
+      "estimated_minutes": 2,
+      "completed_by_default": true,
+      "action": null
+    },
+    {
+      "id": "connect_first_agent",
+      "title": "Connect Your First Agent",
+      "description": "Register an AI agent with ORCA (OpenAI, Anthropic, Azure, etc.)",
+      "category": "setup",
+      "required": true,
+      "estimated_minutes": 3,
+      "action": {
+        "type": "navigate",
+        "route": "/agents/new"
+      },
+      "help_url": "/docs/quickstart/connect-agent"
+    },
+    {
+      "id": "configure_trust_baseline",
+      "title": "Set Trust Baseline",
+      "description": "Configure initial trust scoring parameters for your organization",
+      "category": "configuration",
+      "required": true,
+      "estimated_minutes": 2,
+      "action": {
+        "type": "navigate",
+        "route": "/settings/trust"
+      },
+      "help_url": "/docs/trust-scoring/baseline"
+    },
+    {
+      "id": "attach_policy",
+      "title": "Attach a Policy",
+      "description": "Apply a governance policy to your agent (RBAC, privacy, quotas)",
+      "category": "configuration",
+      "required": true,
+      "estimated_minutes": 3,
+      "action": {
+        "type": "navigate",
+        "route": "/policies"
+      },
+      "help_url": "/docs/policies/getting-started"
+    },
+    {
+      "id": "setup_webhook",
+      "title": "Connect Webhook Adapter",
+      "description": "Integrate with Zapier, n8n, or custom webhooks (optional)",
+      "category": "integration",
+      "required": false,
+      "estimated_minutes": 5,
+      "action": {
+        "type": "navigate",
+        "route": "/integrations/webhooks"
+      },
+      "help_url": "/docs/adapters/webhooks"
+    },
+    {
+      "id": "invite_team",
+      "title": "Invite Team Members",
+      "description": "Add collaborators to your workspace",
+      "category": "collaboration",
+      "required": false,
+      "estimated_minutes": 2,
+      "action": {
+        "type": "navigate",
+        "route": "/settings/team"
+      },
+      "help_url": "/docs/collaboration/invites"
+    },
+    {
+      "id": "view_dashboard",
+      "title": "View Trust Dashboard",
+      "description": "See your first trust metrics and KPIs",
+      "category": "verification",
+      "required": true,
+      "estimated_minutes": 1,
+      "action": {
+        "type": "navigate",
+        "route": "/dashboard"
+      },
+      "depends_on": ["connect_first_agent", "configure_trust_baseline"]
+    },
+    {
+      "id": "test_api",
+      "title": "Test API Integration",
+      "description": "Make your first API call to validate integration",
+      "category": "verification",
+      "required": false,
+      "estimated_minutes": 3,
+      "action": {
+        "type": "modal",
+        "component": "ApiTestModal"
+      },
+      "help_url": "/docs/api/quickstart"
+    },
+    {
+      "id": "setup_alerts",
+      "title": "Configure Alerts",
+      "description": "Set up notifications for policy violations and anomalies",
+      "category": "monitoring",
+      "required": false,
+      "estimated_minutes": 3,
+      "action": {
+        "type": "navigate",
+        "route": "/settings/alerts"
+      },
+      "help_url": "/docs/monitoring/alerts"
+    },
+    {
+      "id": "review_roi",
+      "title": "Review ROI Estimates",
+      "description": "See projected value from ORCA platform",
+      "category": "business_value",
+      "required": false,
+      "estimated_minutes": 2,
+      "action": {
+        "type": "navigate",
+        "route": "/reports/roi"
+      },
+      "depends_on": ["view_dashboard"]
+    }
+  ],
+  "categories": [
+    {
+      "id": "setup",
+      "name": "Initial Setup",
+      "description": "Get your account and first agent configured",
+      "order": 1
+    },
+    {
+      "id": "configuration",
+      "name": "Configuration",
+      "description": "Customize settings for your organization",
+      "order": 2
+    },
+    {
+      "id": "integration",
+      "name": "Integrations",
+      "description": "Connect external systems and workflows",
+      "order": 3
+    },
+    {
+      "id": "collaboration",
+      "name": "Collaboration",
+      "description": "Invite your team",
+      "order": 4
+    },
+    {
+      "id": "verification",
+      "name": "Verification",
+      "description": "Validate everything is working",
+      "order": 5
+    },
+    {
+      "id": "monitoring",
+      "name": "Monitoring",
+      "description": "Set up observability and alerts",
+      "order": 6
+    },
+    {
+      "id": "business_value",
+      "name": "Business Value",
+      "description": "Understand ROI and impact",
+      "order": 7
+    }
+  ],
+  "completion_reward": {
+    "badge": "Onboarded",
+    "credits": 100,
+    "message": "🎉 Congratulations! You've completed onboarding and are ready to harness the full power of ORCA AgentMesh."
+  },
+  "estimated_total_minutes": 26
+}

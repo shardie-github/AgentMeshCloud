@@ -1,0 +1,284 @@
+# Ownership Map
+# CODEOWNERS-like mapping per module
+# Format: module_pattern: owner(s)
+
+version: "1.0"
+updated_at: "2025-10-31"
+
+ownership:
+  # Core API
+  src/api/**:
+    owner: "@platform-team"
+    backup: "@backend-team"
+    domain: "API & Routes"
+    
+  src/api/routes/agents.*:
+    owner: "@agent-team"
+    domain: "Agent Management"
+    
+  src/api/routes/trust.*:
+    owner: "@trust-team"
+    domain: "Trust Scoring & KPIs"
+    
+  src/api/routes/workflows.*:
+    owner: "@workflow-team"
+    domain: "Workflow Orchestration"
+
+  # Registry & Discovery
+  src/registry/**:
+    owner: "@agent-team"
+    backup: "@platform-team"
+    domain: "Agent Registry"
+    
+  src/uadsi/**:
+    owner: "@trust-team"
+    backup: "@data-team"
+    domain: "Trust Scoring & Analytics"
+
+  # Telemetry & Observability
+  src/telemetry/**:
+    owner: "@observability-team"
+    backup: "@platform-team"
+    domain: "Telemetry & Monitoring"
+    
+  observability/**:
+    owner: "@observability-team"
+    domain: "Observability Infrastructure"
+
+  # Security & Policy
+  src/security/**:
+    owner: "@security-team"
+    domain: "Security & Auth"
+    
+  src/policy/**:
+    owner: "@security-team"
+    backup: "@compliance-team"
+    domain: "Policy Enforcement"
+    
+  security/**:
+    owner: "@security-team"
+    domain: "Security Policies & OPA"
+
+  # Context Bus & Integration
+  src/context-bus/**:
+    owner: "@integration-team"
+    backup: "@platform-team"
+    domain: "Context Bus & Federation"
+    
+  src/adapters/**:
+    owner: "@integration-team"
+    domain: "External Adapters"
+
+  # Billing & Plans
+  src/billing/**:
+    owner: "@revenue-team"
+    backup: "@backend-team"
+    domain: "Billing & Subscriptions"
+    
+  billing/**:
+    owner: "@revenue-team"
+    domain: "Billing Infrastructure"
+
+  # AI Operations
+  aiops/**:
+    owner: "@aiops-team"
+    backup: "@ml-team"
+    domain: "AI-Driven Operations"
+    
+  ai_ops/**:
+    owner: "@aiops-team"
+    domain: "AI-Ops Integration"
+
+  # FinOps
+  finops/**:
+    owner: "@finops-team"
+    backup: "@platform-team"
+    domain: "Financial Operations"
+
+  # Database
+  supabase/migrations/**:
+    owner: "@data-team"
+    backup: "@backend-team"
+    domain: "Database Migrations"
+    
+  prisma/**:
+    owner: "@data-team"
+    domain: "Prisma ORM"
+
+  # Frontend
+  apps/**:
+    owner: "@frontend-team"
+    domain: "Frontend Applications"
+    
+  ui-tests/**:
+    owner: "@frontend-team"
+    backup: "@qa-team"
+    domain: "UI Tests"
+
+  # Infrastructure & DevOps
+  deploy/**:
+    owner: "@devops-team"
+    domain: "Deployment Scripts"
+    
+  scripts/**:
+    owner: "@platform-team"
+    backup: "@devops-team"
+    domain: "Utility Scripts"
+    
+  .github/workflows/**:
+    owner: "@devops-team"
+    domain: "CI/CD Pipelines"
+
+  # Compliance & Audit
+  compliance/**:
+    owner: "@compliance-team"
+    backup: "@security-team"
+    domain: "Compliance & Regulations"
+    
+  audit/**:
+    owner: "@compliance-team"
+    domain: "Audit & Retention"
+
+  # Documentation
+  docs/**:
+    owner: "@docs-team"
+    backup: "@platform-team"
+    domain: "Documentation"
+    
+  "*.md":
+    owner: "@docs-team"
+    domain: "Documentation"
+
+  # Catalogs & Alignment
+  catalog/**:
+    owner: "@platform-team"
+    domain: "Schema & Contract Catalogs"
+    
+  alignment/**:
+    owner: "@platform-team"
+    domain: "System Alignment Tools"
+    
+  kpi/**:
+    owner: "@trust-team"
+    backup: "@data-team"
+    domain: "KPI & ROI Registry"
+
+  # Contracts & SDKs
+  contracts/**:
+    owner: "@platform-team"
+    backup: "@qa-team"
+    domain: "Contract Tests"
+    
+  sdks/**:
+    owner: "@platform-team"
+    backup: "@integration-team"
+    domain: "Client SDKs"
+
+  # Tests
+  tests/**:
+    owner: "@qa-team"
+    backup: "@platform-team"
+    domain: "Integration Tests"
+    
+  "**/*.test.ts":
+    owner: "@qa-team"
+    domain: "Unit Tests"
+    
+  "**/*.spec.ts":
+    owner: "@qa-team"
+    domain: "Spec Tests"
+
+# Team Definitions
+teams:
+  platform-team:
+    lead: "platform-lead@orca.dev"
+    members:
+      - "platform-eng-1@orca.dev"
+      - "platform-eng-2@orca.dev"
+    slack: "#platform"
+    
+  backend-team:
+    lead: "backend-lead@orca.dev"
+    slack: "#backend"
+    
+  frontend-team:
+    lead: "frontend-lead@orca.dev"
+    slack: "#frontend"
+    
+  security-team:
+    lead: "security-lead@orca.dev"
+    slack: "#security"
+    
+  trust-team:
+    lead: "trust-lead@orca.dev"
+    slack: "#trust-scoring"
+    
+  agent-team:
+    lead: "agent-lead@orca.dev"
+    slack: "#agents"
+    
+  integration-team:
+    lead: "integration-lead@orca.dev"
+    slack: "#integrations"
+    
+  observability-team:
+    lead: "observability-lead@orca.dev"
+    slack: "#observability"
+    
+  devops-team:
+    lead: "devops-lead@orca.dev"
+    slack: "#devops"
+    
+  qa-team:
+    lead: "qa-lead@orca.dev"
+    slack: "#qa"
+    
+  compliance-team:
+    lead: "compliance-lead@orca.dev"
+    slack: "#compliance"
+    
+  data-team:
+    lead: "data-lead@orca.dev"
+    slack: "#data-eng"
+    
+  docs-team:
+    lead: "docs-lead@orca.dev"
+    slack: "#documentation"
+    
+  revenue-team:
+    lead: "revenue-lead@orca.dev"
+    slack: "#revenue"
+    
+  aiops-team:
+    lead: "aiops-lead@orca.dev"
+    slack: "#ai-ops"
+    
+  finops-team:
+    lead: "finops-lead@orca.dev"
+    slack: "#fin-ops"
+    
+  ml-team:
+    lead: "ml-lead@orca.dev"
+    slack: "#machine-learning"
+    
+  workflow-team:
+    lead: "workflow-lead@orca.dev"
+    slack: "#workflows"
+
+# Escalation Policy
+escalation:
+  - level: 1
+    contact: "team-lead"
+    response_time: "2 hours"
+    
+  - level: 2
+    contact: "backup-team"
+    response_time: "4 hours"
+    
+  - level: 3
+    contact: "platform-lead@orca.dev"
+    response_time: "8 hours"
+    
+  - level: 4
+    contact: "engineering-director@orca.dev"
+    response_time: "24 hours"
