@@ -1,0 +1,135 @@
+name: Repository Observatory
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # Every Monday at 3 AM
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  collect-metrics:
+    name: Collect Repository Metrics
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Collect Metrics
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run observatory:collect --if-present || npx tsx observatory/repo_metrics.ts
+
+      - name: Generate Trend Report
+        run: npm run observatory:trends --if-present || npx tsx observatory/generate_trend_report.ts
+        continue-on-error: true
+
+      - name: Upload Metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: observatory-metrics
+          path: |
+            observatory/metrics_*.json
+            observatory/trend_report.md
+          retention-days: 365
+
+      - name: Commit Metrics (if on main)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add observatory/metrics_*.json observatory/trend_report.md || true
+          git commit -m "chore: update repository metrics [skip ci]" || echo "No changes to commit"
+          git push || echo "Nothing to push"
+
+  health-check:
+    name: Repository Health Check
+    needs: collect-metrics
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: observatory-metrics
+          path: observatory
+
+      - name: Analyze Health Score
+        run: |
+          echo "# 🏥 Repository Health Report" > HEALTH_REPORT.md
+          echo "" >> HEALTH_REPORT.md
+          
+          if [ -f "observatory/trend_report.md" ]; then
+            cat observatory/trend_report.md >> HEALTH_REPORT.md
+          else
+            echo "Metrics collected successfully. Run again next week for trends." >> HEALTH_REPORT.md
+          fi
+
+      - name: Upload Health Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report
+          path: HEALTH_REPORT.md
+
+      - name: Create Issue on Low Health Score
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # This is a placeholder - actual health score checking would go here
+          echo "Health check complete"
+
+  visualize-metrics:
+    name: Visualize Trends
+    needs: collect-metrics
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: observatory-metrics
+          path: observatory
+
+      - name: Generate Visualization
+        run: |
+          echo "# 📊 Metrics Dashboard" > METRICS_DASHBOARD.md
+          echo "" >> METRICS_DASHBOARD.md
+          echo "## Latest Metrics" >> METRICS_DASHBOARD.md
+          echo "" >> METRICS_DASHBOARD.md
+          
+          # Extract key metrics from latest JSON
+          if [ -f "observatory/metrics_latest.json" ]; then
+            echo "\`\`\`json" >> METRICS_DASHBOARD.md
+            cat observatory/metrics_latest.json | head -50 >> METRICS_DASHBOARD.md
+            echo "\`\`\`" >> METRICS_DASHBOARD.md
+          fi
+          
+          echo "" >> METRICS_DASHBOARD.md
+          echo "## Trends" >> METRICS_DASHBOARD.md
+          echo "" >> METRICS_DASHBOARD.md
+          
+          if [ -f "observatory/trend_report.md" ]; then
+            cat observatory/trend_report.md >> METRICS_DASHBOARD.md
+          fi
+
+      - name: Upload Dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-dashboard
+          path: METRICS_DASHBOARD.md
