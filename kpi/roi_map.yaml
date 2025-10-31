@@ -1,0 +1,184 @@
+# ROI Map - KPI to Dollar Translation
+# Maps each KPI to its financial impact
+
+version: "1.0"
+updated_at: "2025-10-31"
+
+# KPI → ROI Impact Categories
+impact_categories:
+  revenue_protection:
+    description: "Revenue protected or enabled"
+    kpis:
+      - trust_score
+      - agent_availability_pct
+      - api_p95_latency_ms
+    color: "#10B981"  # Green
+    icon: "💰"
+    
+  cost_avoidance:
+    description: "Costs avoided through prevention"
+    kpis:
+      - risk_avoided_usd
+      - drift_rate_pct
+      - cost_per_transaction
+    color: "#3B82F6"  # Blue
+    icon: "💵"
+    
+  operational_efficiency:
+    description: "Time and resources saved"
+    kpis:
+      - sync_freshness_pct
+      - mttr_minutes
+    color: "#8B5CF6"  # Purple
+    icon: "⚡"
+    
+  risk_mitigation:
+    description: "Security and compliance risks reduced"
+    kpis:
+      - compliance_sla_pct
+      - policy_coverage_pct
+    color: "#EF4444"  # Red
+    icon: "🛡️"
+
+# Specific KPI → $ Mappings
+mappings:
+  trust_score:
+    impact_type: "revenue_protection"
+    formula: "(trust_score / 100) * revenue_at_risk * 0.1"
+    explanation: "Each 1% improvement in trust score protects 0.1% of at-risk revenue"
+    example:
+      trust_score: 85
+      revenue_at_risk: 1000000
+      result: 85000
+      
+  risk_avoided_usd:
+    impact_type: "cost_avoidance"
+    formula: "risk_avoided_usd"
+    explanation: "Direct monetary value of prevented incidents"
+    example:
+      prevented_incidents: 5
+      avg_incident_cost: 15000
+      result: 75000
+      
+  sync_freshness_pct:
+    impact_type: "operational_efficiency"
+    formula: "(sync_freshness_pct / 100) * labor_hours_saved * hourly_rate"
+    explanation: "Value of time saved through automated synchronization"
+    example:
+      sync_freshness_pct: 95
+      labor_hours_saved: 160
+      hourly_rate: 150
+      result: 22800
+      
+  drift_rate_pct:
+    impact_type: "cost_avoidance"
+    formula: "(1 - drift_rate_pct / 100) * downtime_cost_avoided"
+    explanation: "Lower drift reduces potential downtime incidents"
+    example:
+      drift_rate_pct: 5
+      downtime_cost_avoided: 50000
+      result: 47500
+      
+  compliance_sla_pct:
+    impact_type: "risk_mitigation"
+    formula: "(compliance_sla_pct / 100) * compliance_penalty_risk"
+    explanation: "Meeting compliance SLAs avoids regulatory penalties"
+    example:
+      compliance_sla_pct: 99
+      compliance_penalty_risk: 250000
+      result: 247500
+      
+  mttr_minutes:
+    impact_type: "operational_efficiency"
+    formula: "((baseline_mttr - mttr_minutes) / baseline_mttr) * incident_cost_reduction"
+    explanation: "Faster remediation reduces incident impact"
+    baseline_mttr: 60
+    example:
+      mttr_minutes: 15
+      baseline_mttr: 60
+      incident_cost_reduction: 75000
+      result: 56250
+      
+  policy_coverage_pct:
+    impact_type: "risk_mitigation"
+    formula: "(policy_coverage_pct / 100) * breach_risk"
+    explanation: "Complete policy coverage prevents security breaches"
+    example:
+      policy_coverage_pct: 100
+      breach_risk: 500000
+      result: 500000
+      
+  agent_availability_pct:
+    impact_type: "revenue_protection"
+    formula: "(agent_availability_pct / 100) * revenue_per_month"
+    explanation: "High availability ensures revenue continuity"
+    example:
+      agent_availability_pct: 99.9
+      revenue_per_month: 500000
+      result: 499500
+      
+  api_p95_latency_ms:
+    impact_type: "revenue_protection"
+    formula: "((1000 - api_p95_latency_ms) / 1000) * customer_retention_value"
+    explanation: "Faster APIs improve customer retention"
+    baseline_acceptable_latency: 1000
+    example:
+      api_p95_latency_ms: 500
+      customer_retention_value: 50000
+      result: 25000
+      
+  cost_per_transaction:
+    impact_type: "cost_avoidance"
+    formula: "(baseline_cost - cost_per_transaction) * monthly_transactions"
+    explanation: "Lower per-transaction cost is direct savings"
+    baseline_cost: 0.020
+    example:
+      cost_per_transaction: 0.005
+      baseline_cost: 0.020
+      monthly_transactions: 1000000
+      result: 15000
+
+# Aggregation Rules
+aggregation:
+  total_monthly_roi:
+    description: "Sum of all KPI impacts"
+    formula: "SUM(all_kpi_impacts)"
+    
+  annualized_roi:
+    description: "Projected annual ROI"
+    formula: "total_monthly_roi * 12"
+    
+  roi_by_category:
+    description: "ROI grouped by impact category"
+    categories:
+      - revenue_protection
+      - cost_avoidance
+      - operational_efficiency
+      - risk_mitigation
+
+# Dashboard Display Rules
+display:
+  primary_kpis:
+    - trust_score
+    - risk_avoided_usd
+    - mttr_minutes
+    - compliance_sla_pct
+    
+  show_trend: true
+  show_delta: true
+  show_target_line: true
+  
+  format_rules:
+    currency:
+      - risk_avoided_usd
+      - cost_per_transaction
+    percentage:
+      - trust_score
+      - sync_freshness_pct
+      - drift_rate_pct
+      - compliance_sla_pct
+      - policy_coverage_pct
+      - agent_availability_pct
+    duration:
+      - mttr_minutes
+      - api_p95_latency_ms

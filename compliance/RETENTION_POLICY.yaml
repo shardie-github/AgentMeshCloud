@@ -1,327 +1,226 @@
 # Data Retention Policy
-# Defines retention periods for all data categories in ORCA Platform
-# Compliance: GDPR Article 5(1)(e) - Storage limitation principle
+# Aligned with catalogs, privacy requirements, and compliance standards
 
-version: '1.0'
-last_updated: '2025-10-30'
-next_review: '2026-04-30'
+version: "1.0"
+updated_at: "2025-10-31"
+compliance_frameworks:
+  - GDPR
+  - SOC2
+  - HIPAA
+  - CCPA
 
 # Global defaults
 defaults:
-  active_retention: 90d  # While account active
-  post_deletion_grace: 30d  # After user-initiated deletion
-  backup_retention: 90d  # Backups older than this are purged
-  audit_retention: 7y  # Legal requirement for audit trails
+  soft_delete: true
+  backup_before_delete: true
+  audit_deletions: true
+  allow_manual_purge: false  # Requires approval
 
-# Data categories and specific retention rules
-categories:
-  
-  # Identity and Authentication
-  authentication:
-    - data: user_email
-      retention: account_lifetime + 30d
-      legal_basis: Contract / Consent
-      deletion_method: hard_delete
-      exceptions:
-        - reason: Legal hold (dispute)
-          retention: dispute_resolution + 1y
-      
-    - data: user_password_hash
-      retention: account_lifetime + 7d
-      legal_basis: Consent
-      deletion_method: overwrite_zeros
-      notes: Minimal retention for SSO migration support
-      
-    - data: session_tokens
-      retention: 1h (access) / 30d (refresh)
-      legal_basis: Legitimate Interest
-      deletion_method: auto_expire
-      
-    - data: api_keys
-      retention: until_revoked + 90d
-      legal_basis: Contract
-      deletion_method: hard_delete
-      notes: 90d retention for audit trail
-      
-    - data: oauth_tokens
-      retention: until_revoked
-      legal_basis: Consent
-      deletion_method: revoke_and_delete
-  
-  # Operational Data
-  operational:
-    - data: workflow_definitions
-      retention: 3y_after_deletion
-      legal_basis: Contract
-      deletion_method: soft_delete_then_hard
-      soft_delete_period: 30d
-      notes: Allow recovery from accidental deletion
-      
-    - data: workflow_execution_logs
-      retention: 90d
-      legal_basis: Contract
-      deletion_method: rolling_deletion
-      exceptions:
-        - reason: Error logs
-          retention: 1y
-      
-    - data: agent_registry_entries
-      retention: 3y_after_deletion
-      legal_basis: Contract
-      deletion_method: soft_delete_then_hard
-      soft_delete_period: 30d
-      
-    - data: uadsi_reports
-      retention: 7y
-      legal_basis: Contract / Legal Obligation
-      deletion_method: archive_then_delete
-      archive_after: 1y
-      notes: Audit and compliance requirement
-      
-    - data: webhooks_payloads
-      retention: 30d
-      legal_basis: Contract
-      deletion_method: rolling_deletion
-      notes: Debugging and retry support
-      
-  # Audit and Compliance
-  audit:
-    - data: audit_logs
-      retention: 7y
-      legal_basis: Legal Obligation
-      deletion_method: archive_then_delete
-      archive_after: 2y
-      immutable: true
-      notes: Compliance with SOX, GDPR Article 30
-      
-    - data: access_logs
-      retention: 1y
-      legal_basis: Legitimate Interest (security)
-      deletion_method: rolling_deletion
-      pii_redaction: after_90d
-      
-    - data: security_events
-      retention: 2y
-      legal_basis: Legal Obligation
-      deletion_method: archive_then_delete
-      archive_after: 6mo
-      
-  # Analytics and Telemetry
-  analytics:
-    - data: usage_metrics
-      retention: 2y
-      legal_basis: Legitimate Interest
-      deletion_method: aggregation_then_delete
-      aggregation_period: 30d
-      notes: Raw data aggregated to hourly/daily summaries
-      
-    - data: error_traces
-      retention: 30d
-      legal_basis: Legitimate Interest
-      deletion_method: rolling_deletion
-      pii_redaction: on_collection
-      
-    - data: performance_metrics
-      retention: 90d
-      legal_basis: Legitimate Interest
-      deletion_method: rolling_deletion
-      downsampling: 7d → hourly
-      
-  # Financial
-  financial:
-    - data: billing_records
-      retention: 7y
-      legal_basis: Legal Obligation (tax)
-      deletion_method: archive_only
-      immutable: true
-      notes: Cannot delete - tax law requirement
-      
-    - data: payment_card_data
-      retention: not_stored
-      legal_basis: Contract
-      notes: Tokenized by Stripe (PCI DSS)
-      
-    - data: invoices
-      retention: 7y
-      legal_basis: Legal Obligation
-      deletion_method: archive_only
-      
-  # Support and Communications
-  support:
-    - data: support_tickets
-      retention: 3y_after_resolution
-      legal_basis: Contract
-      deletion_method: soft_delete_then_hard
-      soft_delete_period: 90d
-      
-    - data: email_communications
-      retention: 90d_after_send
-      legal_basis: Contract / Consent
-      deletion_method: rolling_deletion
-      exceptions:
-        - reason: Contractual emails
-          retention: 3y
-      
-    - data: chat_transcripts
-      retention: 1y
-      legal_basis: Contract
-      deletion_method: archive_then_delete
-      archive_after: 6mo
-      
-  # Technical and System
-  technical:
-    - data: ip_addresses
-      retention: 90d
-      legal_basis: Legitimate Interest (security)
-      deletion_method: rolling_deletion
-      pii_status: may_be_pii
-      
-    - data: system_logs
-      retention: 30d
-      legal_basis: Legitimate Interest
-      deletion_method: rolling_deletion
-      pii_redaction: on_collection
-      
-    - data: database_backups
-      retention: 90d
-      legal_basis: Legitimate Interest (DR)
-      deletion_method: automated_purge
-      encryption: required
-      
-    - data: disaster_recovery_snapshots
-      retention: 30d
-      legal_basis: Legitimate Interest
-      deletion_method: automated_purge
-
-# Deletion methods explained
-deletion_methods:
-  hard_delete:
-    description: Immediate permanent deletion from all systems
-    overwrite: false
-    
-  overwrite_zeros:
-    description: Overwrite data with zeros before deletion
-    passes: 1
-    
-  soft_delete_then_hard:
-    description: Mark as deleted (user recoverable), then permanent delete
-    grace_period: 30d
-    
-  rolling_deletion:
-    description: Automated deletion on schedule (e.g., daily for >90d data)
-    check_frequency: daily
-    
-  archive_then_delete:
-    description: Move to cold storage, then delete after period
-    archive_storage: s3_glacier
-    
-  archive_only:
-    description: Archive indefinitely (legal requirement)
-    cannot_delete: true
-    
-  auto_expire:
-    description: TTL-based expiration (e.g., Redis, session stores)
-    mechanism: ttl
-    
-  aggregation_then_delete:
-    description: Aggregate to summary statistics, delete raw data
-    retain_summaries: true
-    
-  revoke_and_delete:
-    description: Revoke access token, then delete
-    revoke_first: true
-
-# Data subject rights impact
-data_subject_rights:
-  right_to_erasure:
-    scope: All personal data except legal obligations
-    response_time: 30d
+# Retention by data type
+data_types:
+  agent_registry:
+    description: "Agent registration data, configs, metadata"
+    retention_days: 365
+    after_deletion: "anonymize"
+    backup_retention_days: 730
+    contains_pii: true
+    classification: "internal"
     exceptions:
-      - Legal obligation (billing, audit logs)
-      - Defense of legal claims
-      - Archived backups (deleted in normal course)
+      - condition: "status == 'active'"
+        retention_days: -1  # Keep indefinitely
+      - condition: "plan == 'enterprise'"
+        retention_days: 1825  # 5 years
     
-  right_to_data_portability:
-    scope: User-provided data in structured format
-    format: JSON
-    delivery: Signed download URL
+  telemetry_metrics:
+    description: "Performance metrics, latency, request counts"
+    retention_days: 90
+    after_deletion: "hard_delete"
+    backup_retention_days: 0
+    contains_pii: false
+    classification: "internal"
+    exceptions:
+      - condition: "plan == 'free'"
+        retention_days: 7
+      - condition: "plan == 'pro'"
+        retention_days: 30
+      - condition: "plan == 'enterprise'"
+        retention_days: 90
     
-  right_to_rectification:
-    scope: All mutable personal data
-    method: Self-service UI + API
+  api_logs:
+    description: "Request/response logs, headers, bodies"
+    retention_days: 30
+    after_deletion: "hard_delete"
+    backup_retention_days: 90
+    contains_pii: true
+    classification: "confidential"
+    redact_fields: ["api_key", "bearer_token", "password", "ssn", "credit_card"]
+    exceptions:
+      - condition: "status_code >= 400"
+        retention_days: 90  # Keep errors longer
     
-  right_to_restriction:
-    scope: Processing paused pending verification
-    implementation: soft_delete flag
+  audit_logs:
+    description: "Security audit trail, policy evaluations, access logs"
+    retention_days: 2555  # 7 years
+    after_deletion: "archive_to_glacier"
+    backup_retention_days: 3650  # 10 years
+    contains_pii: true
+    classification: "restricted"
+    immutable: true  # Cannot be modified
+    
+  policy_violations:
+    description: "Policy violation events, remediation actions"
+    retention_days: 730  # 2 years
+    after_deletion: "anonymize"
+    backup_retention_days: 1095  # 3 years
+    contains_pii: true
+    classification: "confidential"
+    
+  workflow_executions:
+    description: "Workflow run history, artifacts, logs"
+    retention_days: 90
+    after_deletion: "soft_delete"
+    backup_retention_days: 180
+    contains_pii: false
+    classification: "internal"
+    exceptions:
+      - condition: "status == 'failed'"
+        retention_days: 180  # Keep failures longer for debugging
+    
+  user_profiles:
+    description: "User accounts, preferences, settings"
+    retention_days: -1  # Keep while account active
+    after_deletion: "anonymize"
+    backup_retention_days: 90
+    contains_pii: true
+    classification: "restricted"
+    deletion_triggers:
+      - "account_closed"
+      - "gdpr_right_to_be_forgotten"
+    grace_period_days: 30  # Recover within 30 days
+    
+  billing_records:
+    description: "Invoices, payments, subscription history"
+    retention_days: 2555  # 7 years (tax requirement)
+    after_deletion: "archive_to_glacier"
+    backup_retention_days: 3650  # 10 years
+    contains_pii: true
+    classification: "restricted"
+    immutable: true
+    
+  context_bus_messages:
+    description: "Inter-agent messages, events"
+    retention_days: 14
+    after_deletion: "hard_delete"
+    backup_retention_days: 0
+    contains_pii: false
+    classification: "internal"
+    exceptions:
+      - condition: "classification == 'restricted'"
+        retention_days: 90
+    
+  ai_model_outputs:
+    description: "LLM responses, embeddings, generated content"
+    retention_days: 30
+    after_deletion: "hard_delete"
+    backup_retention_days: 0
+    contains_pii: true
+    classification: "confidential"
+    redact_fields: ["pii_detected"]
+    
+  anomalies:
+    description: "Detected anomalies, root cause analyses"
+    retention_days: 365
+    after_deletion: "soft_delete"
+    backup_retention_days: 730
+    contains_pii: false
+    classification: "internal"
 
-# Automated enforcement
-automation:
-  enabled: true
-  
-  scheduled_jobs:
-    - name: purge_expired_sessions
-      schedule: '0 * * * *'  # Hourly
-      target: session_tokens
-      
-    - name: delete_old_workflow_logs
-      schedule: '0 2 * * *'  # Daily at 2 AM
-      target: workflow_execution_logs
-      retention: 90d
-      
-    - name: archive_old_reports
-      schedule: '0 3 * * 0'  # Weekly Sunday 3 AM
-      target: uadsi_reports
-      archive_after: 1y
-      
-    - name: purge_old_backups
-      schedule: '0 4 * * *'  # Daily at 4 AM
-      target: database_backups
-      retention: 90d
-      
-    - name: aggregate_usage_metrics
-      schedule: '0 5 * * *'  # Daily at 5 AM
-      target: usage_metrics
-      aggregate_older_than: 30d
-      
-  compliance_checks:
-    - name: verify_audit_log_retention
-      schedule: '0 0 1 * *'  # Monthly
-      ensure_minimum: 7y
-      
-    - name: verify_no_overdue_deletions
-      schedule: '0 6 * * *'  # Daily at 6 AM
-      alert_if_overdue: 7d
+# Automated cleanup jobs
+cleanup_jobs:
+  daily_purge:
+    schedule: "0 2 * * *"  # 2 AM UTC daily
+    description: "Purge soft-deleted records past retention"
+    tables:
+      - telemetry_metrics
+      - context_bus_messages
+      - ai_model_outputs
+    dry_run: false
+    
+  weekly_archive:
+    schedule: "0 3 * * 0"  # 3 AM UTC Sunday
+    description: "Archive old records to cold storage"
+    tables:
+      - api_logs
+      - workflow_executions
+      - anomalies
+    destination: "s3://orca-archives/"
+    
+  monthly_audit:
+    schedule: "0 4 1 * *"  # 4 AM UTC first of month
+    description: "Generate retention compliance report"
+    output: "compliance/retention_report.md"
+    notify: ["compliance-team@orca.dev"]
 
-# Exceptions and legal holds
-legal_holds:
+# GDPR Right to be Forgotten
+gdpr_deletion:
+  scope:
+    - user_profiles
+    - api_logs
+    - audit_logs (anonymize only)
+    - billing_records (retain, anonymize)
   process:
-    1. Legal team creates hold in system
-    2. Automated deletion suspended for affected data
-    3. Data flagged with hold_id
-    4. Hold released when litigation resolved
-    5. Normal retention resumes
-    
-  override_retention: true
-  require_approval: legal_team
+    - step: "Validate request"
+      sla_hours: 24
+    - step: "Identify all user data"
+      sla_hours: 48
+    - step: "Anonymize/delete per policy"
+      sla_hours: 72
+    - step: "Confirm deletion"
+      sla_hours: 120  # 5 days total
+  exclusions:
+    - "Legal hold records"
+    - "Tax records (anonymized)"
+    - "Fraud investigation data"
 
-# Monitoring and reporting
-monitoring:
-  metrics:
-    - data_deleted_volume_gb
-    - deletion_jobs_success_rate
-    - overdue_deletions_count
-    - legal_holds_active_count
+# Region-specific overrides
+regional_overrides:
+  eu:
+    description: "GDPR compliance"
+    default_retention_days: 90  # Stricter default
+    require_explicit_consent: true
+    allow_transfer_outside_eu: false
     
-  reports:
-    - name: Monthly Retention Compliance Report
-      frequency: monthly
-      recipients: [dpo, legal, security]
-      
-    - name: Quarterly Data Inventory Review
-      frequency: quarterly
-      recipients: [dpo, ciso, cto]
+  us:
+    description: "US regulations"
+    default_retention_days: 365
+    hipaa_applies: true  # For healthcare tenants
+    
+  apac:
+    description: "APAC regulations"
+    default_retention_days: 180
+    cross_border_restrictions: true
 
-# Contact
-dpo:
-  email: dpo@orca-platform.example
-  escalation: legal@orca-platform.example
+# Compliance checks
+compliance_checks:
+  - name: "Retention limits enforced"
+    query: "SELECT COUNT(*) FROM {table} WHERE created_at < NOW() - INTERVAL '{retention_days} days'"
+    fail_if: "> 0"
+    
+  - name: "Audit logs immutable"
+    query: "SELECT COUNT(*) FROM audit_logs WHERE updated_at > created_at"
+    fail_if: "> 0"
+    
+  - name: "PII redacted in logs"
+    query: "SELECT COUNT(*) FROM api_logs WHERE body ~* '(ssn|credit_card|passport)' AND redacted = false"
+    fail_if: "> 0"
+
+# Disaster recovery
+disaster_recovery:
+  backup_frequency: "daily"
+  backup_retention_days: 90
+  backup_locations:
+    - "s3://orca-backups-us-east-1/"
+    - "s3://orca-backups-eu-west-1/"
+  restore_sla_hours: 4
+  rpo_minutes: 60  # 1 hour max data loss
+  rto_minutes: 240  # 4 hours max downtime

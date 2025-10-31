@@ -1,0 +1,280 @@
+# KPI Registry - Single Source of Truth
+# All KPI definitions, formulas, sources, and SLAs
+
+version: "1.0"
+updated_at: "2025-10-31"
+
+kpis:
+  trust_score:
+    name: "Trust Score"
+    description: "UADSI composite trust score across all agents"
+    unit: "percentage"
+    formula: "(uniformity + alignment + drift_resilience + sync_quality + integrity) / 5"
+    components:
+      - uniformity
+      - alignment
+      - drift_resilience
+      - sync_quality
+      - integrity
+    source_tables:
+      - "trust_metrics"
+      - "agent_evaluations"
+    calculation_frequency: "5m"
+    sla:
+      target: 85
+      warning_threshold: 75
+      critical_threshold: 60
+    owner: "@trust-team"
+    roi_impact: "risk_reduction"
+    
+  risk_avoided_usd:
+    name: "Risk Avoided ($)"
+    description: "Estimated dollar value of incidents prevented by governance"
+    unit: "usd"
+    formula: "prevented_incidents * avg_incident_cost"
+    components:
+      - prevented_incidents
+      - avg_incident_cost
+    source_tables:
+      - "incidents"
+      - "policy_blocks"
+      - "anomaly_detections"
+    calculation_frequency: "1h"
+    sla:
+      target: 50000
+      warning_threshold: 25000
+      critical_threshold: 10000
+    owner: "@trust-team"
+    roi_impact: "cost_avoidance"
+    baseline_assumptions:
+      avg_incident_cost: 15000
+      detection_accuracy: 0.85
+      
+  sync_freshness_pct:
+    name: "Sync Freshness"
+    description: "Percentage of agent contexts synchronized within SLA"
+    unit: "percentage"
+    formula: "(agents_in_sync / total_agents) * 100"
+    components:
+      - agents_in_sync
+      - total_agents
+    source_tables:
+      - "agent_sync_status"
+      - "agents"
+    calculation_frequency: "1m"
+    sla:
+      target: 95
+      warning_threshold: 90
+      critical_threshold: 80
+    owner: "@integration-team"
+    roi_impact: "operational_efficiency"
+    
+  drift_rate_pct:
+    name: "Configuration Drift Rate"
+    description: "Percentage of agents with detected configuration drift"
+    unit: "percentage"
+    formula: "(drifted_agents / total_agents) * 100"
+    components:
+      - drifted_agents
+      - total_agents
+    source_tables:
+      - "drift_detections"
+      - "agents"
+    calculation_frequency: "15m"
+    sla:
+      target: 5
+      warning_threshold: 10
+      critical_threshold: 20
+    owner: "@platform-team"
+    roi_impact: "reliability"
+    invert: true  # Lower is better
+    
+  compliance_sla_pct:
+    name: "Compliance SLA"
+    description: "Percentage of policy evaluations completed within SLA"
+    unit: "percentage"
+    formula: "(on_time_evals / total_evals) * 100"
+    components:
+      - on_time_evals
+      - total_evals
+    source_tables:
+      - "policy_evaluations"
+    calculation_frequency: "5m"
+    sla:
+      target: 99
+      warning_threshold: 97
+      critical_threshold: 95
+    owner: "@security-team"
+    roi_impact: "compliance_adherence"
+    
+  mttr_minutes:
+    name: "Mean Time to Remediation"
+    description: "Average time from anomaly detection to resolution"
+    unit: "minutes"
+    formula: "AVG(resolved_at - detected_at)"
+    source_tables:
+      - "anomalies"
+      - "remediation_actions"
+    calculation_frequency: "1h"
+    sla:
+      target: 15
+      warning_threshold: 30
+      critical_threshold: 60
+    owner: "@aiops-team"
+    roi_impact: "downtime_reduction"
+    invert: true  # Lower is better
+    
+  policy_coverage_pct:
+    name: "Policy Coverage"
+    description: "Percentage of routes protected by policies"
+    unit: "percentage"
+    formula: "(protected_routes / total_routes) * 100"
+    source_tables:
+      - "policies"
+      - "routes"
+    calculation_frequency: "1h"
+    sla:
+      target: 100
+      warning_threshold: 95
+      critical_threshold: 85
+    owner: "@security-team"
+    roi_impact: "security_posture"
+    
+  agent_availability_pct:
+    name: "Agent Availability"
+    description: "Uptime percentage across all registered agents"
+    unit: "percentage"
+    formula: "(available_agents / total_agents) * 100"
+    source_tables:
+      - "agent_health_checks"
+      - "agents"
+    calculation_frequency: "1m"
+    sla:
+      target: 99.9
+      warning_threshold: 99.5
+      critical_threshold: 99.0
+    owner: "@platform-team"
+    roi_impact: "service_reliability"
+    
+  api_p95_latency_ms:
+    name: "API P95 Latency"
+    description: "95th percentile API response time"
+    unit: "milliseconds"
+    formula: "PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY latency_ms)"
+    source_tables:
+      - "api_metrics"
+    calculation_frequency: "5m"
+    sla:
+      target: 500
+      warning_threshold: 750
+      critical_threshold: 1000
+    owner: "@platform-team"
+    roi_impact: "user_experience"
+    invert: true  # Lower is better
+    
+  cost_per_transaction:
+    name: "Cost per Transaction"
+    description: "Average infrastructure cost per API transaction"
+    unit: "usd"
+    formula: "total_infra_cost / total_transactions"
+    source_tables:
+      - "billing_metrics"
+      - "api_metrics"
+    calculation_frequency: "1h"
+    sla:
+      target: 0.005
+      warning_threshold: 0.010
+      critical_threshold: 0.020
+    owner: "@finops-team"
+    roi_impact: "cost_optimization"
+    invert: true  # Lower is better
+
+# ROI Mapping - KPI to Dollar Impact
+roi_formulas:
+  risk_reduction:
+    description: "Value of prevented security incidents"
+    formula: "trust_score * 0.01 * baseline_risk_exposure"
+    baseline_risk_exposure: 100000  # $100k default risk
+    multiplier: 1.0
+    
+  cost_avoidance:
+    description: "Direct cost avoided through prevention"
+    formula: "risk_avoided_usd"
+    multiplier: 1.0
+    
+  operational_efficiency:
+    description: "Time saved through automation"
+    formula: "(sync_freshness_pct / 100) * manual_sync_hours * hourly_rate"
+    manual_sync_hours: 160  # Hours saved per month
+    hourly_rate: 150
+    multiplier: 1.0
+    
+  reliability:
+    description: "Value of reduced downtime"
+    formula: "(1 - drift_rate_pct / 100) * potential_downtime_cost"
+    potential_downtime_cost: 50000  # Monthly potential
+    multiplier: 1.0
+    
+  compliance_adherence:
+    description: "Value of regulatory compliance"
+    formula: "(compliance_sla_pct / 100) * compliance_penalty_risk"
+    compliance_penalty_risk: 250000  # Regulatory fine risk
+    multiplier: 1.0
+    
+  downtime_reduction:
+    description: "Value from faster incident resolution"
+    formula: "(60 - mttr_minutes) / 60 * monthly_incident_impact"
+    monthly_incident_impact: 75000
+    multiplier: 1.0
+    
+  security_posture:
+    description: "Value of comprehensive security coverage"
+    formula: "(policy_coverage_pct / 100) * breach_risk"
+    breach_risk: 500000
+    multiplier: 1.0
+    
+  service_reliability:
+    description: "Value from high availability"
+    formula: "(agent_availability_pct / 100) * revenue_at_risk"
+    revenue_at_risk: 1000000
+    multiplier: 1.0
+    
+  user_experience:
+    description: "Value from fast response times"
+    formula: "(1000 - api_p95_latency_ms) / 1000 * customer_retention_value"
+    customer_retention_value: 50000
+    multiplier: 1.0
+    
+  cost_optimization:
+    description: "Direct cost savings"
+    formula: "(0.020 - cost_per_transaction) * monthly_transactions"
+    monthly_transactions: 1000000
+    multiplier: 1.0
+
+# Tenant Baselines
+# Allow per-tenant customization of risk exposure and cost assumptions
+tenant_baseline_overrides:
+  default:
+    baseline_risk_exposure: 100000
+    avg_incident_cost: 15000
+    hourly_rate: 150
+    compliance_penalty_risk: 250000
+    monthly_incident_impact: 75000
+    breach_risk: 500000
+    revenue_at_risk: 1000000
+    customer_retention_value: 50000
+    monthly_transactions: 1000000
+    
+  enterprise_tier:
+    baseline_risk_exposure: 500000
+    avg_incident_cost: 50000
+    compliance_penalty_risk: 2000000
+    breach_risk: 5000000
+    revenue_at_risk: 10000000
+    
+  startup_tier:
+    baseline_risk_exposure: 25000
+    avg_incident_cost: 5000
+    compliance_penalty_risk: 50000
+    breach_risk: 100000
+    revenue_at_risk: 100000
