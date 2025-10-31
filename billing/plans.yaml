@@ -5,7 +5,7 @@ version: "1.0"
 updated_at: "2025-10-31"
 
 plans:
-  free:
+  - id: "free"
     name: "Free"
     display_name: "Community"
     price_monthly: 0
@@ -13,39 +13,26 @@ plans:
     description: "For individuals and small teams getting started"
     
     features:
-      agents: 5
-      workflows_per_month: 100
-      api_calls_per_month: 10000
-      users: 2
-      retention_days: 7
-      support_tier: "community"
-      sla_uptime: 99.0
+      - "Trust Scoring & KPIs"
+      - "Basic Policy Enforcement"
+      - "Community Support"
+      - "7-day Data Retention"
       
     quotas:
-      max_agents: 5
-      max_workflows: 10
-      max_api_calls_per_day: 500
-      max_context_bus_messages_per_day: 1000
-      max_storage_mb: 100
-      max_audit_logs_days: 7
+      events_per_day: 1000
+      ai_ops_actions_per_month: 0
+      api_calls_per_month: 10000
+      agents: 5
+      storage_gb: 1
+      users: 2
+      retention_days: 7
       
-    features_enabled:
-      trust_scoring: true
-      basic_policies: true
-      webhook_adapters: false
-      custom_opa_policies: false
-      ai_ops: false
-      advanced_analytics: false
-      sso: false
-      custom_branding: false
-      priority_support: false
-      
+    stripe_price_id_monthly: "price_free"
     rate_limits:
       api_requests_per_second: 10
       api_burst: 50
-      context_bus_messages_per_second: 10
       
-  pro:
+  - id: "pro"
     name: "Pro"
     display_name: "Professional"
     price_monthly: 99
@@ -55,127 +42,59 @@ plans:
     description: "For growing teams and production workloads"
     
     features:
-      agents: 50
-      workflows_per_month: 10000
-      api_calls_per_month: 1000000
-      users: 10
-      retention_days: 30
-      support_tier: "email"
-      sla_uptime: 99.5
+      - "Everything in Free, plus:"
+      - "AI-Ops Automation"
+      - "Webhook Adapters"
+      - "Custom OPA Policies"
+      - "Advanced Analytics"
+      - "Email Support"
+      - "30-day Data Retention"
       
     quotas:
-      max_agents: 50
-      max_workflows: 100
-      max_api_calls_per_day: 50000
-      max_context_bus_messages_per_day: 100000
-      max_storage_mb: 10000
-      max_audit_logs_days: 30
-      
-    features_enabled:
-      trust_scoring: true
-      basic_policies: true
-      webhook_adapters: true
-      custom_opa_policies: true
-      ai_ops: true
-      advanced_analytics: true
-      sso: false
-      custom_branding: false
-      priority_support: false
+      events_per_day: 50000
+      ai_ops_actions_per_month: 1000
+      api_calls_per_month: 1000000
+      agents: 50
+      storage_gb: 100
+      users: 10
+      retention_days: 30
       
     rate_limits:
       api_requests_per_second: 100
       api_burst: 500
-      context_bus_messages_per_second: 100
       
-  enterprise:
+  - id: "enterprise"
     name: "Enterprise"
     display_name: "Enterprise"
-    price_monthly: null  # Custom pricing
-    price_annual: null
+    price_monthly: 2500
+    price_annual: 25000
+    stripe_price_id_monthly: "price_enterprise_monthly"
+    stripe_price_id_annual: "price_enterprise_annual"
     description: "For large organizations with custom requirements"
     contact_sales: true
     
     features:
-      agents: "unlimited"
-      workflows_per_month: "unlimited"
-      api_calls_per_month: "unlimited"
-      users: "unlimited"
-      retention_days: 90
-      support_tier: "dedicated"
-      sla_uptime: 99.9
+      - "Everything in Pro, plus:"
+      - "Unlimited Agents"
+      - "SSO (SAML/OIDC)"
+      - "Custom Branding"
+      - "Dedicated Instance Option"
+      - "99.9% SLA"
+      - "Priority Support"
+      - "90-day Data Retention"
       
     quotas:
-      max_agents: -1  # Unlimited
-      max_workflows: -1
-      max_api_calls_per_day: -1
-      max_context_bus_messages_per_day: -1
-      max_storage_mb: -1
-      max_audit_logs_days: 90
-      
-    features_enabled:
-      trust_scoring: true
-      basic_policies: true
-      webhook_adapters: true
-      custom_opa_policies: true
-      ai_ops: true
-      advanced_analytics: true
-      sso: true
-      custom_branding: true
-      priority_support: true
-      dedicated_instance: true
-      custom_sla: true
-      white_label: true
+      events_per_day: -1  # Unlimited
+      ai_ops_actions_per_month: -1
+      api_calls_per_month: -1
+      agents: -1
+      storage_gb: -1
+      users: -1
+      retention_days: 90
       
     rate_limits:
       api_requests_per_second: 1000
       api_burst: 5000
-      context_bus_messages_per_second: 1000
-      
-  oem:
-    name: "OEM"
-    display_name: "OEM Partner"
-    price_monthly: null
-    price_annual: null
-    description: "White-label solution for resellers"
-    contact_sales: true
-    
-    features:
-      agents: "unlimited"
-      workflows_per_month: "unlimited"
-      api_calls_per_month: "unlimited"
-      users: "unlimited"
-      retention_days: 365
-      support_tier: "partner"
-      sla_uptime: 99.99
-      
-    quotas:
-      max_agents: -1
-      max_workflows: -1
-      max_api_calls_per_day: -1
-      max_context_bus_messages_per_day: -1
-      max_storage_mb: -1
-      max_audit_logs_days: 365
-      
-    features_enabled:
-      trust_scoring: true
-      basic_policies: true
-      webhook_adapters: true
-      custom_opa_policies: true
-      ai_ops: true
-      advanced_analytics: true
-      sso: true
-      custom_branding: true
-      priority_support: true
-      dedicated_instance: true
-      custom_sla: true
-      white_label: true
-      multi_tenant_admin: true
-      revenue_sharing: true
-      
-    rate_limits:
-      api_requests_per_second: 10000
-      api_burst: 50000
-      context_bus_messages_per_second: 10000
 
 # Feature comparison matrix
 feature_matrix:

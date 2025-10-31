@@ -1,0 +1,536 @@
+# SOC 2 Controls Matrix
+# Maps security controls to SOC 2 Trust Service Criteria and other frameworks
+
+version: "1.0"
+updated: "2025-10-31"
+frameworks:
+  - SOC 2 Type II
+  - ISO 27001
+  - NIST Cybersecurity Framework
+  - CIS Controls v8
+
+controls:
+  # CC1: Control Environment
+  - id: CC1.1
+    name: "COSO Principles"
+    description: "Entity demonstrates a commitment to integrity and ethical values"
+    framework: SOC2
+    category: "Control Environment"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "docs/CODE_OF_CONDUCT.md"
+      - type: "document"
+        location: "docs/SECURITY.md"
+    validation:
+      frequency: "annual"
+      method: "documentation_review"
+    responsible_party: "Executive Team"
+    
+  - id: CC1.2
+    name: "Board Independence"
+    description: "Board of directors demonstrates independence from management"
+    framework: SOC2
+    category: "Control Environment"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "evidence/board_independence.pdf"
+    validation:
+      frequency: "annual"
+      method: "documentation_review"
+    responsible_party: "Board of Directors"
+
+  # CC2: Communication & Information
+  - id: CC2.1
+    name: "Security Awareness Training"
+    description: "Organization provides security awareness training to all employees"
+    framework: SOC2
+    category: "Communication"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "hr_training_records"
+        location: "evidence/training_completion.json"
+    validation:
+      frequency: "quarterly"
+      method: "automated_collection"
+    responsible_party: "HR & Security Team"
+    
+  - id: CC2.2
+    name: "Internal Communication"
+    description: "Security incidents and changes are communicated internally"
+    framework: SOC2
+    category: "Communication"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "slack_audit_logs"
+        location: "evidence/incident_communications.json"
+    validation:
+      frequency: "monthly"
+      method: "log_review"
+    responsible_party: "Security Team"
+
+  # CC3: Risk Assessment
+  - id: CC3.1
+    name: "Risk Assessment Process"
+    description: "Entity specifies objectives with sufficient clarity"
+    framework: SOC2
+    category: "Risk Assessment"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "docs/RISK_ASSESSMENT.md"
+      - type: "automated"
+        collector: "risk_register"
+        location: "evidence/risk_assessments.json"
+    validation:
+      frequency: "quarterly"
+      method: "management_review"
+    responsible_party: "Security Team"
+    
+  - id: CC3.2
+    name: "Change Risk Assessment"
+    description: "Entity identifies and assesses changes that could impact controls"
+    framework: SOC2
+    category: "Risk Assessment"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "ci_logs"
+        location: "evidence/ci_change_logs.json"
+      - type: "automated"
+        collector: "codeql"
+        location: "evidence/code_security_scans.json"
+    validation:
+      frequency: "continuous"
+      method: "automated_scanning"
+    responsible_party: "Engineering Team"
+
+  # CC4: Monitoring Activities
+  - id: CC4.1
+    name: "Ongoing Monitoring"
+    description: "Entity selects, develops, and performs ongoing evaluations"
+    framework: SOC2
+    category: "Monitoring"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "prometheus_metrics"
+        location: "evidence/monitoring_metrics.json"
+      - type: "automated"
+        collector: "security_scans"
+        location: "evidence/vulnerability_scans.json"
+    validation:
+      frequency: "continuous"
+      method: "automated_monitoring"
+    responsible_party: "SRE Team"
+    
+  - id: CC4.2
+    name: "Deficiency Evaluation"
+    description: "Entity evaluates and communicates deficiencies"
+    framework: SOC2
+    category: "Monitoring"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "evidence/deficiency_reports.json"
+    validation:
+      frequency: "monthly"
+      method: "management_review"
+    responsible_party: "Security Team"
+
+  # CC5: Control Activities
+  - id: CC5.1
+    name: "Logical Access Controls"
+    description: "Entity implements logical access security controls"
+    framework: SOC2
+    category: "Control Activities"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "access_logs"
+        location: "evidence/access_control_logs.json"
+      - type: "automated"
+        collector: "opa"
+        location: "evidence/policy_decisions.json"
+    validation:
+      frequency: "continuous"
+      method: "automated_logging"
+    responsible_party: "Engineering & Security Team"
+    
+  - id: CC5.2
+    name: "System Operations"
+    description: "Entity authorizes, designs, develops and configures software"
+    framework: SOC2
+    category: "Control Activities"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "ci_logs"
+        location: "evidence/ci_pipeline_logs.json"
+      - type: "automated"
+        collector: "git_commits"
+        location: "evidence/code_changes.json"
+    validation:
+      frequency: "continuous"
+      method: "automated_ci_cd"
+    responsible_party: "Engineering Team"
+
+  # CC6: Logical & Physical Access
+  - id: CC6.1
+    name: "Access Control Authentication"
+    description: "Entity implements authentication mechanisms"
+    framework: SOC2
+    category: "Logical Access"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "auth_logs"
+        location: "evidence/authentication_logs.json"
+      - type: "document"
+        location: "docs/AUTHENTICATION.md"
+    validation:
+      frequency: "continuous"
+      method: "log_analysis"
+    responsible_party: "Security Team"
+    
+  - id: CC6.2
+    name: "Access Provisioning"
+    description: "Entity authorizes access to system components"
+    framework: SOC2
+    category: "Logical Access"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "access_provisioning"
+        location: "evidence/access_grants.json"
+    validation:
+      frequency: "quarterly"
+      method: "access_review"
+    responsible_party: "IT & Security Team"
+    
+  - id: CC6.3
+    name: "Access Removal"
+    description: "Entity removes access when no longer required"
+    framework: SOC2
+    category: "Logical Access"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "access_provisioning"
+        location: "evidence/access_revocations.json"
+    validation:
+      frequency: "continuous"
+      method: "automated_deprovisioning"
+    responsible_party: "IT & HR Team"
+
+  # CC7: System Operations
+  - id: CC7.1
+    name: "System Capacity Monitoring"
+    description: "Entity monitors system capacity and performance"
+    framework: SOC2
+    category: "System Operations"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "prometheus_metrics"
+        location: "evidence/capacity_metrics.json"
+    validation:
+      frequency: "continuous"
+      method: "automated_monitoring"
+    responsible_party: "SRE Team"
+    
+  - id: CC7.2
+    name: "Incident Response"
+    description: "Entity implements incident response procedures"
+    framework: SOC2
+    category: "System Operations"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "docs/INCIDENT_RESPONSE.md"
+      - type: "automated"
+        collector: "incident_logs"
+        location: "evidence/incidents.json"
+    validation:
+      frequency: "monthly"
+      method: "incident_review"
+    responsible_party: "Security & SRE Team"
+    
+  - id: CC7.3
+    name: "Backup & Recovery"
+    description: "Entity backs up data and tests recovery procedures"
+    framework: SOC2
+    category: "System Operations"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "backups"
+        location: "evidence/backup_logs.json"
+      - type: "document"
+        location: "docs/DISASTER_RECOVERY.md"
+    validation:
+      frequency: "weekly"
+      method: "backup_verification"
+    responsible_party: "SRE Team"
+
+  # CC8: Change Management
+  - id: CC8.1
+    name: "Change Management Process"
+    description: "Entity implements a change management process"
+    framework: SOC2
+    category: "Change Management"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "docs/CHANGE_MANAGEMENT.md"
+      - type: "automated"
+        collector: "ci_logs"
+        location: "evidence/deployment_history.json"
+    validation:
+      frequency: "continuous"
+      method: "automated_ci_cd"
+    responsible_party: "Engineering Team"
+
+  # CC9: Risk Mitigation
+  - id: CC9.1
+    name: "Vendor Management"
+    description: "Entity identifies and manages risks associated with vendors"
+    framework: SOC2
+    category: "Risk Mitigation"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "evidence/vendor_assessments.json"
+    validation:
+      frequency: "annual"
+      method: "vendor_review"
+    responsible_party: "Procurement & Security Team"
+    
+  - id: CC9.2
+    name: "Business Continuity"
+    description: "Entity implements business continuity procedures"
+    framework: SOC2
+    category: "Risk Mitigation"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "docs/BUSINESS_CONTINUITY.md"
+      - type: "document"
+        location: "docs/DISASTER_RECOVERY.md"
+    validation:
+      frequency: "annual"
+      method: "dr_test"
+    responsible_party: "SRE & Security Team"
+
+  # A1: Availability
+  - id: A1.1
+    name: "Availability Objectives"
+    description: "Entity maintains defined availability levels"
+    framework: SOC2
+    category: "Availability"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "uptime_monitoring"
+        location: "evidence/uptime_metrics.json"
+      - type: "document"
+        location: "docs/slo_manifest.yaml"
+    validation:
+      frequency: "continuous"
+      method: "sla_monitoring"
+    responsible_party: "SRE Team"
+    sla_target: "99.5%"
+    
+  - id: A1.2
+    name: "Failover & Recovery"
+    description: "Entity implements failover and recovery procedures"
+    framework: SOC2
+    category: "Availability"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "failover_tests"
+        location: "evidence/failover_smoke_results.json"
+      - type: "document"
+        location: "docs/DATA_RESIDENCY.md"
+    validation:
+      frequency: "monthly"
+      method: "failover_testing"
+    responsible_party: "SRE Team"
+
+  # C1: Confidentiality
+  - id: C1.1
+    name: "Data Classification"
+    description: "Entity classifies data based on sensitivity"
+    framework: SOC2
+    category: "Confidentiality"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "policy_rules.yaml"
+      - type: "automated"
+        collector: "opa"
+        location: "evidence/data_classification_decisions.json"
+    validation:
+      frequency: "continuous"
+      method: "policy_enforcement"
+    responsible_party: "Security Team"
+    
+  - id: C1.2
+    name: "Encryption"
+    description: "Entity encrypts confidential data"
+    framework: SOC2
+    category: "Confidentiality"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "encryption_audit"
+        location: "evidence/encryption_status.json"
+      - type: "document"
+        location: "docs/SECURITY_BASELINE.md"
+    validation:
+      frequency: "quarterly"
+      method: "configuration_audit"
+    responsible_party: "Security & Engineering Team"
+    encryption_standards:
+      - "TLS 1.3 in transit"
+      - "AES-256 at rest"
+
+  # P1: Privacy
+  - id: P1.1
+    name: "Privacy Notice"
+    description: "Entity provides notice about privacy practices"
+    framework: SOC2
+    category: "Privacy"
+    implemented: true
+    evidence:
+      - type: "document"
+        location: "docs/PRIVACY_POLICY.md"
+    validation:
+      frequency: "annual"
+      method: "legal_review"
+    responsible_party: "Legal Team"
+    
+  - id: P1.2
+    name: "PII Protection"
+    description: "Entity protects personally identifiable information"
+    framework: SOC2
+    category: "Privacy"
+    implemented: true
+    evidence:
+      - type: "automated"
+        collector: "pii_detection"
+        location: "evidence/pii_redaction_logs.json"
+      - type: "document"
+        location: "policy_rules.yaml"
+    validation:
+      frequency: "continuous"
+      method: "automated_scanning"
+    responsible_party: "Security Team"
+
+# Mapping to other frameworks
+framework_mappings:
+  ISO27001:
+    - soc2_control: CC6.1
+      iso_control: A.9.2.1
+      name: "User registration and de-registration"
+    - soc2_control: CC7.3
+      iso_control: A.12.3.1
+      name: "Information backup"
+    - soc2_control: C1.2
+      iso_control: A.10.1.1
+      name: "Cryptographic controls"
+      
+  NIST_CSF:
+    - soc2_control: CC7.2
+      nist_function: "Respond"
+      nist_category: "RS.AN"
+      name: "Analysis"
+    - soc2_control: CC8.1
+      nist_function: "Protect"
+      nist_category: "PR.IP"
+      name: "Information Protection Processes"
+      
+  CIS_Controls:
+    - soc2_control: CC6.1
+      cis_control: "CIS 5"
+      name: "Account Management"
+    - soc2_control: CC7.3
+      cis_control: "CIS 11"
+      name: "Data Recovery"
+
+# Evidence Collection Schedule
+collection_schedule:
+  continuous:
+    - ci_logs
+    - access_logs
+    - auth_logs
+    - prometheus_metrics
+    - opa
+    - codeql
+    
+  daily:
+    - backups
+    - security_scans
+    - uptime_monitoring
+    
+  weekly:
+    - failover_tests
+    - backup_verification
+    
+  monthly:
+    - incident_logs
+    - deficiency_reports
+    
+  quarterly:
+    - access_review
+    - encryption_audit
+    - risk_assessments
+    
+  annual:
+    - vendor_assessments
+    - training_records
+    - dr_test
+
+# Audit Readiness
+audit_readiness:
+  soc2_type_ii:
+    next_audit: "2026-01-15"
+    auditor: "Prescient Assurance"
+    scope: "Security, Availability, Confidentiality"
+    preparation:
+      - "All controls mapped and evidence collected"
+      - "Weekly evidence review meetings"
+      - "Control testing documentation"
+      
+  iso27001:
+    certification_date: "2025-09-01"
+    next_surveillance: "2026-03-01"
+    certifying_body: "BSI"
+    scope: "Information security management system"
+    
+# Continuous Monitoring
+monitoring:
+  control_effectiveness:
+    metric: "percentage_passing"
+    target: 100
+    current: 98.5
+    threshold_warning: 95
+    threshold_critical: 90
+    
+  evidence_coverage:
+    metric: "percentage_collected"
+    target: 100
+    current: 99.2
+    threshold_warning: 95
+    threshold_critical: 90
+    
+  automation_rate:
+    metric: "percentage_automated"
+    target: 80
+    current: 85.3
+    threshold_warning: 75
+    threshold_critical: 70

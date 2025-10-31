@@ -1,0 +1,268 @@
+# Multi-Region Configuration for ORCA Platform
+# Defines available regions, routing rules, and failover policies
+
+version: "1.0"
+updated: "2025-10-31"
+
+regions:
+  - id: "us-east-1"
+    name: "US East (Virginia)"
+    provider: "aws"
+    priority: 1
+    status: "active"
+    supabase:
+      project_ref: "${SUPABASE_PROJECT_REF_US_EAST}"
+      url: "${SUPABASE_URL_US_EAST}"
+      anon_key: "${SUPABASE_ANON_KEY_US_EAST}"
+      service_role_key: "${SUPABASE_SERVICE_ROLE_KEY_US_EAST}"
+    vercel:
+      deployment_url: "https://orca-us-east.vercel.app"
+      region_hint: "iad1"
+    capabilities:
+      - read
+      - write
+      - analytics
+    latency_target_p95: 200
+    data_residency: "US"
+
+  - id: "eu-west-1"
+    name: "EU West (Ireland)"
+    provider: "aws"
+    priority: 2
+    status: "active"
+    supabase:
+      project_ref: "${SUPABASE_PROJECT_REF_EU_WEST}"
+      url: "${SUPABASE_URL_EU_WEST}"
+      anon_key: "${SUPABASE_ANON_KEY_EU_WEST}"
+      service_role_key: "${SUPABASE_SERVICE_ROLE_KEY_EU_WEST}"
+    vercel:
+      deployment_url: "https://orca-eu-west.vercel.app"
+      region_hint: "dub1"
+    capabilities:
+      - read
+      - write
+      - analytics
+    latency_target_p95: 200
+    data_residency: "EU"
+
+  - id: "ap-southeast-1"
+    name: "Asia Pacific (Singapore)"
+    provider: "aws"
+    priority: 3
+    status: "active"
+    supabase:
+      project_ref: "${SUPABASE_PROJECT_REF_AP_SE}"
+      url: "${SUPABASE_URL_AP_SE}"
+      anon_key: "${SUPABASE_ANON_KEY_AP_SE}"
+      service_role_key: "${SUPABASE_SERVICE_ROLE_KEY_AP_SE}"
+    vercel:
+      deployment_url: "https://orca-ap-southeast.vercel.app"
+      region_hint: "sin1"
+    capabilities:
+      - read
+      - write
+    latency_target_p95: 250
+    data_residency: "APAC"
+
+# Routing Rules
+routing:
+  strategy: "latency-based"  # Options: latency-based, geo-based, priority-based
+  
+  # Geographic routing rules
+  geo_routing:
+    - source_country: ["US", "CA", "MX"]
+      target_region: "us-east-1"
+      fallback_region: "eu-west-1"
+    
+    - source_country: ["GB", "DE", "FR", "IT", "ES", "NL", "BE", "SE", "NO", "DK", "FI"]
+      target_region: "eu-west-1"
+      fallback_region: "us-east-1"
+    
+    - source_country: ["SG", "MY", "ID", "TH", "PH", "VN", "IN", "AU", "NZ", "JP", "KR"]
+      target_region: "ap-southeast-1"
+      fallback_region: "us-east-1"
+
+  # Latency-based routing thresholds
+  latency_thresholds:
+    warn: 500  # ms
+    critical: 1000  # ms
+
+# Failover Configuration
+failover:
+  # Health check configuration
+  health_check:
+    enabled: true
+    interval_seconds: 30
+    timeout_seconds: 5
+    unhealthy_threshold: 3  # consecutive failures before marking unhealthy
+    healthy_threshold: 2    # consecutive successes before marking healthy
+    endpoints:
+      - path: "/health"
+        expected_status: 200
+      - path: "/ready"
+        expected_status: 200
+
+  # Circuit breaker configuration
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5        # failures before opening circuit
+    success_threshold: 3        # successes before closing circuit
+    timeout_seconds: 30         # time before attempting to close circuit
+    half_open_requests: 1       # requests to allow in half-open state
+
+  # Automatic failover settings
+  automatic_failover:
+    enabled: true
+    max_failover_time_seconds: 60
+    error_rate_threshold: 0.015  # 1.5% error rate triggers failover
+    latency_p95_threshold: 700   # ms, p95 latency threshold
+
+# Read Replica Configuration
+read_replicas:
+  enabled: true
+  
+  # Load balancing strategy for read replicas
+  strategy: "least-connections"  # Options: round-robin, least-connections, weighted
+  
+  # Read replica pools per region
+  pools:
+    - region: "us-east-1"
+      replicas:
+        - id: "us-east-1-replica-1"
+          url: "${SUPABASE_REPLICA_URL_US_EAST_1}"
+          weight: 100
+          max_connections: 50
+        - id: "us-east-1-replica-2"
+          url: "${SUPABASE_REPLICA_URL_US_EAST_2}"
+          weight: 100
+          max_connections: 50
+
+    - region: "eu-west-1"
+      replicas:
+        - id: "eu-west-1-replica-1"
+          url: "${SUPABASE_REPLICA_URL_EU_WEST_1}"
+          weight: 100
+          max_connections: 50
+
+    - region: "ap-southeast-1"
+      replicas:
+        - id: "ap-southeast-1-replica-1"
+          url: "${SUPABASE_REPLICA_URL_AP_SE_1}"
+          weight: 100
+          max_connections: 50
+
+  # Read/Write split configuration
+  read_write_split:
+    enabled: true
+    read_preference: "replica"  # Options: replica, primary, automatic
+    operations:
+      read_only:
+        - "SELECT"
+        - "GET /api/v1/trust"
+        - "GET /api/v1/kpi/roi"
+        - "GET /api/v1/agents"
+      write_required:
+        - "INSERT"
+        - "UPDATE"
+        - "DELETE"
+        - "POST /api/v1/agents"
+        - "PUT /api/v1/agents/:id"
+        - "DELETE /api/v1/agents/:id"
+
+# Edge Caching Configuration
+edge_cache:
+  enabled: true
+  
+  # Cache rules per endpoint
+  rules:
+    - path: "/api/v1/trust"
+      ttl_seconds: 60
+      stale_while_revalidate: 120
+      cache_key_fields: ["region", "tenant_id"]
+    
+    - path: "/api/v1/kpi/roi"
+      ttl_seconds: 120
+      stale_while_revalidate: 180
+      cache_key_fields: ["region", "tenant_id", "time_range"]
+    
+    - path: "/health"
+      ttl_seconds: 30
+      stale_while_revalidate: 60
+      cache_key_fields: []
+
+  # Purge configuration
+  purge:
+    strategies:
+      - trigger: "data_update"
+        affected_paths: ["/api/v1/trust", "/api/v1/kpi/roi"]
+      - trigger: "agent_update"
+        affected_paths: ["/api/v1/agents"]
+
+# Data Residency Compliance
+data_residency:
+  enforcement: "strict"  # Options: strict, permissive, disabled
+  
+  # Regional data requirements
+  requirements:
+    - region: "eu-west-1"
+      compliance_frameworks: ["GDPR", "ISO27001"]
+      data_sovereignty: true
+      cross_region_transfer: false
+    
+    - region: "us-east-1"
+      compliance_frameworks: ["SOC2", "HIPAA"]
+      data_sovereignty: false
+      cross_region_transfer: true
+      allowed_transfer_regions: ["ap-southeast-1"]
+    
+    - region: "ap-southeast-1"
+      compliance_frameworks: ["PDPA", "ISO27001"]
+      data_sovereignty: true
+      cross_region_transfer: false
+
+# Performance SLA Targets
+sla:
+  availability: 0.995  # 99.5%
+  latency_p95: 700     # ms
+  latency_p99: 1200    # ms
+  error_rate: 0.01     # 1%
+  mttr: 300            # seconds (5 minutes)
+
+# Monitoring and Alerts
+monitoring:
+  metrics:
+    - name: "region_health_status"
+      type: "gauge"
+      labels: ["region_id"]
+    
+    - name: "region_latency_p95"
+      type: "histogram"
+      labels: ["region_id", "endpoint"]
+    
+    - name: "region_error_rate"
+      type: "counter"
+      labels: ["region_id", "error_type"]
+    
+    - name: "failover_events"
+      type: "counter"
+      labels: ["from_region", "to_region", "reason"]
+    
+    - name: "read_replica_connections"
+      type: "gauge"
+      labels: ["region_id", "replica_id"]
+
+  alerts:
+    - name: "RegionDown"
+      condition: "region_health_status == 0"
+      severity: "critical"
+      notification_channels: ["pagerduty", "slack"]
+    
+    - name: "HighLatency"
+      condition: "region_latency_p95 > 700"
+      severity: "warning"
+      notification_channels: ["slack"]
+    
+    - name: "HighErrorRate"
+      condition: "region_error_rate > 0.015"
+      severity: "warning"
+      notification_channels: ["slack"]

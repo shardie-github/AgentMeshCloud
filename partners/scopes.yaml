@@ -1,0 +1,149 @@
+# Partner API Scopes
+# Defines scoped access for 3rd-party integrations and OEM partners
+
+version: "1.0"
+updated: "2025-10-31"
+
+scopes:
+  # Read-Only Scopes
+  - id: "agents:read"
+    name: "Read Agents"
+    description: "View agent inventory and metadata"
+    resources:
+      - "GET /api/v1/agents"
+      - "GET /api/v1/agents/:id"
+    rate_limit: 100  # requests per minute
+    
+  - id: "kpis:read"
+    name: "Read KPIs"
+    description: "Access trust scores and KPI metrics"
+    resources:
+      - "GET /api/v1/trust"
+      - "GET /api/v1/trust/score/:agentId"
+      - "GET /api/v1/kpi/roi"
+    rate_limit: 50
+    
+  - id: "incidents:read"
+    name: "Read Incidents"
+    description: "View incident history and status"
+    resources:
+      - "GET /api/v1/incidents"
+      - "GET /api/v1/incidents/:id"
+    rate_limit: 100
+    
+  # Write Scopes
+  - id: "incidents:write"
+    name: "Report Incidents"
+    description: "Create and update incidents"
+    resources:
+      - "POST /api/v1/incidents"
+      - "PUT /api/v1/incidents/:id"
+    rate_limit: 20
+    requires:
+      - "incidents:read"
+    
+  - id: "agents:write"
+    name: "Manage Agents"
+    description: "Register and configure agents"
+    resources:
+      - "POST /api/v1/agents"
+      - "PUT /api/v1/agents/:id"
+      - "DELETE /api/v1/agents/:id"
+    rate_limit: 10
+    requires:
+      - "agents:read"
+    
+  # Admin Scopes
+  - id: "admin:full"
+    name: "Full Admin Access"
+    description: "Complete access to tenant resources (OEM partners only)"
+    resources:
+      - "GET /api/v1/*"
+      - "POST /api/v1/*"
+      - "PUT /api/v1/*"
+      - "DELETE /api/v1/*"
+    rate_limit: 500
+    restricted: true
+    requires_approval: true
+
+# Partner Tiers
+partner_tiers:
+  - id: "sandbox"
+    name: "Sandbox"
+    description: "Free tier for testing and development"
+    scopes:
+      - "agents:read"
+      - "kpis:read"
+      - "incidents:read"
+    quotas:
+      api_calls_per_day: 1000
+      sandbox_tenants: 1
+    features:
+      - "API access"
+      - "Documentation"
+      - "Community support"
+    price: 0
+    
+  - id: "integration"
+    name: "Integration Partner"
+    description: "Commercial integrations and apps"
+    scopes:
+      - "agents:read"
+      - "agents:write"
+      - "kpis:read"
+      - "incidents:read"
+      - "incidents:write"
+    quotas:
+      api_calls_per_day: 100000
+      customer_tenants: 100
+    features:
+      - "Full API access"
+      - "Technical support"
+      - "Co-marketing opportunities"
+      - "Partner directory listing"
+    price: 199  # per month
+    
+  - id: "oem"
+    name: "OEM / White-Label"
+    description: "Resell ORCA under your brand"
+    scopes:
+      - "admin:full"
+    quotas:
+      api_calls_per_day: -1  # unlimited
+      customer_tenants: -1  # unlimited
+    features:
+      - "White-label deployment"
+      - "Custom branding"
+      - "Dedicated support"
+      - "Revenue sharing (70/30)"
+      - "Partner portal access"
+      - "Multi-tenant admin"
+    price: null  # custom pricing
+    requires_contract: true
+
+# API Key Management
+api_keys:
+  format: "pk_live_{tier}_{random32}"
+  rotation_policy: "90_days"
+  encryption: "AES-256"
+  storage: "encrypted_at_rest"
+  
+  permissions:
+    - "Scoped by partner tier"
+    - "Tenant-isolated"
+    - "Rate-limited per scope"
+    - "Audited (all requests logged)"
+
+# Sandbox Environment
+sandbox:
+  url: "https://sandbox-api.orca-mesh.io"
+  tenants:
+    - id: "sandbox_demo_001"
+      name: "Demo Corp"
+      pre_seeded_data: true
+      reset_schedule: "daily"
+  features:
+    - "Synthetic data"
+    - "No real integrations"
+    - "Rate limits enforced"
+    - "Auto-expires after 90 days"
