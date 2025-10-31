@@ -38,7 +38,7 @@
     "ws": "^8.14.2",
     "socket.io": "^4.7.4",
     "prom-client": "^15.0.0",
-    "dotenv": "^16.3.1",
+    "dotenv": "^17.2.3",
     "pgvector": "^0.1.8",
     "openai": "^4.20.0",
     "@anthropic-ai/sdk": "^0.20.0",
