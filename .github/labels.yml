@@ -1,0 +1,189 @@
+# GitHub Labels Configuration
+# This file defines the labels used across the repository
+# Managed by repo-hygiene workflow
+
+# Type labels - what kind of change
+- name: "type/bug"
+  color: "d73a4a"
+  description: "Something isn't working"
+
+- name: "type/feature"
+  color: "0e8a16"
+  description: "New feature or request"
+
+- name: "type/enhancement"
+  color: "a2eeef"
+  description: "Enhancement to existing feature"
+
+- name: "type/docs"
+  color: "0075ca"
+  description: "Documentation improvements"
+
+- name: "type/refactor"
+  color: "fbca04"
+  description: "Code refactoring"
+
+- name: "type/test"
+  color: "1d76db"
+  description: "Testing improvements"
+
+- name: "type/chore"
+  color: "fef2c0"
+  description: "Maintenance and chores"
+
+- name: "type/security"
+  color: "b60205"
+  description: "Security-related changes"
+
+- name: "type/performance"
+  color: "5319e7"
+  description: "Performance improvements"
+
+# Priority labels
+- name: "priority/critical"
+  color: "b60205"
+  description: "Requires immediate attention"
+
+- name: "priority/high"
+  color: "d93f0b"
+  description: "High priority"
+
+- name: "priority/medium"
+  color: "fbca04"
+  description: "Medium priority"
+
+- name: "priority/low"
+  color: "0e8a16"
+  description: "Low priority"
+
+# Area labels - which part of the system
+- name: "area/registry"
+  color: "c2e0c6"
+  description: "Agent Registry"
+
+- name: "area/trust"
+  color: "c2e0c6"
+  description: "Trust Scoring (UADSI)"
+
+- name: "area/policy"
+  color: "c2e0c6"
+  description: "Policy Engine"
+
+- name: "area/api"
+  color: "c2e0c6"
+  description: "API/Gateway"
+
+- name: "area/telemetry"
+  color: "c2e0c6"
+  description: "Telemetry/Observability"
+
+- name: "area/security"
+  color: "c2e0c6"
+  description: "Security"
+
+- name: "area/ui"
+  color: "c2e0c6"
+  description: "UI/Frontend"
+
+- name: "area/database"
+  color: "c2e0c6"
+  description: "Database/Supabase"
+
+- name: "area/deployment"
+  color: "c2e0c6"
+  description: "Deployment/Vercel"
+
+- name: "area/docs"
+  color: "c2e0c6"
+  description: "Documentation"
+
+- name: "area/devex"
+  color: "c2e0c6"
+  description: "Developer Experience"
+
+- name: "area/ci"
+  color: "c2e0c6"
+  description: "CI/CD"
+
+# Status labels
+- name: "status/triage"
+  color: "ededed"
+  description: "Needs triage"
+
+- name: "status/blocked"
+  color: "b60205"
+  description: "Blocked by dependencies"
+
+- name: "status/in-progress"
+  color: "0e8a16"
+  description: "Currently being worked on"
+
+- name: "status/needs-review"
+  color: "fbca04"
+  description: "Needs code review"
+
+- name: "status/needs-testing"
+  color: "d4c5f9"
+  description: "Needs testing"
+
+- name: "status/ready-to-merge"
+  color: "0e8a16"
+  description: "Approved and ready to merge"
+
+- name: "status/on-hold"
+  color: "fbca04"
+  description: "On hold"
+
+# Special labels
+- name: "breaking-change"
+  color: "d73a4a"
+  description: "Introduces breaking changes"
+
+- name: "good-first-issue"
+  color: "7057ff"
+  description: "Good for newcomers"
+
+- name: "help-wanted"
+  color: "008672"
+  description: "Extra attention needed"
+
+- name: "needs-investigation"
+  color: "d876e3"
+  description: "Requires investigation"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "Duplicate of another issue"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "Won't be worked on"
+
+- name: "invalid"
+  color: "e4e669"
+  description: "Invalid issue"
+
+- name: "question"
+  color: "d876e3"
+  description: "Question or discussion"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Dependency updates"
+
+- name: "automation"
+  color: "1d76db"
+  description: "Automated updates"
+
+# Compliance & Governance
+- name: "compliance/soc2"
+  color: "bfd4f2"
+  description: "SOC 2 compliance related"
+
+- name: "compliance/gdpr"
+  color: "bfd4f2"
+  description: "GDPR compliance related"
+
+- name: "audit-required"
+  color: "b60205"
+  description: "Requires audit trail"

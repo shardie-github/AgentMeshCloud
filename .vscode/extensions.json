@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig",
+    "bradlc.vscode-tailwindcss",
+    "prisma.prisma",
+    "ms-vscode.vscode-typescript-next",
+    "christian-kohler.path-intellisense",
+    "davidanson.vscode-markdownlint",
+    "yzhang.markdown-all-in-one",
+    "github.copilot",
+    "github.vscode-pull-request-github",
+    "eamodio.gitlens",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "tamasfe.even-better-toml"
+  ],
+  "unwantedRecommendations": []
+}
