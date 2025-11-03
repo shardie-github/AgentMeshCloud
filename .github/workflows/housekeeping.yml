@@ -170,7 +170,7 @@ jobs:
         continue-on-error: true
 
       - name: CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v4
         continue-on-error: true
 
   db-safety:
