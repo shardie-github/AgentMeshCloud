@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Use Node (from .nvmrc) + Corepack
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
@@ -104,7 +104,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
@@ -146,7 +146,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
