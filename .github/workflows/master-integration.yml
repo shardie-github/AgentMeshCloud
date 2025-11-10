@@ -172,7 +172,7 @@ jobs:
           EOF
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: master-integration-${{ github.run_number }}
           path: |

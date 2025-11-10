@@ -45,7 +45,7 @@ jobs:
 
       - name: Upload AI Lint Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ai-lint-report
           path: |
@@ -75,7 +75,7 @@ jobs:
 
       - name: Upload Coverage Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: comment-coverage-report
           path: COMMENT_COVERAGE_REPORT.md
@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload Sync Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: env-sync-report
           path: ENV_SYNC_REPORT.md
@@ -160,7 +160,7 @@ jobs:
           fi
 
       - name: Upload Combined Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ai-maintenance-report
           path: AI_MAINTENANCE_REPORT.md

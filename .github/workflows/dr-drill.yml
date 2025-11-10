@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload DR Report
         if: steps.check_recent.outputs.recent_drill == 'false'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: dr-report-${{ github.event.inputs.environment || 'staging' }}-${{ github.run_number }}
           path: |

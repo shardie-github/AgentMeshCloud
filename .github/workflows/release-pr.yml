@@ -169,7 +169,7 @@ jobs:
           APP_URL: http://localhost:3000
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: release-build-${{ needs.validate-release.outputs.build-sha }}
           path: |

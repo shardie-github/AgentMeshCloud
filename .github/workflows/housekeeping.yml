@@ -325,7 +325,7 @@ jobs:
           EOF
 
       - name: Upload report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: housekeeping-report
           path: HOUSEKEEPING_REPORT.md
