@@ -117,7 +117,7 @@ jobs:
         if: ${{ secrets.SUPABASE_PROJECT_REF != '' }}
 
       - name: Comment migration status
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         if: ${{ secrets.SUPABASE_PROJECT_REF != '' }}
         with:
           script: |

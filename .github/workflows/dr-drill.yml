@@ -130,7 +130,7 @@ jobs:
 
       - name: Comment on PR (if applicable)
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
@@ -152,7 +152,7 @@ jobs:
 
       - name: Notify on Failure
         if: failure()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: |
             // In a real implementation, this would send notifications
