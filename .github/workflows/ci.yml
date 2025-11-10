@@ -79,7 +79,7 @@ jobs:
 
       - name: Upload NPM debug logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: npm-logs
           path: |

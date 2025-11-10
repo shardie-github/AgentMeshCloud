@@ -88,7 +88,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist/
@@ -321,7 +321,7 @@ jobs:
           DATABASE_URL: postgresql://orca:orca_test@localhost:5432/orcamesh_test
 
       - name: Upload executive summary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: executive-summary
           path: executive_summary.md

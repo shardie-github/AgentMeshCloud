@@ -38,7 +38,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Metrics
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: observatory-metrics
           path: |
@@ -80,7 +80,7 @@ jobs:
           fi
 
       - name: Upload Health Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: health-report
           path: HEALTH_REPORT.md
@@ -129,7 +129,7 @@ jobs:
           fi
 
       - name: Upload Dashboard
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: metrics-dashboard
           path: METRICS_DASHBOARD.md

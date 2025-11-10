@@ -66,7 +66,7 @@ jobs:
         run: pnpm build
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: build-artifacts
           path: |
@@ -110,7 +110,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       
       - name: Upload backup metadata
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: db-backup
           path: backups/*.json
@@ -140,7 +140,7 @@ jobs:
           API_KEY: ${{ secrets.API_KEY }}
       
       - name: Upload load test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: load-test-results
           path: tests/perf/summary.json
@@ -184,7 +184,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
       
       - name: Upload chaos results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: chaos-results
           path: chaos/reports/*.json
@@ -278,7 +278,7 @@ jobs:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
       
       - name: Upload Playwright results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: playwright-results
@@ -337,7 +337,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       
       - name: Upload canary results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: canary-results
           path: deploy/canary-*.json
@@ -422,7 +422,7 @@ jobs:
         run: pnpm tsx evidence/generate.ts --tag=${{ needs.rc-tag-and-build.outputs.tag }}
       
       - name: Upload evidence pack
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: evidence-pack
           path: evidence/pack-*.zip
